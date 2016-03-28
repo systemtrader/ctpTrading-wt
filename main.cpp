@@ -2,6 +2,7 @@
 #include <signal.h>
 #include <stdlib.h>
 #include "QTradingService.h"
+#include "config.h"
 
 using namespace std;
 

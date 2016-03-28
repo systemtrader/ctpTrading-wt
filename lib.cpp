@@ -1,4 +1,6 @@
 #include "lib.h"
+#include <time.h>
+#include <cstring>
 
 /**
  * 获取当前时间
@@ -20,3 +22,10 @@ string getLogPath(const string & pathName)
     return "/home/dev/git/ctpTrading/log/" + pathName + "_" + date + ".log";
 }
 
+char * stoc(string str)
+{
+    const char * s = str.c_str();
+    char * ch = new char[strlen(s) + 1];
+    strcpy(ch, s);
+    return ch;
+}

@@ -1,7 +1,7 @@
-#ifndef MARK_DATA_SPI_H
-#define MARK_DATA_SPI_H
+#ifndef TRADER_SPI_H
+#define TRADER_SPI_H
 
-#include "../ThostFtdcTraderApi.h"
+#include "ThostFtdcTraderApi.h"
 #include <fstream>
 #include <string>
 
@@ -23,7 +23,7 @@ private:
     void _saveMarkData(CThostFtdcDepthMarketDataField *data);
 
 public:
-    TraderSpi(CThostFtdcTraderApi *, string, string, string);
+    TraderSpi(CThostFtdcTraderApi *);
     ~TraderSpi();
 
     void OnFrontConnected();

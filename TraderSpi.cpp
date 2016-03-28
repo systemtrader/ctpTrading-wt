@@ -1,13 +1,10 @@
 #include "TraderSpi.h"
-#include "../lib.h"
+#include "lib.h"
 #include <cstring>
 
-TraderSpi::TraderSpi(CThostFtdcTraderApi * api, string userID, string password, string brokerID)
+TraderSpi::TraderSpi(CThostFtdcTraderApi * api)
 {
     _traderApi = api;
-    _userID = userID;
-    _password = password;
-    _brokerID = brokerID;
     _timestampFormat = "%Y-%m-%d %H:%M:%S";
 
     string sysPath = getLogPath("trade_sys"),
