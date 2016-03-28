@@ -5,15 +5,15 @@
 MarkDataSpi::MarkDataSpi(CThostFtdcMdApi * mdApi)
 {
     _mdApi = mdApi;
-    
+
     string sysPath = getLogPath("sys"),
            markDataPath = getLogPath("markData");
     _sysLogger.open(sysPath.c_str(), ios::app);
     _markData.open(markDataPath.c_str(), ios::app);
 
-    _userID = "037782";
-    _password = "224488";
-    _brokerID = "9999";
+    _userID = "";
+    _password = "";
+    _brokerID = "";
     _timestamp = "%Y-%m-%d %H:%M:%S";
 }
 
@@ -30,11 +30,11 @@ int MarkDataSpi::_login()
 
     memset(&reqUserLogin, 0, sizeof(reqUserLogin));
 
-    strcpy(reqUserLogin.BrokerID, _brokerID.c_str()); 
+    strcpy(reqUserLogin.BrokerID, _brokerID.c_str());
     strcpy(reqUserLogin.UserID, _userID.c_str());
     strcpy(reqUserLogin.Password, _password.c_str());
 
-    // 发出登陆请求 
+    // 发出登陆请求
     int res = _mdApi->ReqUserLogin(&reqUserLogin, 0);
     return res;
 }
@@ -44,7 +44,7 @@ void MarkDataSpi::OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, b
     _sysErrLog("OnRspError", pRspInfo, nRequestID, bIsLast);
 }
 
-void MarkDataSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, 
+void MarkDataSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
     CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
     _sysLogger << "OnRspUserLogin: ";
@@ -60,12 +60,12 @@ void MarkDataSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
     _sysErrLog("OnRspUserLogin", pRspInfo, nRequestID, bIsLast);
 
     char nicode[] = "ni1605";
-    char * Instrumnet[]={nicode}; 
+    char * Instrumnet[]={nicode};
     int res = _mdApi->SubscribeMarketData (Instrumnet,1);
     _sysReqRet("OnRspUserLogin", "SubscribeMarketData", res);
 }
 
-void MarkDataSpi::OnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, 
+void MarkDataSpi::OnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument,
     CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
     _sysErrLog("OnRspSubMarketData", pRspInfo, nRequestID, bIsLast);
@@ -85,7 +85,7 @@ void MarkDataSpi::_sysErrLog(string fun, CThostFtdcRspInfoField *info, int id, i
     _sysLogger << " | ErrMsg : " << info->ErrorMsg;
     _sysLogger << " | RequestID : " << id;
     _sysLogger << " | IsLast : " << isLast;
-    _sysLogger << endl; 
+    _sysLogger << endl;
 }
 
 void MarkDataSpi::_sysReqRet(string fun, string req, int code)
@@ -94,11 +94,12 @@ void MarkDataSpi::_sysReqRet(string fun, string req, int code)
     _sysLogger << " [REQUEST]";
     _sysLogger << " | " << fun;
     _sysLogger << " | " << req << " : " << code;
-    _sysLogger << endl; 
+    _sysLogger << endl;
 }
 
 void MarkDataSpi::_saveMarkData(CThostFtdcDepthMarketDataField *data)
 {
+    _markData << getDate(_timestamp) << "|";
     _markData << data->TradingDay << "|";
     _markData << data->InstrumentID << "|";
     _markData << data->ExchangeID << "|";

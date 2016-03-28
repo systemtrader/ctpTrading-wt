@@ -11,7 +11,7 @@ int main(int argc, char const *argv[])
 
 
     // 初始化行情API实例
-    CThostFtdcMdApi * mdApi = CThostFtdcMdApi::CreateFtdcMdApi("./flow");
+    CThostFtdcMdApi * mdApi = CThostFtdcMdApi::CreateFtdcMdApi("./flow/");
     // 初始化回调实例
     MarkDataSpi mdSpi(mdApi);
     mdApi->RegisterSpi(&mdSpi);
@@ -20,7 +20,7 @@ int main(int argc, char const *argv[])
     mdApi->Init();
     mdApi->Join();
     mdApi->Release();
-    
+
 
     return 0;
 }
