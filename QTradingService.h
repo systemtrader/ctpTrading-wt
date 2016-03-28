@@ -3,7 +3,6 @@
 
 #include "ThostFtdcMdApi.h"
 #include "ThostFtdcTraderApi.h"
-#include "config.h"
 
 class QTradingService
 {
