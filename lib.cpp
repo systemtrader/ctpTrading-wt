@@ -17,6 +17,6 @@ string getDate(string format)
 string getLogPath(const string & pathName)
 {
     string date = getDate("%Y%m%d");
-    return "./log/" + pathName + "_" + date + ".log";
+    return "/home/dev/git/ctpTrading/log/" + pathName + "_" + date + ".log";
 }
 
