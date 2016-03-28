@@ -11,7 +11,7 @@ QTradingService * tService;
 void dealSignal(int sig)
 {
     switch (sig) {
-        case SIG_STOP:
+        case SIG_STOP: // 退出信号
             tService->stop();
             delete tService;
             exit(0);
@@ -41,7 +41,7 @@ int main(int argc, char const *argv[])
     tService->init();
     // 添加监听
     signal(SIG_STOP, dealSignal);
-
+    // 服务启动，后期可以做成监听
     tService->start();
 
     // const char * str = CThostFtdcMdApi::GetApiVersion();
