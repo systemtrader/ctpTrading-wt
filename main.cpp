@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include "QTradingService.h"
 #include "config.h"
+#include "lib.h"
+#include <fstream>
 
 using namespace std;
 
@@ -11,15 +13,9 @@ QTradingService * tService;
 // 信号处理
 void dealSignal(int sig)
 {
-    switch (sig) {
-        case SIG_STOP: // 退出信号
-            tService->stop();
-            delete tService;
-            exit(0);
-            break;
-        default:
-            break;
-    }
+    tService->stop();
+    delete tService;
+    exit(0);
 }
 
 //**********************************
@@ -29,6 +25,13 @@ void dealSignal(int sig)
 //**********************************
 int main(int argc, char const *argv[])
 {
+    // 记录pid
+    ofstream pid;
+    string path = getPath("", PATH_PID);
+    pid.open(path.c_str(), ios::out);
+    pid << getpid();
+    pid.close();
+
     // 初始化环境
     int env;
     if (argc == 1) {
@@ -39,25 +42,10 @@ int main(int argc, char const *argv[])
     }
 
     tService = new QTradingService(env);
-    tService->init();
     // 添加监听
     signal(SIG_STOP, dealSignal);
     // 服务启动，后期可以做成监听
     tService->start();
-
-    // const char * str = CThostFtdcMdApi::GetApiVersion();
-    // cout << str << endl;
-
-    // // 初始化行情API实例
-    // mdApi = CThostFtdcMdApi::CreateFtdcMdApi("./flow/");
-    // // 初始化回调实例
-    // MarkDataSpi mdSpi(mdApi);
-    // mdApi->RegisterSpi(&mdSpi);
-    // char api[] = "tcp://180.168.146.187:10010";
-    // mdApi->RegisterFront(api);
-    // mdApi->Init();
-    // mdApi->Join();
-    // mdApi->Release();
 
     return 0;
 }
