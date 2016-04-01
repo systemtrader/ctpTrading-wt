@@ -1,2 +1,4 @@
 config.h
 sftp-config.json
+test/
+iniReader/
