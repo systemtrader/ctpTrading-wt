@@ -2,3 +2,4 @@ config.h
 sftp-config.json
 test/
 iniReader/
+test.bak/
