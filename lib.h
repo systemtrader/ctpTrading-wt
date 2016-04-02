@@ -40,7 +40,7 @@ public:
                 date = getDate("%Y%m%d");
                 return logPath + pathName + "_" + date + ".log";
             case PATH_PID:
-                return appRoot + "/pid";
+                return appRoot + "pid";
             case PATH_DATA:
                 date = getDate("%Y%m%d");
                 return dataPath + pathName + "_" + date + ".log";

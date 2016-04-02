@@ -1,14 +1,9 @@
 #include "MarketSpi.h"
 #include "../iniReader/iniReader.h"
+#include "../socket.h"
 #include <string>
-#include <errno.h>
 #include <iostream>
 #include <signal.h>
-#include <arpa/inet.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <unistd.h>
 
 using namespace std;
 
@@ -19,12 +14,14 @@ void shutdown(int sig)
 {
     mApi->Release();
     close(cfd);
+    string path = Lib::getPath("", PATH_PID);
+    remove(path.c_str());
 }
 
 int main(int argc, char const *argv[])
 {
     // 初始化参数
-    parseIniFile("../config.ini");
+    parseIniFile("config.ini");
     string flowPath = getOptionToString("flow_path");
     string bid      = getOptionToString("market_broker_id");
     string userID   = getOptionToString("market_user_id");
@@ -36,27 +33,14 @@ int main(int argc, char const *argv[])
 
     signal(30, shutdown);
     cout << "kill -30 " << getpid() << endl;
+    ofstream pid;
+    string path = Lib::getPath("", PATH_PID);
+    pid.open(path.c_str(), ios::out);
+    pid << getpid();
+    pid.close();
 
     // init socket
-    struct sockaddr_in serverAddr;
-
-    if ((cfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        cout << "create socket error" << endl;
-        exit(0);
-    }
-
-    memset(&serverAddr, 0, sizeof(serverAddr));
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port = htons(traderSrvPort);
-    if (inet_pton(AF_INET, traderSrvIp, &serverAddr.sin_addr) <= 0) {
-        cout << "inet_pton error" << endl;
-        exit(0);
-    }
-
-    if (connect(cfd, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) < 0) {
-        cout << "connect error" << strerror(errno) << endl;
-        exit(0);
-    }
+    cfd = getCSocket(traderSrvIp, traderSrvPort);
 
     // 初始化交易接口
     mApi = CThostFtdcMdApi::CreateFtdcMdApi(flowPath.c_str());

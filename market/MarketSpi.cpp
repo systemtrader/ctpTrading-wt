@@ -22,14 +22,6 @@ MarketSpi::MarketSpi(CThostFtdcMdApi * mdApi, int cfd,
     
 }
 
-void MarketSpi::send(string msg)
-{
-    if (send(_cfd, msg.c_str(), strlen(msg.c_str()), 0) < 0) {
-        cout << "send error" << endl;
-        kill(getpid(), 30);
-    }
-}
-
 void MarketSpi::OnFrontConnected()
 {
 
