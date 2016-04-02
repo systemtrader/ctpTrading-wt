@@ -7,16 +7,17 @@
 #include <time.h>
 #include <cstring>
 #include <fstream>
+#include <iostream>
 
 using namespace std;
+
+const int PATH_LOG  = 1;
+const int PATH_PID  = 2;
+const int PATH_DATA = 3;
 
 class Lib
 {
 public:
-
-    static int PATH_LOG  = 1;
-    static int PATH_PID  = 2;
-    static int PATH_DATA = 3;
 
     static string getDate(string format)
     {
@@ -30,9 +31,9 @@ public:
     static string getPath(const string pathName, int type = PATH_LOG)
     {
         string date, root;
-        string logPath  = getOptionToString('log_path');
-        string appRoot  = getOptionToString('app_root');
-        string dataPath = getOptionToString('data_path');
+        string logPath  = getOptionToString("log_path");
+        string appRoot  = getOptionToString("app_root");
+        string dataPath = getOptionToString("data_path");
 
         switch (type) {
             case PATH_LOG:
@@ -77,6 +78,7 @@ public:
     static void sysReqLog(string logName, int code)
     {
         string sysPath = getPath("sys");
+
         ofstream sysLogger;
         sysLogger.open(sysPath.c_str(), ios::app);
 

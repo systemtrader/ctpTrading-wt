@@ -1,22 +1,38 @@
 #include "MarketSpi.h"
 #include "../iniReader/iniReader.h"
 #include "../lib.h"
+#include "../cmd.h"
+#include <iostream>
 
-MarketSpi::MarketSpi(CThostFtdcMdApi * mdApi,
+using namespace std;
+
+MarketSpi::MarketSpi(CThostFtdcMdApi * mdApi, int cfd,
     string brokerID, string userID, string password)
 {
     _mdApi = mdApi;
 
-    string marketDataPath = getPath("market_data", PATH_DATA);
+    string marketDataPath = Lib::getPath("market_data", PATH_DATA);
     _marketData.open(marketDataPath.c_str(), ios::app);
 
     _userID = userID;
     _password = password;
     _brokerID = brokerID;
+
+    _cfd = cfd;
+    
+}
+
+void MarketSpi::send(string msg)
+{
+    if (send(_cfd, msg.c_str(), strlen(msg.c_str()), 0) < 0) {
+        cout << "send error" << endl;
+        kill(getpid(), 30);
+    }
 }
 
 void MarketSpi::OnFrontConnected()
 {
+
     CThostFtdcReqUserLoginField reqUserLogin;
 
     memset(&reqUserLogin, 0, sizeof(reqUserLogin));
@@ -27,24 +43,25 @@ void MarketSpi::OnFrontConnected()
 
     // 发出登陆请求
     int res = _mdApi->ReqUserLogin(&reqUserLogin, 0);
-    sysReqLog("MD_UserLogin", res);
+    Lib::sysReqLog("MD_UserLogin", res);
 }
 
 
 void MarketSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
     CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
-    sysErrLog("MD_UserLogin", pRspInfo, nRequestID, bIsLast);
+    Lib::sysErrLog("MD_UserLogin", pRspInfo, nRequestID, bIsLast);
 
-    char * Instrumnet[]={stoc(INSTRUMENT_ID)};
+    string instrumnetID = getOptionToString("instrumnet_id");
+    char * Instrumnet[]={Lib::stoc(instrumnetID)};
     int res = _mdApi->SubscribeMarketData (Instrumnet, 1);
-    sysReqLog("MD_SubscribeMarketData", res);
+    Lib::sysReqLog("MD_SubscribeMarketData", res);
 }
 
 void MarketSpi::OnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument,
     CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
-    sysErrLog("MD_SubMarketData", pRspInfo, nRequestID, bIsLast);
+    Lib::sysErrLog("MD_SubMarketData", pRspInfo, nRequestID, bIsLast);
 }
 
 /**
@@ -60,64 +77,61 @@ void MarketSpi::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarke
 
 void MarketSpi::OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
-    sysErrLog("MD_RspError", pRspInfo, nRequestID, bIsLast);
+    Lib::sysErrLog("MD_RspError", pRspInfo, nRequestID, bIsLast);
 }
 
 void MarketSpi::_saveMarketData(CThostFtdcDepthMarketDataField *data)
 {
-    _marketData << getDate(LOG_TIMESTAMP_FORMAT) << LOG_SPLIT;
-    _marketData << data->TradingDay << LOG_SPLIT;
-    _marketData << data->InstrumentID << LOG_SPLIT;
-    _marketData << data->ExchangeID << LOG_SPLIT;
-    _marketData << data->ExchangeInstID << LOG_SPLIT;
-    _marketData << data->LastPrice << LOG_SPLIT;
-    _marketData << data->PreSettlementPrice << LOG_SPLIT;
-    _marketData << data->PreClosePrice << LOG_SPLIT;
-    _marketData << data->PreOpenInterest << LOG_SPLIT;
-    _marketData << data->OpenPrice << LOG_SPLIT;
-    _marketData << data->HighestPrice << LOG_SPLIT;
-    _marketData << data->LowestPrice << LOG_SPLIT;
-    _marketData << data->Volume << LOG_SPLIT;
-    _marketData << data->Turnover << LOG_SPLIT;
-    _marketData << data->OpenInterest << LOG_SPLIT;
-    _marketData << data->ClosePrice << LOG_SPLIT;
-    _marketData << data->SettlementPrice << LOG_SPLIT;
-    _marketData << data->UpperLimitPrice << LOG_SPLIT;
-    _marketData << data->LowerLimitPrice << LOG_SPLIT;
-    _marketData << data->PreDelta << LOG_SPLIT;
-    _marketData << data->CurrDelta << LOG_SPLIT;
-    _marketData << data->UpdateTime << LOG_SPLIT;
-    _marketData << data->UpdateMillisec << LOG_SPLIT;
-    _marketData << data->BidPrice1 << LOG_SPLIT;
-    _marketData << data->BidVolume1 << LOG_SPLIT;
-    _marketData << data->AskPrice1 << LOG_SPLIT;
-    _marketData << data->AskVolume1 << LOG_SPLIT;
-    _marketData << data->BidPrice2 << LOG_SPLIT;
-    _marketData << data->BidVolume2 << LOG_SPLIT;
-    _marketData << data->AskPrice2 << LOG_SPLIT;
-    _marketData << data->AskVolume2 << LOG_SPLIT;
-    _marketData << data->BidPrice3 << LOG_SPLIT;
-    _marketData << data->BidVolume3 << LOG_SPLIT;
-    _marketData << data->AskPrice3 << LOG_SPLIT;
-    _marketData << data->AskVolume3 << LOG_SPLIT;
-    _marketData << data->BidPrice4 << LOG_SPLIT;
-    _marketData << data->BidVolume4 << LOG_SPLIT;
-    _marketData << data->AskPrice4 << LOG_SPLIT;
-    _marketData << data->AskVolume4 << LOG_SPLIT;
-    _marketData << data->BidPrice5 << LOG_SPLIT;
-    _marketData << data->BidVolume5 << LOG_SPLIT;
-    _marketData << data->AskPrice5 << LOG_SPLIT;
-    _marketData << data->AskVolume5 << LOG_SPLIT;
-    _marketData << data->AveragePrice << LOG_SPLIT;
+    _marketData << Lib::getDate("%Y-%m-%d %H:%M:%S") << "|";
+    _marketData << data->TradingDay << "|";
+    _marketData << data->InstrumentID << "|";
+    _marketData << data->ExchangeID << "|";
+    _marketData << data->ExchangeInstID << "|";
+    _marketData << data->LastPrice << "|";
+    _marketData << data->PreSettlementPrice << "|";
+    _marketData << data->PreClosePrice << "|";
+    _marketData << data->PreOpenInterest << "|";
+    _marketData << data->OpenPrice << "|";
+    _marketData << data->HighestPrice << "|";
+    _marketData << data->LowestPrice << "|";
+    _marketData << data->Volume << "|";
+    _marketData << data->Turnover << "|";
+    _marketData << data->OpenInterest << "|";
+    _marketData << data->ClosePrice << "|";
+    _marketData << data->SettlementPrice << "|";
+    _marketData << data->UpperLimitPrice << "|";
+    _marketData << data->LowerLimitPrice << "|";
+    _marketData << data->PreDelta << "|";
+    _marketData << data->CurrDelta << "|";
+    _marketData << data->UpdateTime << "|";
+    _marketData << data->UpdateMillisec << "|";
+    _marketData << data->BidPrice1 << "|";
+    _marketData << data->BidVolume1 << "|";
+    _marketData << data->AskPrice1 << "|";
+    _marketData << data->AskVolume1 << "|";
+    _marketData << data->BidPrice2 << "|";
+    _marketData << data->BidVolume2 << "|";
+    _marketData << data->AskPrice2 << "|";
+    _marketData << data->AskVolume2 << "|";
+    _marketData << data->BidPrice3 << "|";
+    _marketData << data->BidVolume3 << "|";
+    _marketData << data->AskPrice3 << "|";
+    _marketData << data->AskVolume3 << "|";
+    _marketData << data->BidPrice4 << "|";
+    _marketData << data->BidVolume4 << "|";
+    _marketData << data->AskPrice4 << "|";
+    _marketData << data->AskVolume4 << "|";
+    _marketData << data->BidPrice5 << "|";
+    _marketData << data->BidVolume5 << "|";
+    _marketData << data->AskPrice5 << "|";
+    _marketData << data->AskVolume5 << "|";
+    _marketData << data->AveragePrice << "|";
     _marketData << data->ActionDay << endl;
 }
 
 MarketSpi::~MarketSpi()
 {
     _marketData.close();
-
-    // _tApi->RegisterSpi(NULL);
-    // _tApi->Release();
-    // _tApi = NULL;
+    cout << "~" << endl;
 
 }

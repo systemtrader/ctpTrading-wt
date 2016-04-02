@@ -7,6 +7,8 @@
 #include <fstream>
 #include <string>
 #include <cstring>
+#include <sys/socket.h>
+#include <signal.h>
 
 using namespace std;
 
@@ -15,7 +17,6 @@ class MarketSpi : public CThostFtdcMdSpi
 private:
 
     CThostFtdcMdApi * _mdApi;
-    // CThostFtdcTraderApi * _tApi;
 
     ofstream _marketData;
 
@@ -23,11 +24,13 @@ private:
     string _userID;
     string _password;
 
+    int _cfd;
+
     void _saveMarketData(CThostFtdcDepthMarketDataField *);
 
 public:
 
-    MarketSpi(CThostFtdcMdApi *, string, string, string);
+    MarketSpi(CThostFtdcMdApi *, int, string, string, string);
     ~MarketSpi();
 
     void OnFrontConnected();
@@ -36,8 +39,6 @@ public:
     void OnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument,
         CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
     void OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarketData);
-    // void OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout,
-    //     CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 
     void OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 };
