@@ -12,7 +12,6 @@ using namespace std;
 int getPid()
 {
     string pidPath = Lib::getPath("", PATH_PID);
-    cout << pidPath << endl;
     ifstream pf(pidPath.c_str());
     char pc[20];
     pf.getline(pc, 20);
@@ -36,14 +35,14 @@ int main(int argc, char const *argv[])
         // stop market
         int pid = getPid();
         kill(pid, 30);
-        cout << pid << endl;
         // stop trader
         int cfd = getCSocket(traderSrvIp, traderSrvPort);
         sendMsg(cfd, CMD_MSG_SHUTDOWN);
         close(cfd);
     } else if (cmd.compare(CMD_MSG_START) == 0) {
-        system("./marketSrv &");
         system("./tradeSrv &");
+        sleep(1);
+        system("./marketSrv &");
     }
     return 0;
 }

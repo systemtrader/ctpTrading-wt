@@ -60,13 +60,14 @@ int main(int argc, char const *argv[])
     vector<string> params;
     int cfd, n;
     while (true) {
-        cout << "while" << endl;
         if ((cfd = accept(sfd, (struct sockaddr *)NULL, NULL)) == -1) {
             cout << "accept socket error: " << strerror(errno) <<  endl;
             continue;
         }
         n = recv(cfd, buff, 1024, 0);
         close(cfd);
+        if (n == 0) continue;
+
         buff[n] = '\0';
         msgLine = string(buff);
         msgLine = trim(msgLine);
@@ -83,7 +84,7 @@ int main(int argc, char const *argv[])
 
 bool action(string msg, std::vector<string> params)
 {
-    cout << msg << endl;
+    cout << "MSG:" << msg << endl;
     if (msg.compare(CMD_MSG_SHUTDOWN) == 0) {
         delete tAction;
         tApi->Release();

@@ -13,7 +13,7 @@ int cfd;
 void shutdown(int sig)
 {
     mApi->Release();
-    // close(cfd);
+    close(cfd);
     string path = Lib::getPath("", PATH_PID);
     remove(path.c_str());
 }
@@ -32,7 +32,6 @@ int main(int argc, char const *argv[])
     const char * traderSrvIp   = getOptionToChar("trader_srv_ip");
 
     signal(30, shutdown);
-    cout << "kill -30 " << getpid() << endl;
     ofstream pid;
     string path = Lib::getPath("", PATH_PID);
     pid.open(path.c_str(), ios::out);
@@ -40,8 +39,8 @@ int main(int argc, char const *argv[])
     pid.close();
 
     // init socket
-    // cfd = getCSocket(traderSrvIp, traderSrvPort);
-    cfd = 0;
+    cfd = getCSocket(traderSrvIp, traderSrvPort);
+    // cfd = 0;
 
     // 初始化交易接口
     mApi = CThostFtdcMdApi::CreateFtdcMdApi(flowPath.c_str());
