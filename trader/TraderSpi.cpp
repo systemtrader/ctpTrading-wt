@@ -1,6 +1,16 @@
 #include "TraderSpi.h"
-#include "global.h"
 #include "../lib.h"
+
+extern string brokerID;
+extern string userID;
+extern string password;
+
+extern int reqID;
+extern int orderRef;
+
+extern TThostFtdcFrontIDType   frontID;
+extern TThostFtdcSessionIDType sessionID;
+
 
 TraderSpi::TraderSpi(CThostFtdcTraderApi * api)
 {
@@ -38,10 +48,13 @@ void TraderSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
     } else {
         exit(-1);
     }
-    cout << "logined" << endl;
+    ofstream info;
+    Lib::initInfoLogHandle(info);
+    info << "login" << endl;
+    info.close();
 }
 
-void TraderSpi::OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder, 
+void TraderSpi::OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder,
     CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
     Lib::sysErrLog("T_OrderInsertRsp", pRspInfo, nRequestID, bIsLast);
@@ -55,7 +68,7 @@ void TraderSpi::OnRtnOrder(CThostFtdcOrderField *pOrder)
     info << "FrontID" << "|" << pOrder->FrontID << "|";
     info << "SessionID" << "|" << pOrder->SessionID << "|";
     info << "OrderRef" << "|" << pOrder->OrderRef << "|";
-    info << "OrderSubmitStatus" << "|" << pOrder->OrderSubmitStatus << "|";
+    info << "OrderSubmitStatus" << "|" << pOrder->OrderSubmitStatus << endl;
     info.close();
 
 }
@@ -65,12 +78,12 @@ void TraderSpi::OnRtnTrade(CThostFtdcTradeField *pTrade)
     ofstream info;
     Lib::initInfoLogHandle(info);
     info << "TradeSuccess" << "|";
-    info << "TradeID" << "|" << pTrade->TradeID << "|";
+    info << "TradeID" << "|" << pTrade->TradeID << endl;
     info.close();
 
 }
 
-void TraderSpi::OnErrRtnOrderInsert(CThostFtdcInputOrderField *pInputOrder, 
+void TraderSpi::OnErrRtnOrderInsert(CThostFtdcInputOrderField *pInputOrder,
     CThostFtdcRspInfoField *pRspInfo)
 {
     Lib::sysErrLog("T_OrderInsertRtnErr", pRspInfo, 0, 1);

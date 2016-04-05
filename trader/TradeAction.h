@@ -1,4 +1,3 @@
-#include "global.h"
 #include "../ThostFtdcTraderApi.h"
 #include "../lib.h"
 #include <string>
@@ -6,23 +5,34 @@
 
 using namespace std;
 
+
+extern string brokerID;
+extern string userID;
+extern string password;
+
+extern int reqID;
+extern int orderRef;
+
+extern TThostFtdcFrontIDType   frontID;
+extern TThostFtdcSessionIDType sessionID;
+
 class TradeAction
 {
 
 public:
 
-    TradeAction(CThostFtdcTraderApi * tApi) 
+    TradeAction(CThostFtdcTraderApi * tApi)
     {
         _tApi = tApi;
     };
 
-    ~TradeAction() 
+    ~TradeAction()
     {
         _tApi = NULL;
         cout << "~TradeAction" << endl;
     };
-    
-    void tradeFOK(string exchangeID, string instrumnetID, 
+
+    void tradeFOK(string exchangeID, string instrumnetID,
         int isBuy, int total, double price, int offsetType)
     {
         TThostFtdcOffsetFlagEnType offsetFlag;
@@ -42,7 +52,7 @@ public:
             default:
                 break;
         }
-        CThostFtdcInputOrderField order = createOrder(exchangeID, instrumnetID, 
+        CThostFtdcInputOrderField order = createOrder(exchangeID, instrumnetID,
             isBuy, total, price, offsetFlag,
             THOST_FTDC_HFEN_Speculation, THOST_FTDC_OPT_LimitPrice, THOST_FTDC_TC_IOC, THOST_FTDC_VC_CV);
         int res = _tApi->ReqOrderInsert(&order, reqID);
@@ -50,12 +60,12 @@ public:
     }
 
 private:
-    
+
     CThostFtdcTraderApi * _tApi;
 
-    CThostFtdcInputOrderField createOrder(string exchangeID, string instrumnetID, 
-        int isBuy, int total, double price, 
-        // double stopPrice, 
+    CThostFtdcInputOrderField createOrder(string exchangeID, string instrumnetID,
+        int isBuy, int total, double price,
+        // double stopPrice,
         TThostFtdcOffsetFlagEnType offsetFlag, // 开平标志
         TThostFtdcHedgeFlagEnType hedgeFlag = THOST_FTDC_HFEN_Speculation, // 投机套保标志
         TThostFtdcOrderPriceTypeType priceType = THOST_FTDC_OPT_LimitPrice, // 报单价格条件
@@ -101,7 +111,7 @@ private:
         // THOST_FTDC_HFEN_Arbitrage 套利
         // THOST_FTDC_HFEN_Hedge 套保
         order.CombHedgeFlag[0] = hedgeFlag;
-        
+
         ///报单价格条件
         // THOST_FTDC_OPT_AnyPrice 任意价
         // THOST_FTDC_OPT_LimitPrice 限价
@@ -135,7 +145,7 @@ private:
         // THOST_FTDC_VC_MV 最小数量
         // THOST_FTDC_VC_CV 全部数量
         order.VolumeCondition = volumeCondition;
-        
+
         ///触发条件
         // THOST_FTDC_CC_Immediately 立即
         // THOST_FTDC_CC_Touch 止损
@@ -162,7 +172,7 @@ private:
         ///请求编号
         reqID++;
         order.RequestID = reqID;
-        
+
         // order.GTDDate = ;///GTD日期
         // order.BusinessUnit = ;///业务单元
         // order.IsSwapOrder = ;///互换单标志
@@ -175,5 +185,5 @@ private:
 
         return order;
     }
-    
+
 };

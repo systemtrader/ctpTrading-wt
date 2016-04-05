@@ -23,7 +23,7 @@ int getPid()
 int main(int argc, char const *argv[])
 {
     if (argc == 1) {
-        cout << "请输入命令代码，0：停止服务" << endl;
+        cout << "请输入命令代码，0:停止服务|1:启动服务" << endl;
         exit(0);
     }
 
@@ -31,7 +31,7 @@ int main(int argc, char const *argv[])
     int          traderSrvPort = getOptionToInt("trader_srv_port");
     const char * traderSrvIp   = getOptionToChar("trader_srv_ip");
 
-    string cmd = string(argv[1]); 
+    string cmd = string(argv[1]);
     if (cmd.compare(CMD_MSG_SHUTDOWN) == 0) {
         // stop market
         int pid = getPid();
@@ -41,6 +41,9 @@ int main(int argc, char const *argv[])
         int cfd = getCSocket(traderSrvIp, traderSrvPort);
         sendMsg(cfd, CMD_MSG_SHUTDOWN);
         close(cfd);
+    } else if (cmd.compare(CMD_MSG_START) == 0) {
+        system("./marketSrv &");
+        system("./tradeSrv &");
     }
     return 0;
 }

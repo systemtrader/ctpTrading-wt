@@ -1,6 +1,5 @@
 #include "TraderSpi.h"
 #include "TradeAction.h"
-#include "global.h"
 #include "../iniReader/iniReader.h"
 #include "../lib.h"
 #include "../cmd.h"
@@ -12,7 +11,17 @@ using namespace std;
 
 CThostFtdcTraderApi * tApi;
 TradeAction * tAction;
-string instrumnetID;
+
+string brokerID;
+string userID;
+string password;
+
+int reqID = 0;
+int orderRef = 0;
+
+TThostFtdcFrontIDType   frontID;
+TThostFtdcSessionIDType sessionID;
+
 
 bool action(string msg, std::vector<string>);
 
@@ -27,7 +36,6 @@ int main(int argc, char const *argv[])
     brokerID        = getOptionToString("trader_broker_id");
     userID          = getOptionToString("trader_user_id");
     password        = getOptionToString("trader_password");
-    instrumnetID    = getOptionToString("instrumnet_id");
 
 
     // 初始化交易接口
@@ -37,7 +45,7 @@ int main(int argc, char const *argv[])
     tApi->RegisterFront(Lib::stoc(tURL));
     tApi->Init();
     // tApi->Join();
-    
+
     // 初始化交易行为
     tAction = new TradeAction(tApi);
 
@@ -77,7 +85,7 @@ bool action(string msg, std::vector<string> params)
     if (msg.compare(CMD_MSG_SHUTDOWN) == 0) {
         delete tAction;
         tApi->Release();
-        return false;
+        return true;
     }
     if (msg.compare(CMD_MSG_TRADE_FOK) == 0) {
         string exchangeID = params[1];
@@ -88,6 +96,6 @@ bool action(string msg, std::vector<string> params)
         int offsetType = atoi(params[6].c_str());
         tAction->tradeFOK(exchangeID, instrumnetID, isBuy, total, price, offsetType);
     }
-    return true;
+    return false;
 }
 
