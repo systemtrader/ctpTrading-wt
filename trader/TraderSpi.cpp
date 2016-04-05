@@ -45,13 +45,15 @@ void TraderSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
         frontID = pRspUserLogin->FrontID;
         sessionID = pRspUserLogin->SessionID;
         orderRef = atoi(pRspUserLogin->MaxOrderRef);
-    } else {
-        exit(-1);
+        ofstream info;
+        Lib::initInfoLogHandle(info);
+        info << "T_LoginSuccess" << "|";
+        info << "SessionID" << "|" << sessionID << "|";
+        info << "TradingDay" << "|" << pRspUserLogin->TradingDay << "|";
+        info << "MaxOrderRef" << "|" << pRspUserLogin->MaxOrderRef << endl;
+        info.close();
+
     }
-    ofstream info;
-    Lib::initInfoLogHandle(info);
-    info << "login" << endl;
-    info.close();
 }
 
 void TraderSpi::OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder,

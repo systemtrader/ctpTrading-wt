@@ -19,7 +19,15 @@ MarketSpi::MarketSpi(CThostFtdcMdApi * mdApi, int cfd,
     _brokerID = brokerID;
 
     _cfd = cfd;
-    
+
+}
+
+MarketSpi::~MarketSpi()
+{
+    _marketData.close();
+    _mdApi = NULL;
+    cout << "~MarketSpi" << endl;
+
 }
 
 void MarketSpi::OnFrontConnected()
@@ -43,6 +51,14 @@ void MarketSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
     CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
     Lib::sysErrLog("MD_UserLogin", pRspInfo, nRequestID, bIsLast);
+
+    ofstream info;
+    Lib::initInfoLogHandle(info);
+    info << "MD_LoginSuccess" << "|";
+    info << "SessionID" << "|" << pRspUserLogin->SessionID << "|";
+    info << "TradingDay" << "|" << pRspUserLogin->TradingDay << "|";
+    info << "MaxOrderRef" << "|" << pRspUserLogin->MaxOrderRef << endl;
+    info.close();
 
     string instrumnetID = getOptionToString("instrumnet_id");
     char * Instrumnet[]={Lib::stoc(instrumnetID)};
@@ -121,9 +137,4 @@ void MarketSpi::_saveMarketData(CThostFtdcDepthMarketDataField *data)
     _marketData << data->ActionDay << endl;
 }
 
-MarketSpi::~MarketSpi()
-{
-    _marketData.close();
-    cout << "~" << endl;
 
-}

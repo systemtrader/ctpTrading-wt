@@ -61,19 +61,21 @@ public:
 
     static void sysErrLog(string logName, CThostFtdcRspInfoField *info, int id, int isLast)
     {
-        string sysPath = getPath("sys");
-        ofstream sysLogger;
-        sysLogger.open(sysPath.c_str(), ios::app);
+        if (info->ErrorID != 0) {
+            string sysPath = getPath("sys");
+            ofstream sysLogger;
+            sysLogger.open(sysPath.c_str(), ios::app);
 
-        sysLogger << getDate("%Y-%m-%d %H:%M:%S") << "|";
-        sysLogger << "[ERROR]" << "|";
-        sysLogger << logName << "|";
-        sysLogger << "ErrCode" << "|" << info->ErrorID << "|";
-        sysLogger << "ErrMsg" << "|" << info->ErrorMsg << "|";
-        sysLogger << "RequestID" << "|" << id << "|";
-        sysLogger << "IsLast" << "|" << isLast << endl;
+            sysLogger << getDate("%Y-%m-%d %H:%M:%S") << "|";
+            sysLogger << "[ERROR]" << "|";
+            sysLogger << logName << "|";
+            sysLogger << "ErrCode" << "|" << info->ErrorID << "|";
+            sysLogger << "ErrMsg" << "|" << info->ErrorMsg << "|";
+            sysLogger << "RequestID" << "|" << id << "|";
+            sysLogger << "IsLast" << "|" << isLast << endl;
 
-        sysLogger.close();
+            sysLogger.close();
+        }
     }
 
     static void sysReqLog(string logName, int code)

@@ -42,6 +42,8 @@ int main(int argc, char const *argv[])
     tApi = CThostFtdcTraderApi::CreateFtdcTraderApi(flowPath.c_str());
     TraderSpi tSpi(tApi); // 初始化回调实例
     tApi->RegisterSpi(&tSpi);
+    tApi->SubscribePrivateTopic(THOST_TERT_QUICK);
+    tApi->SubscribePublicTopic(THOST_TERT_QUICK);
     tApi->RegisterFront(Lib::stoc(tURL));
     tApi->Init();
     // tApi->Join();
