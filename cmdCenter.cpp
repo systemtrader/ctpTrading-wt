@@ -21,6 +21,7 @@ int getPid()
 
 int main(int argc, char const *argv[])
 {
+
     if (argc == 1) {
         cout << "请输入命令代码，0:停止服务|1:启动服务" << endl;
         exit(0);

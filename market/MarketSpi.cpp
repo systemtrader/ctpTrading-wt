@@ -2,6 +2,7 @@
 #include "../iniReader/iniReader.h"
 #include "../lib.h"
 #include "../cmd.h"
+#include "../socket.h"
 #include <iostream>
 
 using namespace std;
@@ -90,6 +91,8 @@ void MarketSpi::OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, boo
 
 void MarketSpi::_saveMarketData(CThostFtdcDepthMarketDataField *data)
 {
+
+
     _marketData << Lib::getDate("%Y-%m-%d %H:%M:%S") << "|";
     _marketData << data->TradingDay << "|";
     _marketData << data->InstrumentID << "|";
@@ -135,6 +138,18 @@ void MarketSpi::_saveMarketData(CThostFtdcDepthMarketDataField *data)
     _marketData << data->AskVolume5 << "|";
     _marketData << data->AveragePrice << "|";
     _marketData << data->ActionDay << endl;
+    // 调试代码
+    string msg = "2";
+
+    string cmd = msg + "_" +
+                 data->ExchangeID + "_" +
+                 data->InstrumentID + "_" +
+                 "1_" +
+                 "1_" +
+                 Lib::dtos(data->AskPrice1) + "_" +
+                 "1";
+    sendMsg(_cfd, cmd);
+    exit(0);
 }
 
 

@@ -1,4 +1,5 @@
 #!/bin/bash
 
-g++ -o tradeSrv ../trader/*.cpp ../iniReader/iniReader.cpp -lthosttraderapi
-g++ -o marketSrv ../market/*.cpp ../iniReader/iniReader.cpp -lthostmduserapi
+g++ -o tradeSrv ../trader/*.cpp ../iniReader/iniReader.cpp ../socket.cpp -lthosttraderapi
+g++ -o marketSrv ../market/*.cpp ../iniReader/iniReader.cpp ../socket.cpp -lthostmduserapi
+g++ -o cmdCenter ../cmdCenter.cpp ../iniReader/iniReader.cpp ../socket.cpp

@@ -97,6 +97,7 @@ bool action(string msg, std::vector<string> params)
         int total = atoi(params[4].c_str());
         double price = atof(params[5].c_str());
         int offsetType = atoi(params[6].c_str());
+        cout << exchangeID << "|" << instrumnetID << "|" << isBuy << "|" << total << "|" << price << "|" << offsetType << endl;
         tAction->tradeFOK(exchangeID, instrumnetID, isBuy, total, price, offsetType);
     }
     return false;

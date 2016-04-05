@@ -9,6 +9,7 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <sstream>
 
 using namespace std;
 
@@ -57,7 +58,15 @@ public:
         char * ch = new char[strlen(s) + 1];
         strcpy(ch, s);
         return ch;
-    }
+    };
+
+    static string dtos(double dbl)
+    {
+        std::ostringstream strs;
+        strs << dbl;
+        std::string str = strs.str();
+        return str;
+    };
 
     static void sysErrLog(string logName, CThostFtdcRspInfoField *info, int id, int isLast)
     {
