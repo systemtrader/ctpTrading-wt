@@ -32,7 +32,7 @@ public:
         cout << "~TradeAction" << endl;
     };
 
-    void tradeFOK(string exchangeID, string instrumnetID,
+    void tradeFOK(string instrumnetID,
         int isBuy, int total, double price, int offsetType)
     {
         TThostFtdcOffsetFlagEnType offsetFlag;
@@ -52,7 +52,7 @@ public:
             default:
                 break;
         }
-        CThostFtdcInputOrderField order = createOrder(exchangeID, instrumnetID,
+        CThostFtdcInputOrderField order = createOrder(instrumnetID,
             isBuy, total, price, offsetFlag,
             THOST_FTDC_HFEN_Speculation, THOST_FTDC_OPT_LimitPrice, THOST_FTDC_TC_IOC, THOST_FTDC_VC_CV);
         int res = _tApi->ReqOrderInsert(&order, reqID);
@@ -63,7 +63,7 @@ private:
 
     CThostFtdcTraderApi * _tApi;
 
-    CThostFtdcInputOrderField createOrder(string exchangeID, string instrumnetID,
+    CThostFtdcInputOrderField createOrder(string instrumnetID,
         int isBuy, int total, double price,
         // double stopPrice,
         TThostFtdcOffsetFlagEnType offsetFlag, // 开平标志
@@ -74,13 +74,13 @@ private:
         TThostFtdcContingentConditionType contingentCondition = THOST_FTDC_CC_Immediately// 触发条件
         )
     {
-        CThostFtdcInputOrderField order;
+        CThostFtdcInputOrderField order = {0};
 
         strcpy(order.BrokerID, brokerID.c_str()); ///经纪公司代码
         strcpy(order.InvestorID, userID.c_str()); ///投资者代码
         strcpy(order.InstrumentID, instrumnetID.c_str()); ///合约代码
         strcpy(order.UserID, userID.c_str()); ///用户代码
-        strcpy(order.ExchangeID, exchangeID.c_str()); ///交易所代码
+        // strcpy(order.ExchangeID, "SHFE"); ///交易所代码
 
         order.MinVolume = 1;///最小成交量
         order.ForceCloseReason = THOST_FTDC_FCC_NotForceClose;///强平原因
@@ -90,7 +90,7 @@ private:
         order.Direction = isBuy ? THOST_FTDC_D_Buy : THOST_FTDC_D_Sell; ///买卖方向
         order.VolumeTotalOriginal = total;///数量
         order.LimitPrice = price;///价格
-        // order.StopPrice = stopPrice;///止损价
+        order.StopPrice = 0;///止损价
 
         ///组合开平标志
         //THOST_FTDC_OFEN_Open 开仓

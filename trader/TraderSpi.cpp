@@ -53,7 +53,47 @@ void TraderSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
         info << "MaxOrderRef" << "|" << pRspUserLogin->MaxOrderRef << endl;
         info.close();
 
+        CThostFtdcSettlementInfoConfirmField ef = {0};
+        strcpy(ef.BrokerID, brokerID.c_str());
+        strcpy(ef.InvestorID, userID.c_str());
+        strcpy(ef.ConfirmDate, pRspUserLogin->TradingDay);
+        // strcpy(ef.InvestorID, userID.c_str());
+        int res = _tApi->ReqSettlementInfoConfirm(&ef, 0);
+        Lib::sysReqLog("T_ReqSettlementInfoConfirm", res);
     }
+}
+
+void TraderSpi::OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm, 
+    CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) 
+{
+    ofstream info;
+    Lib::initInfoLogHandle(info);
+    info << "T_OnRspSettlementInfoConfirm" << "|";
+    info << "ConfirmDate" << "|" << pSettlementInfoConfirm->ConfirmDate << "|";
+    info << "ConfirmTime" << "|" << pSettlementInfoConfirm->ConfirmTime << endl;
+    info.close();
+};
+
+void TraderSpi::OnRspQryExchange(CThostFtdcExchangeField *pExchange, 
+    CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+    // ofstream info;
+    // Lib::initInfoLogHandle(info);
+    // info << "T_OnRspQryExchange" << "|";
+    // info << "ExchangeID" << "|" << pExchange->ExchangeID << "|";
+    // info << "ExchangeProperty" << "|" << pExchange->ExchangeProperty << "|";
+    // info << "ExchangeName" << "|" << pExchange->ExchangeName << endl;
+    // info.close();
+}
+
+void TraderSpi::OnRspQryDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarketData, 
+        CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+    // ofstream info;
+    // Lib::initInfoLogHandle(info);
+    // info << "T_OnRspQryDepthMarketData" << "|";
+    // info << "ExchangeID" << "|" << pDepthMarketData->ExchangeID << endl;
+    // info.close();
 }
 
 void TraderSpi::OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder,

@@ -91,14 +91,13 @@ bool action(string msg, std::vector<string> params)
         return true;
     }
     if (msg.compare(CMD_MSG_TRADE_FOK) == 0) {
-        string exchangeID = params[1];
-        string instrumnetID = params[2];
-        int isBuy = atoi(params[3].c_str());
-        int total = atoi(params[4].c_str());
-        double price = atof(params[5].c_str());
-        int offsetType = atoi(params[6].c_str());
-        cout << exchangeID << "|" << instrumnetID << "|" << isBuy << "|" << total << "|" << price << "|" << offsetType << endl;
-        tAction->tradeFOK(exchangeID, instrumnetID, isBuy, total, price, offsetType);
+        string instrumnetID = params[1];
+        int isBuy = atoi(params[2].c_str());
+        int total = atoi(params[3].c_str());
+        double price = atof(params[4].c_str());
+        int offsetType = atoi(params[5].c_str());
+        cout  << instrumnetID << "|" << isBuy << "|" << total << "|" << price << "|" << offsetType << endl;
+        tAction->tradeFOK(instrumnetID, isBuy, total, price, offsetType);
     }
     return false;
 }

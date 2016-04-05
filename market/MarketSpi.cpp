@@ -142,7 +142,6 @@ void MarketSpi::_saveMarketData(CThostFtdcDepthMarketDataField *data)
     string msg = "2";
 
     string cmd = msg + "_" +
-                 data->ExchangeID + "_" +
                  data->InstrumentID + "_" +
                  "1_" +
                  "1_" +
