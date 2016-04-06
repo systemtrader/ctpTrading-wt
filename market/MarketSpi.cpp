@@ -138,17 +138,17 @@ void MarketSpi::_saveMarketData(CThostFtdcDepthMarketDataField *data)
     _marketData << data->AskVolume5 << "|";
     _marketData << data->AveragePrice << "|";
     _marketData << data->ActionDay << endl;
-    // 调试代码
-    string msg = "2";
+    // // 调试代码
+    // string msg = "2";
 
-    string cmd = msg + "_" +
-                 data->InstrumentID + "_" +
-                 "1_" +
-                 "1_" +
-                 Lib::dtos(data->AskPrice1) + "_" +
-                 "1";
-    sendMsg(_cfd, cmd);
-    exit(0);
+    // string cmd = msg + "_" +
+    //              data->InstrumentID + "_" +
+    //              "1_" +
+    //              "1_" +
+    //              Lib::dtos(data->LastPrice) + "_" +
+    //              "1";
+    // sendMsg(_cfd, cmd);
+    // exit(0);
 }
 
 

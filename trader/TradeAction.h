@@ -80,7 +80,7 @@ private:
         strcpy(order.InvestorID, userID.c_str()); ///投资者代码
         strcpy(order.InstrumentID, instrumnetID.c_str()); ///合约代码
         strcpy(order.UserID, userID.c_str()); ///用户代码
-        // strcpy(order.ExchangeID, "SHFE"); ///交易所代码
+        strcpy(order.ExchangeID, "SHFE"); ///交易所代码
 
         order.MinVolume = 1;///最小成交量
         order.ForceCloseReason = THOST_FTDC_FCC_NotForceClose;///强平原因
