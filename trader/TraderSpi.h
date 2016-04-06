@@ -14,18 +14,29 @@ private:
 
     CThostFtdcTraderApi * _tApi;
 
-    string _userID;
-    string _password;
-    string _brokerID;
-
 public:
-    TraderSpi(CThostFtdcTraderApi *, string, string, string);
+    TraderSpi(CThostFtdcTraderApi *);
     ~TraderSpi();
 
     void OnFrontConnected();
     void OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
         CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
-
+    void OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder, 
+        CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+    ///错误应答
+    void OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+    ///报单通知
+    void OnRtnOrder(CThostFtdcOrderField *pOrder);
+    ///成交通知
+    void OnRtnTrade(CThostFtdcTradeField *pTrade);
+    ///报单录入错误回报
+    void OnErrRtnOrderInsert(CThostFtdcInputOrderField *pInputOrder, CThostFtdcRspInfoField *pRspInfo);
+    void OnRspQryExchange(CThostFtdcExchangeField *pExchange, 
+        CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+    void OnRspQryDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarketData, 
+        CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+    void OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm, 
+        CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 };
 
 #endif
