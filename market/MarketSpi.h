@@ -23,6 +23,7 @@ private:
     string _brokerID;
     string _userID;
     string _password;
+    int _flag;
 
     int _cfd;
 

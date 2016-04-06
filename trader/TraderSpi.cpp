@@ -34,20 +34,20 @@ void TraderSpi::OnFrontConnected()
 
     // 发出登陆请求
     int res = _tApi->ReqUserLogin(&reqUserLogin, 0);
-    Lib::sysReqLog("T_UserLogin", res);
+    Lib::sysReqLog("T_ReqUserLogin", res);
 }
 
 void TraderSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
     CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
-    Lib::sysErrLog("T_UserLoginRsp", pRspInfo, nRequestID, bIsLast);
+    Lib::sysErrLog("T_OnRspUserLogin", pRspInfo, nRequestID, bIsLast);
     if (pRspUserLogin) {
         frontID = pRspUserLogin->FrontID;
         sessionID = pRspUserLogin->SessionID;
         orderRef = atoi(pRspUserLogin->MaxOrderRef);
         ofstream info;
         Lib::initInfoLogHandle(info);
-        info << "T_LoginSuccess" << "|";
+        info << "T_OnRspUserLogin" << "|";
         info << "SessionID" << "|" << sessionID << "|";
         info << "TradingDay" << "|" << pRspUserLogin->TradingDay << "|";
         info << "MaxOrderRef" << "|" << pRspUserLogin->MaxOrderRef << endl;
@@ -63,8 +63,8 @@ void TraderSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
     }
 }
 
-void TraderSpi::OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm, 
-    CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) 
+void TraderSpi::OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm,
+    CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
     ofstream info;
     Lib::initInfoLogHandle(info);
@@ -74,7 +74,7 @@ void TraderSpi::OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField 
     info.close();
 };
 
-void TraderSpi::OnRspQryExchange(CThostFtdcExchangeField *pExchange, 
+void TraderSpi::OnRspQryExchange(CThostFtdcExchangeField *pExchange,
     CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
     // ofstream info;
@@ -86,7 +86,7 @@ void TraderSpi::OnRspQryExchange(CThostFtdcExchangeField *pExchange,
     // info.close();
 }
 
-void TraderSpi::OnRspQryDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarketData, 
+void TraderSpi::OnRspQryDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarketData,
         CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
     // ofstream info;
@@ -99,7 +99,7 @@ void TraderSpi::OnRspQryDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMa
 void TraderSpi::OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder,
     CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
-    Lib::sysErrLog("T_OrderInsertRsp", pRspInfo, nRequestID, bIsLast);
+    Lib::sysErrLog("T_OnRspOrderInsert", pRspInfo, nRequestID, bIsLast);
 }
 
 void TraderSpi::OnRtnOrder(CThostFtdcOrderField *pOrder)
@@ -128,11 +128,11 @@ void TraderSpi::OnRtnTrade(CThostFtdcTradeField *pTrade)
 void TraderSpi::OnErrRtnOrderInsert(CThostFtdcInputOrderField *pInputOrder,
     CThostFtdcRspInfoField *pRspInfo)
 {
-    Lib::sysErrLog("T_OrderInsertRtnErr", pRspInfo, 0, 1);
+    Lib::sysErrLog("T_OnErrRtnOrderInsert", pRspInfo, 0, 1);
 }
 
 void TraderSpi::OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
-    Lib::sysErrLog("T_ReqErr", pRspInfo, nRequestID, bIsLast);
+    Lib::sysErrLog("T_OnRspError", pRspInfo, nRequestID, bIsLast);
 }
 

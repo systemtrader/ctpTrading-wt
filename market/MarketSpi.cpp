@@ -20,6 +20,7 @@ MarketSpi::MarketSpi(CThostFtdcMdApi * mdApi, int cfd,
     _brokerID = brokerID;
 
     _cfd = cfd;
+    _flag = 1;
 
 }
 
@@ -44,14 +45,14 @@ void MarketSpi::OnFrontConnected()
 
     // 发出登陆请求
     int res = _mdApi->ReqUserLogin(&reqUserLogin, 0);
-    Lib::sysReqLog("MD_UserLogin", res);
+    Lib::sysReqLog("M_ReqUserLogin", res);
 }
 
 
 void MarketSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
     CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
-    Lib::sysErrLog("MD_UserLogin", pRspInfo, nRequestID, bIsLast);
+    Lib::sysErrLog("M_OnRspUserLogin", pRspInfo, nRequestID, bIsLast);
 
     ofstream info;
     Lib::initInfoLogHandle(info);
@@ -64,13 +65,13 @@ void MarketSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
     string instrumnetID = getOptionToString("instrumnet_id");
     char * Instrumnet[]={Lib::stoc(instrumnetID)};
     int res = _mdApi->SubscribeMarketData (Instrumnet, 1);
-    Lib::sysReqLog("MD_SubscribeMarketData", res);
+    Lib::sysReqLog("M_SubscribeMarketData", res);
 }
 
 void MarketSpi::OnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument,
     CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
-    Lib::sysErrLog("MD_SubMarketData", pRspInfo, nRequestID, bIsLast);
+    Lib::sysErrLog("M_OnRspSubMarketData", pRspInfo, nRequestID, bIsLast);
 }
 
 /**
@@ -86,7 +87,7 @@ void MarketSpi::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarke
 
 void MarketSpi::OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
-    Lib::sysErrLog("MD_RspError", pRspInfo, nRequestID, bIsLast);
+    Lib::sysErrLog("M_OnRspError", pRspInfo, nRequestID, bIsLast);
 }
 
 void MarketSpi::_saveMarketData(CThostFtdcDepthMarketDataField *data)
@@ -138,17 +139,20 @@ void MarketSpi::_saveMarketData(CThostFtdcDepthMarketDataField *data)
     _marketData << data->AskVolume5 << "|";
     _marketData << data->AveragePrice << "|";
     _marketData << data->ActionDay << endl;
-    // // 调试代码
-    // string msg = "2";
 
-    // string cmd = msg + "_" +
-    //              data->InstrumentID + "_" +
-    //              "1_" +
-    //              "1_" +
-    //              Lib::dtos(data->LastPrice) + "_" +
-    //              "1";
-    // sendMsg(_cfd, cmd);
-    // exit(0);
+    // if (_flag) {
+    //     // 调试代码
+    //     string msg = "2";
+
+    //     string cmd = msg + "_" +
+    //                  data->InstrumentID + "_" +
+    //                  "1_" +
+    //                  "1_" +
+    //                  Lib::dtos(data->LastPrice) + "_" +
+    //                  "1";
+    //     sendMsg(_cfd, cmd);
+    //     _flag = 0;
+    // }
 }
 
 
