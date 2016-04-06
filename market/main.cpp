@@ -28,8 +28,8 @@ int main(int argc, char const *argv[])
     string password = getOptionToString("market_password");
     string mURL     = getOptionToString("market_front");
 
-    int          traderSrvPort = getOptionToInt("trader_srv_port");
-    const char * traderSrvIp   = getOptionToChar("trader_srv_ip");
+    int          kLineSrvPort = getOptionToInt("k_line_srv_port");
+    const char * kLineSrvIp   = getOptionToChar("k_line_srv_ip");
 
     signal(30, shutdown);
     ofstream pid;
@@ -39,7 +39,7 @@ int main(int argc, char const *argv[])
     pid.close();
 
     // init socket
-    cfd = getCSocket(traderSrvIp, traderSrvPort);
+    cfd = getCSocket(kLineSrvIp, kLineSrvPort);
     // cfd = 0;
 
     // 初始化交易接口
@@ -48,6 +48,7 @@ int main(int argc, char const *argv[])
     mApi->RegisterSpi(&mSpi);
     mApi->RegisterFront(Lib::stoc(mURL));
     mApi->Init();
+    cout << "MarketSrv start success!" << endl;
     mApi->Join();
 
     return 0;

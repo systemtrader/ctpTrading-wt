@@ -62,6 +62,7 @@ int main(int argc, char const *argv[])
     string msgLine, msg;
     vector<string> params;
     int cfd, n;
+    cout << "TradeSrv start success!" << endl;
     while (true) {
         if ((cfd = accept(sfd, (struct sockaddr *)NULL, NULL)) == -1) {
             cout << "accept socket error: " << strerror(errno) <<  endl;

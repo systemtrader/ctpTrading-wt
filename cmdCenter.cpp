@@ -31,17 +31,28 @@ int main(int argc, char const *argv[])
     int          traderSrvPort = getOptionToInt("trader_srv_port");
     const char * traderSrvIp   = getOptionToChar("trader_srv_ip");
 
+    int          kLineSrvPort = getOptionToInt("k_line_srv_port");
+    const char * kLineSrvIp   = getOptionToChar("k_line_srv_ip");
+
     string cmd = string(argv[1]);
     if (cmd.compare(CMD_MSG_SHUTDOWN) == 0) {
         // stop market
         int pid = getPid();
         kill(pid, 30);
+
         // stop trader
-        int cfd = getCSocket(traderSrvIp, traderSrvPort);
-        sendMsg(cfd, CMD_MSG_SHUTDOWN);
-        close(cfd);
+        int tcfd = getCSocket(traderSrvIp, traderSrvPort);
+        sendMsg(tcfd, CMD_MSG_SHUTDOWN);
+        close(tcfd);
+
+        // stop kline
+        int kcfd = getCSocket(kLineSrvIp, kLineSrvPort);
+        sendMsg(kcfd, CMD_MSG_SHUTDOWN);
+        close(kcfd);
+
     } else if (cmd.compare(CMD_MSG_START) == 0) {
         system("./tradeSrv &");
+        system("./kLineSrv &");
         sleep(1);
         system("./marketSrv &");
     }
