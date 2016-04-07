@@ -1,4 +1,4 @@
-#include "socket.h"
+#include "Socket.h"
 
 int getSSocket(int port)
 {

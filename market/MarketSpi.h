@@ -3,12 +3,10 @@
 
 #include "../ThostFtdcMdApi.h"
 #include "../ThostFtdcTraderApi.h"
-#include "../lib.h"
+#include "../Libs/Lib.h"
 #include <fstream>
 #include <string>
 #include <cstring>
-#include <sys/socket.h>
-#include <signal.h>
 
 using namespace std;
 

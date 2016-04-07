@@ -1,8 +1,8 @@
 #include "MarketSpi.h"
 #include "../iniReader/iniReader.h"
-#include "../lib.h"
+#include "../Libs/Lib.h"
+#include "../Libs/Socket.h"
 #include "../cmd.h"
-#include "../socket.h"
 #include <iostream>
 
 using namespace std;

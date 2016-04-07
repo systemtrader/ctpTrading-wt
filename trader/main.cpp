@@ -1,9 +1,9 @@
 #include "TraderSpi.h"
 #include "TradeAction.h"
 #include "../iniReader/iniReader.h"
-#include "../lib.h"
+#include "../Libs/Lib.h"
+#include "../Libs/Socket.h"
 #include "../cmd.h"
-#include "../socket.h"
 #include <string>
 #include <iostream>
 
