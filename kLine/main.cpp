@@ -1,6 +1,6 @@
 #include "../iniReader/iniReader.h"
-#include "../Libs/Lib.h"
-#include "../Libs/Socket.h"
+#include "../libs/Lib.h"
+#include "../libs/Socket.h"
 #include "../cmd.h"
 #include <string>
 #include <iostream>

@@ -3,7 +3,7 @@
 
 #include "../ThostFtdcMdApi.h"
 #include "../ThostFtdcTraderApi.h"
-#include "../Libs/Lib.h"
+#include "../libs/Lib.h"
 #include <fstream>
 #include <string>
 #include <cstring>

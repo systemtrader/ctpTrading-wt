@@ -1,6 +1,6 @@
 #!/bin/bash
 
-g++ -o tradeSrv ../trader/*.cpp ../Libs/*.cpp ../iniReader/*.cpp -lthosttraderapi
-g++ -o marketSrv ../market/*.cpp ../Libs/*.cpp ../iniReader/*.cpp -lthostmduserapi
-g++ -o kLineSrv ../kLine/*.cpp ../Libs/*.cpp ../iniReader/*.cpp
-g++ -o cmdCenter ../cmdCenter.cpp ../Libs/*.cpp ../iniReader/*.cpp
+g++ -o tradeSrv ../trader/*.cpp ../libs/*.cpp ../iniReader/*.cpp -lthosttraderapi
+g++ -o marketSrv ../market/*.cpp ../libs/*.cpp ../iniReader/*.cpp -lthostmduserapi
+g++ -o kLineSrv ../kLine/*.cpp ../libs/*.cpp ../iniReader/*.cpp
+g++ -o cmdCenter ../cmdCenter.cpp ../libs/*.cpp ../iniReader/*.cpp

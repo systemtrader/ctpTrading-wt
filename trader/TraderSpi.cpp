@@ -1,5 +1,5 @@
 #include "TraderSpi.h"
-#include "../Libs/Lib.h"
+#include "../libs/Lib.h"
 
 extern string brokerID;
 extern string userID;

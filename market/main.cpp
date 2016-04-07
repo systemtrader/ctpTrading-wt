@@ -1,7 +1,7 @@
 #include "MarketSpi.h"
 #include "../iniReader/iniReader.h"
-#include "../Libs/Socket.h"
-#include "../Libs/Lib.h"
+#include "../libs/Socket.h"
+#include "../libs/Lib.h"
 #include <string>
 #include <iostream>
 #include <signal.h>
