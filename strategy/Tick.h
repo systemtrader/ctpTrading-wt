@@ -1,0 +1,11 @@
+#include <string>
+
+using namespace std;
+
+struct Tick
+{
+    double price;
+    string date;
+    string time;
+    int volume; 
+};

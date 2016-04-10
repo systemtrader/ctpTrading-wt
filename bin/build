@@ -2,5 +2,5 @@
 
 g++ -o tradeSrv ../trader/*.cpp ../libs/*.cpp ../iniReader/*.cpp -lthosttraderapi
 g++ -o marketSrv ../market/*.cpp ../libs/*.cpp ../iniReader/*.cpp -lthostmduserapi
-g++ -o kLineSrv ../kLine/*.cpp ../libs/*.cpp ../iniReader/*.cpp
 g++ -o cmdCenter ../cmdCenter.cpp ../libs/*.cpp ../iniReader/*.cpp
+g++ -o kLineSrv ../strategy/kLine/*.cpp ../strategy/*.cpp ../libs/*.cpp ../iniReader/*.cpp
