@@ -29,6 +29,8 @@ public:
 
     static string dtos(double dbl);
 
+    static string itos(int num);
+
     static void sysErrLog(string logName, CThostFtdcRspInfoField *info, int id, int isLast);
 
     static void sysReqLog(string logName, int code);

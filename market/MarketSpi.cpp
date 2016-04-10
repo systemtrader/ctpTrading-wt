@@ -22,14 +22,16 @@ MarketSpi::MarketSpi(CThostFtdcMdApi * mdApi, int cfd,
     _cfd = cfd;
     _flag = 1;
 
+    _store = new Redis("127.0.0.1", 6379, 1);
+
 }
 
 MarketSpi::~MarketSpi()
 {
     _marketData.close();
     _mdApi = NULL;
+    delete _store;
     cout << "~MarketSpi" << endl;
-
 }
 
 void MarketSpi::OnFrontConnected()
@@ -92,9 +94,18 @@ void MarketSpi::OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, boo
 
 void MarketSpi::_saveMarketData(CThostFtdcDepthMarketDataField *data)
 {
+    string localTime = Lib::getDate("%Y-%m-%d %H:%M:%S");
+    string keyQ = "MARKET_TICK_Q";
+    string keyD = "CURRENT_TICK";
+    string storeData = localTime + "_" + 
+                  string(data->TradingDay) + "_" +
+                  string(data->UpdateTime) + "_" +
+                  Lib::dtos(data->LastPrice) + "_" +
+                  Lib::itos(data->Volume);
+    _store->set(keyD, storeData);
+    _store->push(keyQ, storeData);
 
-
-    _marketData << Lib::getDate("%Y-%m-%d %H:%M:%S") << "|";
+    _marketData << localTime << "|";
     _marketData << data->TradingDay << "|";
     _marketData << data->InstrumentID << "|";
     _marketData << data->ExchangeID << "|";

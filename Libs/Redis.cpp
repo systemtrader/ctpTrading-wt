@@ -29,6 +29,24 @@ Redis::~Redis()
     delete pRedisReply;
 }
 
+void Redis::push(string key, string data)
+{
+    string cmd = "lpush " + key + " " + data;
+    execCmd(cmd);
+}
+
+void Redis::set(string key, string data)
+{
+    string cmd = "set " + key + " " + data;
+    execCmd(cmd);
+}
+
+string Redis::get(string key)
+{
+    string cmd = "get " + key;
+    execCmd(cmd);
+}
+
 string Redis::execCmd(string cmd)
 {
     //redisReply是Redis命令回复对象 redis返回的信息保存在redisReply对象中

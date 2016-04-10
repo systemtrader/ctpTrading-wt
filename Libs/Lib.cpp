@@ -51,6 +51,13 @@ string Lib::dtos(double dbl)
     return str;
 };
 
+string Lib::itos(int num)
+{
+    char s[10];
+    sprintf(s, "%d", num);
+    return string(s);
+}
+
 void Lib::sysErrLog(string logName, CThostFtdcRspInfoField *info, int id, int isLast)
 {
     if (info->ErrorID != 0) {

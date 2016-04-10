@@ -4,6 +4,7 @@
 #include "../ThostFtdcMdApi.h"
 #include "../ThostFtdcTraderApi.h"
 #include "../libs/Lib.h"
+#include "../libs/Redis.h"
 #include <fstream>
 #include <string>
 #include <cstring>
@@ -24,6 +25,8 @@ private:
     int _flag;
 
     int _cfd;
+
+    Redis * _store;
 
     void _saveMarketData(CThostFtdcDepthMarketDataField *);
 
