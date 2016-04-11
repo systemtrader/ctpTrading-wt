@@ -82,6 +82,7 @@ int main(int argc, char const *argv[])
         }
     }
     close(sfd);
+    cout << "TradeSrv stop success!" << endl;
 
     return 0;
 }

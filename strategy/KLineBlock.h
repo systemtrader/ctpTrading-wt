@@ -28,7 +28,7 @@ private:
 
 
 public:
-    KLineBlock(int index, string date, string time, 
+    KLineBlock(int index, string date, string time,
         double tick, int volume);
     ~KLineBlock();
 
@@ -43,6 +43,9 @@ public:
     string getOpenTime();
     string getCloseDate();
     string getCloseTime();
+    int getType();
+    int getIndex();
+    int getVolume();
 
     void show();
 };

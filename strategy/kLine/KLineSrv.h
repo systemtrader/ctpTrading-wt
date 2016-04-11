@@ -1,14 +1,16 @@
 #include "../KLineBlock.h"
 #include "../Tick.h"
+#include "../../libs/Redis.h"
 
 class KLineSrv
 {
 private:
-    
+
     KLineBlock * _currentBlock;
 
     int _index;
     int _kRange;
+    Redis * _store;
 
     int _isBlockExist();
     int _checkBlockClose(Tick tick);
@@ -19,6 +21,6 @@ private:
 public:
     KLineSrv(int kRange);
     ~KLineSrv();
-    
+
     void onTickCome(Tick tick);
 };

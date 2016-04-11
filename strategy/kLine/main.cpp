@@ -45,7 +45,7 @@ int main(int argc, char const *argv[])
         }
     }
     close(sfd);
-
+    cout << "KLineSrv stop success!" << endl;
     return 0;
 }
 

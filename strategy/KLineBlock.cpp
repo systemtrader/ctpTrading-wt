@@ -1,6 +1,6 @@
 #include "KLineBlock.h"
 
-KLineBlock::KLineBlock(int index, string date, string time, 
+KLineBlock::KLineBlock(int index, string date, string time,
     double tick, int volume)
 {
     _index = index;
@@ -77,6 +77,21 @@ string KLineBlock::getCloseDate()
 string KLineBlock::getCloseTime()
 {
     return _closeTime;
+}
+
+int KLineBlock::getIndex()
+{
+    return _index;
+}
+
+int KLineBlock::getType()
+{
+    return _type;
+}
+
+int KLineBlock::getVolume()
+{
+    return _volume;
 }
 
 void KLineBlock::show()

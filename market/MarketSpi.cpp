@@ -95,16 +95,22 @@ void MarketSpi::OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, boo
 void MarketSpi::_saveMarketData(CThostFtdcDepthMarketDataField *data)
 {
     string localTime = Lib::getDate("%Y-%m-%d %H:%M:%S");
-    string keyQ = "MARKET_TICK_Q";
-    string keyD = "CURRENT_TICK";
-    string storeData = localTime + "_" + 
+    string storeData = localTime + "_" +
                   string(data->TradingDay) + "_" +
                   string(data->UpdateTime) + "_" +
                   Lib::dtos(data->LastPrice) + "_" +
                   Lib::itos(data->Volume);
-    _store->set(keyD, storeData);
+    // 发送给K线系统
+    // string cmd = CMD_MSG_TICK + "_" + storeData;
+    // sendMsg(_cfd, cmd);
+
+    // 将数据放入队列，以便存入DB
+    string keyQ = "MARKET_TICK_Q";
+    string keyD = "CURRENT_TICK";
+    _store->set(keyD, storeData); // tick数据，供全局使用
     _store->push(keyQ, storeData);
 
+    // 日志记录
     _marketData << localTime << "|";
     _marketData << data->TradingDay << "|";
     _marketData << data->InstrumentID << "|";
@@ -151,19 +157,6 @@ void MarketSpi::_saveMarketData(CThostFtdcDepthMarketDataField *data)
     _marketData << data->AveragePrice << "|";
     _marketData << data->ActionDay << endl;
 
-    // if (_flag) {
-    //     // 调试代码
-    //     string msg = "2";
-
-    //     string cmd = msg + "_" +
-    //                  data->InstrumentID + "_" +
-    //                  "1_" +
-    //                  "1_" +
-    //                  Lib::dtos(data->LastPrice) + "_" +
-    //                  "1";
-    //     sendMsg(_cfd, cmd);
-    //     _flag = 0;
-    // }
 }
 
 

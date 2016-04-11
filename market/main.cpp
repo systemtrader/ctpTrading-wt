@@ -17,6 +17,7 @@ void shutdown(int sig)
     close(cfd);
     string path = Lib::getPath("", PATH_PID);
     remove(path.c_str());
+    cout << "MarketSrv stop success!" << endl;
 }
 
 int main(int argc, char const *argv[])
