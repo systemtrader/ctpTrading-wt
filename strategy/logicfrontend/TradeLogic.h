@@ -18,8 +18,20 @@ private:
 
     int closeAction;
 
-    int getStatus();
-    int
+    // 开仓参数
+    double max;
+    double mean;
+    double min;
+    
+
+    // 判断仓位状态
+    int _getStatus();
+    // 计算开仓参数
+    void _calculateOpen();
+    // 计算卖平仓参数
+    void _calculateSellClose();
+    // 计算买平仓参数
+    void _calculateBuyClose();
 
 public:
     TradeLogic();
