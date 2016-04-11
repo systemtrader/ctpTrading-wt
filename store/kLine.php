@@ -13,6 +13,7 @@ class KLine
 
     public function run()
     {
+        echo "kLine consumer run..." . PHP_EOL;
         while (true) {
             $data = $this->consumer->popViaRds("K_LINE_Q");
             if ($data) {

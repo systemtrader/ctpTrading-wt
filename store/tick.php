@@ -13,6 +13,7 @@ class Tick
 
     public function run()
     {
+        echo "tick consumer run..." . PHP_EOL;
         while (true) {
             $data = $this->consumer->popViaRds("MARKET_TICK_Q");
             if ($data) {

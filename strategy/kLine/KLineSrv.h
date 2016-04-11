@@ -1,3 +1,5 @@
+#ifndef K_LINE_SRV_H
+#define K_LINE_SRV_H
 #include "../KLineBlock.h"
 #include "../Tick.h"
 #include "../../libs/Redis.h"
@@ -24,3 +26,4 @@ public:
 
     void onTickCome(Tick tick);
 };
+#endif

@@ -1,4 +1,5 @@
-// #include "../libs/Redis.h"
+#ifndef K_LINE_BLOCK_H
+#define K_LINE_BLOCK_H
 #include <string>
 #include <iostream>
 
@@ -50,3 +51,4 @@ public:
 
     void show();
 };
+#endif
