@@ -17,15 +17,16 @@ class Consumer
     public function popViaRds($key)
     {
         $data = $this->rds->rPop($key);
+        if (empty($data)) return false;
         $data = explode('_', $data);
         return $data;
     }
 
     public function insertDB($sql, $data)
     {
-        $st = $pdo->prepare($sql);
+        $st = $this->mysql->prepare($sql);
         $result = $st->execute($data);
-        $re = $pdo->lastInsertId();
+        $re = $this->mysql->lastInsertId();
         return $re;
     }
 

@@ -15,8 +15,17 @@ class Tick
     {
         while (true) {
             $data = $this->consumer->popViaRds("MARKET_TICK_Q");
-            $localTime = $data[0];
-            sleep(1);
+            if ($data) {
+                $localTime = strtotime(str_replace("-", " ", $data[0]));
+                $time = strtotime($data[1] . " " . $data[2]);
+                $price = $data[3];
+                $volume = $data[4];
+                $sql = "insert into `tick` (`time`, `price`, `volume`, `local_time`) values (?, ?, ?, ?)";
+                $params = [date("Y/m/d H:i:s", $time), $price, $volume, date("Y/m/d H:i:s", $localTime)];
+                $this->consumer->insertDB($sql, $params);
+            } else {
+                sleep(1);
+            }
         }
     }
 }

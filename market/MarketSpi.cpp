@@ -94,7 +94,7 @@ void MarketSpi::OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, boo
 
 void MarketSpi::_saveMarketData(CThostFtdcDepthMarketDataField *data)
 {
-    string localTime = Lib::getDate("%Y-%m-%d %H:%M:%S");
+    string localTime = Lib::getDate("%Y%m%d-%H:%M:%S");
     string storeData = localTime + "_" +
                   string(data->TradingDay) + "_" +
                   string(data->UpdateTime) + "_" +

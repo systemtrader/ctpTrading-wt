@@ -31,14 +31,13 @@ Redis::~Redis()
 
 void Redis::push(string key, string data)
 {
-    string cmd = "lpush " + key + " \"" + data + "\"";
-    // cout << cmd.c_str() << endl;
+    string cmd = "lpush " + key + " " + data;
     execCmd(cmd);
 }
 
 void Redis::set(string key, string data)
 {
-    string cmd = "set " + key + " \"" + data + "\"";
+    string cmd = "set " + key + " " + data;
     execCmd(cmd);
 }
 
@@ -52,7 +51,6 @@ string Redis::execCmd(string cmd)
 {
     //redisReply是Redis命令回复对象 redis返回的信息保存在redisReply对象中
     pRedisReply = (redisReply*)redisCommand(pRedisContext, cmd.c_str());  //执行INFO命令
-
     string res = "";
     if (pRedisReply->len > 0)
         res = pRedisReply->str;

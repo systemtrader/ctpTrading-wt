@@ -65,7 +65,7 @@ void Lib::sysErrLog(string logName, CThostFtdcRspInfoField *info, int id, int is
         ofstream sysLogger;
         sysLogger.open(sysPath.c_str(), ios::app);
 
-        sysLogger << getDate("%Y-%m-%d %H:%M:%S") << "|";
+        sysLogger << getDate("%Y%m%d-%H:%M:%S") << "|";
         sysLogger << "[ERROR]" << "|";
         sysLogger << logName << "|";
         sysLogger << "ErrCode" << "|" << info->ErrorID << "|";
@@ -84,7 +84,7 @@ void Lib::sysReqLog(string logName, int code)
     ofstream sysLogger;
     sysLogger.open(sysPath.c_str(), ios::app);
 
-    sysLogger << getDate("%Y-%m-%d %H:%M:%S") << "|";
+    sysLogger << getDate("%Y%m%d-%H:%M:%S") << "|";
     sysLogger << "[REQUEST]" << "|";
     sysLogger << logName << "|";
     sysLogger << "Code" << "|" << code << endl;
@@ -98,7 +98,7 @@ void Lib::initInfoLogHandle(ofstream & sysLogger)
 
     sysLogger.open(sysPath.c_str(), ios::app);
 
-    sysLogger << getDate("%Y-%m-%d %H:%M:%S") << "|";
+    sysLogger << getDate("%Y%m%d-%H:%M:%S") << "|";
     sysLogger << "[INFO]" << "|";
 }
 
