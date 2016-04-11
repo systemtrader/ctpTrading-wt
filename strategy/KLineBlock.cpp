@@ -1,8 +1,23 @@
 #include "KLineBlock.h"
 
-KLineBlock::KLineBlock(int index, string date, string time,
+KLineBlock::KLineBlock()
+{
+
+}
+
+KLineBlock::~KLineBlock()
+{
+
+}
+
+void KLineBlock::init(int index, string date, string time,
     double tick, int volume)
 {
+    cout << index << endl;
+    cout << date << endl;
+    cout << time << endl;
+    cout << tick << endl;
+    cout << volume << endl;
     _index = index;
     _openDate = date;
     _openTime = time;
@@ -15,11 +30,6 @@ KLineBlock::KLineBlock(int index, string date, string time,
     _volume = volume;
 
     _type = KLINE_TYPE_UNKOWN;
-}
-
-KLineBlock::~KLineBlock()
-{
-
 }
 
 void KLineBlock::update(double tick, int volume)
@@ -37,6 +47,7 @@ void KLineBlock::close(string date, string time)
 {
     _closeDate = date;
     _closeTime = time;
+    _type = _openPrice > _closePrice ? KLINE_TYPE_UP : KLINE_TYPE_DOWN;
 }
 
 double KLineBlock::getMaxPrice()

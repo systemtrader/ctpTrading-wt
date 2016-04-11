@@ -28,10 +28,11 @@ private:
 
 
 public:
-    KLineBlock(int index, string date, string time,
-        double tick, int volume);
+    KLineBlock();
     ~KLineBlock();
 
+    void init(int index, string date, string time,
+        double tick, int volume);
     void update(double tick, int volume);
     void close(string date, string time);
 

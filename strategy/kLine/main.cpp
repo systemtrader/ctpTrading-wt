@@ -37,6 +37,7 @@ int main(int argc, char const *argv[])
 
         buff[n] = '\0';
         msgLine = string(buff);
+        cout << msgLine << endl;
         msgLine = trim(msgLine);
         params = Lib::split(msgLine, "_");
         msg = params[0];
@@ -53,15 +54,16 @@ bool action(string msg, std::vector<string> params)
 {
     cout << "MSG:" << msg << endl;
     if (msg.compare(CMD_MSG_SHUTDOWN) == 0) {
-        delete service;
+        if (service)
+            delete service;
         return true;
     }
     if (msg.compare(CMD_MSG_TICK) == 0) {
         Tick tick = {0};
-        tick.price  = atof(params[1].c_str());
-        tick.volume = atoi(params[2].c_str());
-        tick.date   = params[3];
-        tick.time   = params[4];
+        tick.date   = params[2];
+        tick.time   = params[3];
+        tick.price  = atof(params[4].c_str());
+        tick.volume = atoi(params[5].c_str());
         service->onTickCome(tick);
     }
     return false;

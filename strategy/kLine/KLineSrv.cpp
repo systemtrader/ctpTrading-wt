@@ -2,10 +2,10 @@
 #include "../../libs/Lib.h"
 #include <cmath>
 
-KLineSrv::KLineSrv(int KRange)
+KLineSrv::KLineSrv(int kRange)
 {
     _index = 0;
-    _kRange = KRange;
+    _kRange = kRange;
     _currentBlock = NULL;
     _store = new Redis("127.0.0.1", 6379, 1);
 }
@@ -13,8 +13,7 @@ KLineSrv::KLineSrv(int KRange)
 KLineSrv::~KLineSrv()
 {
     delete _store;
-    if (_currentBlock)
-        delete _currentBlock;
+    cout << "~KLineSrv" << endl;
 }
 
 void KLineSrv::onTickCome(Tick tick)
@@ -32,15 +31,17 @@ void KLineSrv::onTickCome(Tick tick)
 
 int KLineSrv::_isBlockExist()
 {
-    if (_currentBlock == NULL) return 0;
+    if (NULL == _currentBlock) return 0;
     return 1;
 }
 
 void KLineSrv::_initBlock(Tick tick)
 {
-    _currentBlock = new KLineBlock(_index, tick.date, tick.time,
+    _currentBlock = new KLineBlock();
+    _currentBlock->init(_index, tick.date, tick.time,
         tick.price, tick.volume);
     _index++;
+    // 发送消息TODO
 }
 
 int KLineSrv::_checkBlockClose(Tick tick)
@@ -59,7 +60,7 @@ void KLineSrv::_updateBlock(Tick tick)
 void KLineSrv::_closeBlock(Tick tick)
 {
     _currentBlock->close(tick.date, tick.time);
-    string localTime = Lib::getDate("%Y-%m-%d %H:%M:%S");
+    string localTime = Lib::getDate("%Y%m%d-%H:%M:%S");
     string keyQ = "K_LINE_Q";
     string storeData = localTime + "_" +
                     Lib::itos(_currentBlock->getIndex()) + "_" +
@@ -73,5 +74,8 @@ void KLineSrv::_closeBlock(Tick tick)
                     Lib::itos(_currentBlock->getVolume()) + "_" +
                     _currentBlock->getCloseDate() + "_" +
                     _currentBlock->getCloseTime();
+    delete _currentBlock;
+    _currentBlock = NULL;
+    // 发送消息
     _store->push(keyQ, storeData);
 }

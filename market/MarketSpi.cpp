@@ -101,8 +101,8 @@ void MarketSpi::_saveMarketData(CThostFtdcDepthMarketDataField *data)
                   Lib::dtos(data->LastPrice) + "_" +
                   Lib::itos(data->Volume);
     // 发送给K线系统
-    // string cmd = CMD_MSG_TICK + "_" + storeData;
-    // sendMsg(_cfd, cmd);
+    string cmd = CMD_MSG_TICK + "_" + storeData;
+    sendMsg(_cfd, cmd);
 
     // 将数据放入队列，以便存入DB
     string keyQ = "MARKET_TICK_Q";

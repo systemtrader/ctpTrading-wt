@@ -40,10 +40,10 @@ int main(int argc, char const *argv[])
         int pid = getPid();
         kill(pid, 30);
 
-        // stop trader
-        int tcfd = getCSocket(traderSrvIp, traderSrvPort);
-        sendMsg(tcfd, CMD_MSG_SHUTDOWN);
-        close(tcfd);
+        // // stop trader
+        // int tcfd = getCSocket(traderSrvIp, traderSrvPort);
+        // sendMsg(tcfd, CMD_MSG_SHUTDOWN);
+        // close(tcfd);
 
         // stop kline
         int kcfd = getCSocket(kLineSrvIp, kLineSrvPort);
@@ -51,7 +51,7 @@ int main(int argc, char const *argv[])
         close(kcfd);
 
     } else if (cmd.compare(CMD_MSG_START) == 0) {
-        system("./tradeSrv &");
+        // system("./tradeSrv &");
         system("./kLineSrv &");
         sleep(1);
         system("./marketSrv &");

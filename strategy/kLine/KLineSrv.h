@@ -7,10 +7,10 @@ class KLineSrv
 private:
 
     KLineBlock * _currentBlock;
+    Redis * _store;
 
     int _index;
     int _kRange;
-    Redis * _store;
 
     int _isBlockExist();
     int _checkBlockClose(Tick tick);
