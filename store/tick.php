@@ -1,4 +1,5 @@
 <?php
+ini_set('display_error', 0);
 require 'consumer.php';
 /**
 *
@@ -13,7 +14,7 @@ class Tick
 
     public function run()
     {
-        echo "tick consumer run..." . PHP_EOL;
+        echo "tick consumer run" . PHP_EOL;
         while (true) {
             $data = $this->consumer->popViaRds("MARKET_TICK_Q");
             if ($data) {
@@ -22,8 +23,8 @@ class Tick
                 $price = $data[3];
                 $volume = $data[4];
                 $sql = "insert into `tick` (`time`, `price`, `volume`, `local_time`) values (?, ?, ?, ?)";
-                $params = [date("Y/m/d H:i:s", $time), $price, $volume, date("Y/m/d H:i:s", $localTime)];
-                var_dump($params);
+                $params = array(date("Y/m/d H:i:s", $time), $price, $volume, date("Y/m/d H:i:s", $localTime));
+                echo ".";
                 $this->consumer->insertDB($sql, $params);
             } else {
                 sleep(1);
@@ -32,4 +33,5 @@ class Tick
     }
 }
 
-(new Tick)->run();
+$tick = new Tick();
+$tick->run();

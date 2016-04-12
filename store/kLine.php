@@ -13,7 +13,7 @@ class KLine
 
     public function run()
     {
-        echo "kLine consumer run..." . PHP_EOL;
+        echo "kLine consumer run" . PHP_EOL;
         while (true) {
             $data = $this->consumer->popViaRds("K_LINE_Q");
             if ($data) {
@@ -27,14 +27,14 @@ class KLine
                 $close = $data[8];
                 $volume = $data[9];
                 $closeTime = strtotime($data[10] . " " . $data[11]);
-                $sql = "insert into `tick` (`index`, `open_time`, `close_time`, `open_price`, `close_price`, `max_price`, `min_price`, `volume`) values (?, ?, ?, ?, ?, ?, ?, ?)";
-                $params = [
+                $sql = "insert into `kline` (`index`, `open_time`, `close_time`, `open_price`, `close_price`, `max_price`, `min_price`, `volume`) values (?, ?, ?, ?, ?, ?, ?, ?)";
+                $params = array(
                     $index,
                     date("Y/m/d H:i:s", $openTime),
                     date("Y/m/d H:i:s", $closeTime),
                     $open, $close, $max, $min, $volume,
-                ];
-                var_dump($params);
+                );
+                echo ".";
                 $this->consumer->insertDB($sql, $params);
             } else {
                 sleep(1);
@@ -43,4 +43,5 @@ class KLine
     }
 }
 
-(new kLine)->run();
+$kline = new kLine();
+$kline->run();

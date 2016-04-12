@@ -20,13 +20,14 @@ void KLineSrv::onTickCome(Tick tick)
 {
     if (_isBlockExist()) {
         _updateBlock(tick);
+        _currentBlock->show();
         if (_checkBlockClose(tick)) {
             _closeBlock(tick);
         }
     } else {
         _initBlock(tick);
+        _currentBlock->show();
     }
-    _currentBlock->show();
 }
 
 int KLineSrv::_isBlockExist()

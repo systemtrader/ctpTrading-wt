@@ -1,6 +1,7 @@
-config.h
 sftp-config.json
 bin/cmdCenter
 bin/kLineSrv
 bin/marketSrv
 bin/tradeSrv
+test/
+config.*

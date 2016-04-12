@@ -26,18 +26,12 @@ int main(int argc, char const *argv[])
     vector<string> params;
     int cfd, n;
     cout << "KLineSrv start success!" << endl;
-    while (true) {
-        if ((cfd = accept(sfd, (struct sockaddr *)NULL, NULL)) == -1) {
-            cout << "accept socket error: " << strerror(errno) <<  endl;
-            continue;
-        }
-        n = recv(cfd, buff, 1024, 0);
-        close(cfd);
-        if (n == 0) continue;
-
+    if ((cfd = accept(sfd, (struct sockaddr *)NULL, NULL)) == -1) {
+        cout << "accept socket error: " << strerror(errno) <<  endl;
+    }
+    while ((n = recv(cfd, buff, 1024, 0)) > 0) {
         buff[n] = '\0';
         msgLine = string(buff);
-        cout << msgLine << endl;
         msgLine = trim(msgLine);
         params = Lib::split(msgLine, "_");
         msg = params[0];
@@ -45,6 +39,7 @@ int main(int argc, char const *argv[])
             break;
         }
     }
+    close(cfd);
     close(sfd);
     cout << "KLineSrv stop success!" << endl;
     return 0;

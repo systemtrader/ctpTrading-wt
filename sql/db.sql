@@ -1,5 +1,5 @@
 CREATE TABLE `kline` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `index` int(11) NOT NULL DEFAULT '0',
   `open_time` datetime NOT NULL,
   `close_time` datetime NOT NULL,
@@ -7,7 +7,7 @@ CREATE TABLE `kline` (
   `close_price` decimal(10,0) NOT NULL DEFAULT '0',
   `max_price` decimal(10,0) NOT NULL DEFAULT '0',
   `min_price` decimal(10,0) NOT NULL DEFAULT '0',
-  `volumn` int(11) NOT NULL DEFAULT '0',
+  `volume` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB CHARSET=utf8;
 
