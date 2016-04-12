@@ -34,6 +34,7 @@ class KLine
                     date("Y/m/d H:i:s", $closeTime),
                     $open, $close, $max, $min, $volume,
                 ];
+                var_dump($params);
                 $this->consumer->insertDB($sql, $params);
             } else {
                 sleep(1);
@@ -42,4 +43,4 @@ class KLine
     }
 }
 
-(new Tick)->run();
+(new kLine)->run();

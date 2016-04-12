@@ -101,14 +101,14 @@ void MarketSpi::_saveMarketData(CThostFtdcDepthMarketDataField *data)
                   Lib::dtos(data->LastPrice) + "_" +
                   Lib::itos(data->Volume);
     // 发送给K线系统
-    string cmd = CMD_MSG_TICK + "_" + storeData;
-    sendMsg(_cfd, cmd);
+    // string cmd = CMD_MSG_TICK + "_" + storeData;
+    // sendMsg(_cfd, cmd);
 
     // 将数据放入队列，以便存入DB
     string keyQ = "MARKET_TICK_Q";
     string keyD = "CURRENT_TICK";
-    _store->set(keyD, storeData); // tick数据，供全局使用
-    _store->push(keyQ, storeData);
+    // _store->set(keyD, storeData); // tick数据，供全局使用
+    // _store->push(keyQ, storeData);
 
     // 日志记录
     _marketData << localTime << "|";

@@ -55,8 +55,8 @@ int main(int argc, char const *argv[])
         system("./kLineSrv &");
         sleep(1);
         // 消费队列
-        system("php ../store/tick.php &");
-        system("php ../store/kLine.php &");
+        // system("php ../store/tick.php &");
+        // system("php ../store/kLine.php &");
         system("./marketSrv &");
     }
     return 0;
