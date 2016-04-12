@@ -1,4 +1,4 @@
-CREATE TABLE `kline2` (
+CREATE TABLE `kline` (
   `id` int(11) NOT NULL,
   `index` int(11) NOT NULL DEFAULT '0',
   `open_time` datetime NOT NULL,
