@@ -27,12 +27,12 @@ class KLine
                 $close = $data[8];
                 $volume = $data[9];
                 $closeTime = strtotime($data[10] . " " . $data[11]);
-                $sql = "insert into `kline` (`index`, `open_time`, `close_time`, `open_price`, `close_price`, `max_price`, `min_price`, `volume`) values (?, ?, ?, ?, ?, ?, ?, ?)";
+                $sql = "insert into `kline` (`index`, `open_time`, `close_time`, `open_price`, `close_price`, `max_price`, `min_price`, `volume`, `type`) values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
                 $params = array(
                     $index,
                     date("Y/m/d H:i:s", $openTime),
                     date("Y/m/d H:i:s", $closeTime),
-                    $open, $close, $max, $min, $volume,
+                    $open, $close, $max, $min, $volume, $type,
                 );
                 echo ".";
                 $this->consumer->insertDB($sql, $params);

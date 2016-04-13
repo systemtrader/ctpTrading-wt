@@ -8,6 +8,7 @@ CREATE TABLE `kline` (
   `max_price` decimal(10,0) NOT NULL DEFAULT '0',
   `min_price` decimal(10,0) NOT NULL DEFAULT '0',
   `volume` int(11) NOT NULL DEFAULT '0',
+  `type` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB CHARSET=utf8;
 
