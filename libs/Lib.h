@@ -29,6 +29,8 @@ public:
 
     static string dtos(double dbl);
 
+    static int stoi(string s);
+
     static string itos(int num);
 
     static void sysErrLog(string logName, CThostFtdcRspInfoField *info, int id, int isLast);
@@ -38,6 +40,10 @@ public:
     static void initInfoLogHandle(ofstream & sysLogger);
 
     static vector<string> split(const string& s, const string& delim);
+
+    static double max(double arr[], int cnt);
+    static double min(double arr[], int cnt);
+    static double mean(double arr[], int cnt);
 
     Lib();
     ~Lib();

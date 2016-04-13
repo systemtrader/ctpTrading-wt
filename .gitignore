@@ -5,3 +5,4 @@ bin/marketSrv
 bin/tradeSrv
 test/
 config.*
+a.out

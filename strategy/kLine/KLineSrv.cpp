@@ -1,5 +1,7 @@
 #include "KLineSrv.h"
 #include "../../libs/Lib.h"
+#include "../../libs/Socket.h"
+#include "../../iniReader/iniReader.h"
 #include <cmath>
 
 KLineSrv::KLineSrv(int kRange)
@@ -8,10 +10,15 @@ KLineSrv::KLineSrv(int kRange)
     _kRange = kRange;
     _currentBlock = NULL;
     _store = new Redis("127.0.0.1", 6379, 1);
+    int          port = getOptionToInt("logic_front_srv_port");
+    const char * ip   = getOptionToChar("logic_front_srv_ip");
+
+    _msgFD = getCSocket(ip, port);
 }
 
 KLineSrv::~KLineSrv()
 {
+    close(_msgFD);
     delete _store;
     cout << "~KLineSrv" << endl;
 }
@@ -41,8 +48,13 @@ void KLineSrv::_initBlock(Tick tick)
     _currentBlock = new KLineBlock();
     _currentBlock->init(_index, tick.date, tick.time,
         tick.price, tick.volume);
-    _index++;
     // 发送消息TODO
+    string msgData = Lib::itos(_index) + "_" +
+                    Lib::dtos(tick.price) + "_" +
+                    Lib::itos(tick.volume);
+    string msg = CMD_MSG_KLINE_OPEN + "_" + msgData;
+    sendMsg(_msgFD, msg);
+    _index++;
 }
 
 int KLineSrv::_checkBlockClose(Tick tick)
@@ -78,5 +90,8 @@ void KLineSrv::_closeBlock(Tick tick)
     delete _currentBlock;
     _currentBlock = NULL;
     // 发送消息
+    string msg = CMD_MSG_KLINE_CLOSE + "_" + storeData;
+    sendMsg(_msgFD, msg);
+    // 储存消息
     _store->push(keyQ, storeData);
 }

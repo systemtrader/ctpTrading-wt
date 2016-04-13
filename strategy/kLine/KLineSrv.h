@@ -10,6 +10,7 @@ private:
 
     KLineBlock * _currentBlock;
     Redis * _store;
+    int _msgFD;
 
     int _index;
     int _kRange;

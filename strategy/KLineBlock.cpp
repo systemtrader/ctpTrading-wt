@@ -13,11 +13,6 @@ KLineBlock::~KLineBlock()
 void KLineBlock::init(int index, string date, string time,
     double tick, int volume)
 {
-    cout << index << endl;
-    cout << date << endl;
-    cout << time << endl;
-    cout << tick << endl;
-    cout << volume << endl;
     _index = index;
     _openDate = date;
     _openTime = time;

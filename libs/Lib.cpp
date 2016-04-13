@@ -43,6 +43,11 @@ char * Lib::stoc(string str)
     return ch;
 };
 
+int Lib::stoi(string s)
+{
+    return atoi(s.c_str());
+}
+
 string Lib::dtos(double dbl)
 {
     std::ostringstream strs;
@@ -123,4 +128,32 @@ vector<string> Lib::split(const string& s, const string& delim)
     return elems;
 }
 
+double Lib::max(double arr[], int cnt)
+{
+    double res = 0;
+    for (int i = 0; i < cnt; ++i)
+    {
+        res = res > arr[i] ? res : arr[i];
+    }
+    return res;
+}
 
+double Lib::min(double arr[], int cnt)
+{
+    double res = 0;
+    for (int i = 0; i < cnt; ++i)
+    {
+        res = res < arr[i] ? res : arr[i];
+    }
+    return res;
+}
+
+double Lib::mean(double arr[], int cnt)
+{
+    double sum = 0;
+    for (int i = 0; i < cnt; ++i)
+    {
+        sum += arr[i];
+    }
+    return sum / cnt;
+}
