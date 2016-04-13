@@ -130,7 +130,7 @@ vector<string> Lib::split(const string& s, const string& delim)
 
 double Lib::max(double arr[], int cnt)
 {
-    double res = 0;
+    double res = arr[0];
     for (int i = 0; i < cnt; ++i)
     {
         res = res > arr[i] ? res : arr[i];
@@ -140,7 +140,7 @@ double Lib::max(double arr[], int cnt)
 
 double Lib::min(double arr[], int cnt)
 {
-    double res = 0;
+    double res = arr[0];
     for (int i = 0; i < cnt; ++i)
     {
         res = res < arr[i] ? res : arr[i];

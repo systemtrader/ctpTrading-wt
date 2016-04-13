@@ -5,11 +5,6 @@ TradeLogic::TradeLogic(int count)
     _kLineCount = count;
     _max = _min = _mean = 0;
     _store = new Redis("127.0.0.1", 6379, 1);
-    KLineBlock * b = new KLineBlock();
-    b->init(0, "", "", 10, 1);
-    b->update(20, 2);
-    b->show();
-    _bList.push_back(*b);
 }
 
 TradeLogic::~TradeLogic()
@@ -44,15 +39,14 @@ void TradeLogic::onKLineOpen()
         default:
             break;
     }
-    cout << _max << ", ";
-    cout << _min << ", ";
-    cout << _mean << endl;
 }
 
-void TradeLogic::onKLineClose()
+void TradeLogic::onKLineClose(KLineBlock block)
 {
+    _bList.push_back(block);
     switch (_closeAction) {
         case CLOSE_ACTION_OPEN:
+            // if (block.)
             break;
         case CLOSE_ACTION_SELLCLOSE:
             break;
@@ -72,7 +66,6 @@ int TradeLogic::_getStatus()
 void TradeLogic::_calculateOpen()
 {
     double * maxArr, * minArr;
-    cout << _bList.size() << endl;
     int count = min(_kLineCount, (int)_bList.size());
     if (count == 0) return;
 
@@ -80,18 +73,15 @@ void TradeLogic::_calculateOpen()
     minArr = (double*) malloc(count * sizeof(double));
 
     list<KLineBlock>::reverse_iterator item = _bList.rbegin();
-    int cnt = count;
+    int cnt = count, i = 0;
     while (1) {
-        *maxArr = item->getMaxPrice();
-        *minArr = item->getMinPrice();
-        cout << *maxArr << endl;
-        cnt--;
-        if (cnt == 0) break;
+        *(maxArr + i) = (*item).getMaxPrice();
+        *(minArr + i) = (*item).getMinPrice();
+        if (--cnt == 0) break;
         item++;
-        maxArr++;
-        minArr++;
-
+        i++;
     }
+
     _max  = Lib::max(maxArr, count);
     _min  = Lib::min(minArr, count);
     _mean = Lib::mean(minArr, count);

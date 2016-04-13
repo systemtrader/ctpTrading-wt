@@ -47,7 +47,7 @@ public:
     ~TradeLogic();
 
     void onKLineOpen();
-    void onKLineClose();
+    void onKLineClose(KLineBlock block);
 };
 
 #endif

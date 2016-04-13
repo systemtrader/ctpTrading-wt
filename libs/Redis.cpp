@@ -44,7 +44,7 @@ void Redis::set(string key, string data)
 string Redis::get(string key)
 {
     string cmd = "get " + key;
-    execCmd(cmd);
+    return execCmd(cmd);
 }
 
 string Redis::execCmd(string cmd)
