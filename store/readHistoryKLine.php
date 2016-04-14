@@ -16,7 +16,7 @@ class ReadHistory
 
     public function run()
     {
-        $sql = "SELECT * FROM `kline` ORDER BY `id`";
+        $sql = "SELECT * FROM `kline` ORDER BY `id` DESC";
         $st = $this->mysql->prepare($sql);
         $st->execute(array());
         $res = $st->fetchAll(PDO::FETCH_ASSOC);

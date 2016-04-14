@@ -14,6 +14,7 @@ using namespace std;
 #define CLOSE_ACTION_OPEN 0
 #define CLOSE_ACTION_SELLCLOSE 1
 #define CLOSE_ACTION_BUYCLOSE 2
+#define CLOSE_ACTION_DONOTHING 3
 
 class TradeLogic
 {
@@ -41,6 +42,9 @@ private:
     void _calculateSellClose();
     // 计算买平仓参数
     void _calculateBuyClose();
+
+    // 计算最大
+    void _getSpecialKLine(int * maxPos, int * minPos, double * maxPrice, double * minPrice);
 
 
 public:

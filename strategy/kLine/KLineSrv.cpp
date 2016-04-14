@@ -2,6 +2,7 @@
 #include "../../libs/Lib.h"
 #include "../../libs/Socket.h"
 #include "../../iniReader/iniReader.h"
+#include "../../cmd.h"
 #include <cmath>
 
 KLineSrv::KLineSrv(int kRange)

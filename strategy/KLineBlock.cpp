@@ -100,31 +100,32 @@ int KLineBlock::getVolume()
     return _volume;
 }
 
-KLineBlock KLineBlock::make(string dataStr)
+KLineBlock KLineBlock::makeSimple(string index, string type, string openPrice,
+    string maxPrice, string minPrice, string closePrice, string volume)
 {
     KLineBlock block;
-    std::vector<string> params = Lib::split(dataStr, "_");
-    block._index      = Lib::stoi(params[0]);
-    block._openPrice  = Lib::stod(params[3]);
-    block._maxPrice   = Lib::stod(params[5]);
-    block._minPrice   = Lib::stod(params[6]);
-    block._closePrice = Lib::stod(params[4]);
-    block._volume     = Lib::stoi(params[7]);
+    block._index      = Lib::stoi(index);
+    block._type       = Lib::stoi(type);
+    block._openPrice  = Lib::stod(openPrice);
+    block._maxPrice   = Lib::stod(maxPrice);
+    block._minPrice   = Lib::stod(minPrice);
+    block._closePrice = Lib::stod(closePrice);
+    block._volume     = Lib::stoi(volume);
     return block;
 }
 
 void KLineBlock::show()
 {
-    cout << "[" << _index << "]";
-    cout << "[" << _type << "]";
-    cout << "[" << _openDate << "]";
-    cout << "[" << _openTime << "]";
-    cout << "[" << _openPrice << "]";
-    cout << "[" << _maxPrice << "]";
-    cout << "[" << _minPrice << "]";
-    cout << "[" << _closePrice << "]";
-    cout << "[" << _volume << "]";
-    cout << "[" << _closeDate << "]";
-    cout << "[" << _closeTime << "]";
+    cout << " index:[" << _index << "]";
+    cout << " type:[" << _type << "]";
+    cout << " openDate[" << _openDate << "]";
+    cout << " openTime[" << _openTime << "]";
+    cout << " open[" << _openPrice << "]";
+    cout << " max[" << _maxPrice << "]";
+    cout << " min[" << _minPrice << "]";
+    cout << " close[" << _closePrice << "]";
+    cout << " volume[" << _volume << "]";
+    cout << " closeDate[" << _closeDate << "]";
+    cout << " closeTime[" << _closeTime << "]";
     cout << endl;
 }

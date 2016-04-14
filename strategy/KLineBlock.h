@@ -51,7 +51,8 @@ public:
     int getIndex();
     int getVolume();
 
-    static KLineBlock make(string dataStr);
+    static KLineBlock makeSimple(string index, string type, string openPrice,
+        string maxPrice, string minPrice, string closePrice, string volume);
 
     void show();
 };

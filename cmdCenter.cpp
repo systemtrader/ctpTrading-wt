@@ -34,6 +34,9 @@ int main(int argc, char const *argv[])
     int          kLineSrvPort = getOptionToInt("k_line_srv_port");
     const char * kLineSrvIp   = getOptionToChar("k_line_srv_ip");
 
+    int          logicFrontSrvPort = getOptionToInt("logic_front_srv_port");
+    const char * logicFrontSrvIp   = getOptionToChar("logic_front_srv_ip");
+
     string cmd = string(argv[1]);
     if (cmd.compare(CMD_MSG_SHUTDOWN) == 0) {
         // stop market
@@ -50,9 +53,15 @@ int main(int argc, char const *argv[])
         sendMsg(kcfd, CMD_MSG_SHUTDOWN);
         close(kcfd);
 
+        // stop trade logic
+        int lfcfd = getCSocket(logicFrontSrvIp, logicFrontSrvPort);
+        sendMsg(lfcfd, CMD_MSG_SHUTDOWN);
+        close(lfcfd);
+
     } else if (cmd.compare(CMD_MSG_START) == 0) {
         // system("./tradeSrv &");
         system("./kLineSrv &");
+        system("./tradeLogicFrontend &");
         sleep(1);
         // 消费队列
         // system("php ../store/tick.php &");
