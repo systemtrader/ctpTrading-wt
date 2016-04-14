@@ -48,6 +48,11 @@ int Lib::stoi(string s)
     return atoi(s.c_str());
 }
 
+double Lib::stod(string s)
+{
+    return atof(s.c_str());
+}
+
 string Lib::dtos(double dbl)
 {
     std::ostringstream strs;

@@ -25,6 +25,7 @@ private:
 
     // 算法参数
     int _kLineCount;
+    int _openIndex; // 开仓K线
 
     // 开仓参数
     double _max;
@@ -45,6 +46,8 @@ private:
 public:
     TradeLogic(int count);
     ~TradeLogic();
+
+    void init(); // 初始化历史K线
 
     void onKLineOpen();
     void onKLineClose(KLineBlock block);

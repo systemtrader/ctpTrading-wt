@@ -1,15 +1,28 @@
 #include "TradeLogic.h"
+#include <vector>
 
 TradeLogic::TradeLogic(int count)
 {
     _kLineCount = count;
     _max = _min = _mean = 0;
     _store = new Redis("127.0.0.1", 6379, 1);
+    _openIndex = -1;
 }
 
 TradeLogic::~TradeLogic()
 {
     delete _store;
+}
+
+void TradeLogic::init()
+{
+    string res;
+    KLineBlock tmp;
+    while(1) {
+        res = _store->pop("HISTORY_KLINE");
+        tmp = KLineBlock::make(res);
+        _bList.push_front(tmp);
+    }
 }
 
 void TradeLogic::onKLineOpen()
@@ -43,11 +56,21 @@ void TradeLogic::onKLineOpen()
 
 void TradeLogic::onKLineClose(KLineBlock block)
 {
-    _bList.push_back(block);
+    _bList.push_front(block);
     switch (_closeAction) {
+
         case CLOSE_ACTION_OPEN:
-            // if (block.)
+            if (block.getClosePrice() > _max && block.getClosePrice() > _mean) {
+                // 发送消息，购买系统中更新状态，现在模拟成功状态 TODO
+                _store->set("TRADE_STATUS", Lib::itos(TRADE_STATUS_BUYOPENED));
+            }
+            if (block.getClosePrice() < _min && block.getClosePrice() < _mean) {
+                // 发送消息，购买系统中更新状态，现在模拟成功状态 TODO
+                _store->set("TRADE_STATUS", Lib::itos(TRADE_STATUS_SELLOPENED));
+            }
+            _openIndex = block.getIndex();
             break;
+
         case CLOSE_ACTION_SELLCLOSE:
             break;
         case CLOSE_ACTION_BUYCLOSE:
@@ -72,7 +95,7 @@ void TradeLogic::_calculateOpen()
     maxArr = (double*) malloc(count * sizeof(double));
     minArr = (double*) malloc(count * sizeof(double));
 
-    list<KLineBlock>::reverse_iterator item = _bList.rbegin();
+    list<KLineBlock>::iterator item = _bList.begin();
     int cnt = count, i = 0;
     while (1) {
         *(maxArr + i) = (*item).getMaxPrice();

@@ -100,6 +100,19 @@ int KLineBlock::getVolume()
     return _volume;
 }
 
+KLineBlock KLineBlock::make(string dataStr)
+{
+    KLineBlock block;
+    std::vector<string> params = Lib::split(dataStr, "_");
+    block._index      = Lib::stoi(params[0]);
+    block._openPrice  = Lib::stod(params[3]);
+    block._maxPrice   = Lib::stod(params[5]);
+    block._minPrice   = Lib::stod(params[6]);
+    block._closePrice = Lib::stod(params[4]);
+    block._volume     = Lib::stoi(params[7]);
+    return block;
+}
+
 void KLineBlock::show()
 {
     cout << "[" << _index << "]";

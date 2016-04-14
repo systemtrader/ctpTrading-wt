@@ -15,6 +15,7 @@ public:
     ~Redis();
     string execCmd(string cmd);
     void push(string key, string data);
+    string pop(string key);
     void set(string key, string data);
     string get(string key);
 };

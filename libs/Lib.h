@@ -31,6 +31,8 @@ public:
 
     static int stoi(string s);
 
+    static double stod(string s);
+
     static string itos(int num);
 
     static void sysErrLog(string logName, CThostFtdcRspInfoField *info, int id, int isLast);

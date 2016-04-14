@@ -1,7 +1,9 @@
 #ifndef K_LINE_BLOCK_H
 #define K_LINE_BLOCK_H
+#include "../libs/Lib.h"
 #include <string>
 #include <iostream>
+#include <vector>
 
 using namespace std;
 
@@ -48,6 +50,8 @@ public:
     int getType();
     int getIndex();
     int getVolume();
+
+    static KLineBlock make(string dataStr);
 
     void show();
 };
