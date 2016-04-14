@@ -9,10 +9,10 @@ TradeLogic::TradeLogic(int count)
     _store = new Redis("127.0.0.1", 6379, 1);
     _openIndex = -1;
     _closeAction = CLOSE_ACTION_DONOTHING;
-    KLineBlock b = KLineBlock::makeSimple("0", "1", "10", "20", "9", "20", "1");
-    _bList.push_front(b);
-    KLineBlock b1 = KLineBlock::makeSimple("1", "1", "20", "21", "10", "10", "1");
-    _bList.push_front(b1);
+    // KLineBlock b = KLineBlock::makeSimple("0", "1", "10", "20", "9", "20", "1");
+    // _bList.push_front(b);
+    // KLineBlock b1 = KLineBlock::makeSimple("1", "1", "20", "21", "10", "10", "1");
+    // _bList.push_front(b1);
 }
 
 TradeLogic::~TradeLogic()
@@ -38,12 +38,12 @@ void TradeLogic::init()
 void TradeLogic::onKLineOpen()
 {
     int status = _getStatus();
-    cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
-    cout << "status: " << status << endl;
-    cout << "closeAction: " << _closeAction << endl;
-    cout << "blist'length: " << _bList.size() << endl;
-    cout << "openIndex: " << _openIndex << endl;
-    cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
+    // cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
+    // cout << "status: " << status << endl;
+    // cout << "closeAction: " << _closeAction << endl;
+    // cout << "blist'length: " << _bList.size() << endl;
+    // cout << "openIndex: " << _openIndex << endl;
+    // cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
     switch (status) {
         // 开仓
         case TRADE_STATUS_NOTHING:
@@ -74,9 +74,9 @@ void TradeLogic::onKLineOpen()
 void TradeLogic::onKLineClose(KLineBlock block)
 {
     _bList.push_front(block);
-    cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
-    cout << "closeAction: " << _closeAction << endl;
-    cout << "blist'length: " << _bList.size() << endl;
+    // cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
+    // cout << "closeAction: " << _closeAction << endl;
+    // cout << "blist'length: " << _bList.size() << endl;
     switch (_closeAction) {
 
         case CLOSE_ACTION_OPEN:
@@ -137,9 +137,9 @@ void TradeLogic::onKLineClose(KLineBlock block)
         default:
             break;
     }
-    cout << "openIndex: " << _openIndex << endl;
-    cout << "status: " << _getStatus() << endl;
-    cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
+    // cout << "openIndex: " << _openIndex << endl;
+    // cout << "status: " << _getStatus() << endl;
+    // cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
 
 }
 
@@ -151,18 +151,19 @@ int TradeLogic::_getStatus()
 
 void TradeLogic::_calculateOpen()
 {
-    double * maxArr, * minArr;
     if ((int)_bList.size() < _kLineCount) return;
+
+    double * maxArr, * minArr;
     int count = _kLineCount;
 
     maxArr = (double*) malloc(count * sizeof(double));
     minArr = (double*) malloc(count * sizeof(double));
 
     list<KLineBlock>::iterator item = _bList.begin();
-    int cnt = count, i = 0;
+    int cnt = count, i = 0, currIndex = item->getIndex();
     while (1) {
-        *(maxArr + i) = (*item).getMaxPrice();
-        *(minArr + i) = (*item).getMinPrice();
+        *(maxArr + i) = item->getMaxPrice();
+        *(minArr + i) = item->getMinPrice();
         if (--cnt == 0) break;
         item++;
         i++;
@@ -174,7 +175,16 @@ void TradeLogic::_calculateOpen()
     free(maxArr);
     free(minArr);
     _closeAction = CLOSE_ACTION_OPEN;
-    cout << "max:[" << _max << "], min:[" << _min << "], mean[" << _mean << "]" << endl;
+
+    // log
+    ofstream info;
+    Lib::initInfoLogHandle(info);
+    info << "_calculateOpen" << "|";
+    info << "max" << "|" << _max << "|";
+    info << "mean" << "|" << _mean << "|";
+    info << "min" << "|" << _min << "|";
+    info << "index" << "|" << currIndex << endl;
+    info.close();
 
 }
 
@@ -182,7 +192,7 @@ void TradeLogic::_calculateBuyClose()
 {
     int maxPos, minPos;
     double maxPrice, minPrice;
-    _getSpecialKLine(NULL, &minPos, NULL, &minPrice);
+    _getSpecialKLine(&maxPos, &minPos, &maxPrice, &minPrice);
     int lastIndex = _bList.front().getIndex();
     if (minPos == lastIndex) {
         _closeAction = CLOSE_ACTION_DONOTHING;
@@ -195,7 +205,7 @@ void TradeLogic::_calculateSellClose()
 {
     int maxPos, minPos;
     double maxPrice, minPrice;
-    _getSpecialKLine(&maxPos, NULL, &maxPrice, NULL);
+    _getSpecialKLine(&maxPos, &minPos, &maxPrice, &minPrice);
     cout << "maxPos:[" << maxPos << "], maxPrice:[" << maxPrice << "]" << endl;
     int lastIndex = _bList.front().getIndex();
     if (maxPos == lastIndex) {
@@ -203,16 +213,12 @@ void TradeLogic::_calculateSellClose()
         return;
     }
     _closeAction = CLOSE_ACTION_SELLCLOSE;
-
-
 }
 
 void TradeLogic::_getSpecialKLine(int * maxPos, int * minPos, double * maxPrice, double * minPrice)
 {
     list<KLineBlock>::iterator item = _bList.begin();
-    *minPos = item->getIndex();
-    *maxPos = item->getIndex();
-    cout << *minPos << *maxPos << endl;
+    *minPos = *maxPos = item->getIndex();
     *maxPrice = *minPrice = item->getClosePrice();
     double tmp;
     while (1) {

@@ -3,6 +3,7 @@ bin/cmdCenter
 bin/kLineSrv
 bin/marketSrv
 bin/tradeSrv
+bin/tradeLogicFrontend
 test/
 config.*
 a.out

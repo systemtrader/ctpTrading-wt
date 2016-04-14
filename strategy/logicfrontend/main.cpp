@@ -18,8 +18,8 @@ int main(int argc, char const *argv[])
 
     service = new TradeLogic(openKCount);
 
-    service->onKLineOpen();
-    return 0;
+    // service->onKLineOpen();
+    // return 0;
 
     // 服务化
     int sfd = getSSocket(logicFrontSrvPort);
