@@ -13,10 +13,13 @@ int main(int argc, char const *argv[])
 {
     // 初始化参数
     parseIniFile("config.ini");
-    int openKCount = getOptionToInt("open_k_count");
+    int openKCountMax = getOptionToInt("open_k_count_max");
+    int openKCountMin = getOptionToInt("open_k_count_min");
+    int openKCountMean = getOptionToInt("open_k_count_mean");
+
     int logicFrontSrvPort = getOptionToInt("logic_front_srv_port");
 
-    service = new TradeLogic(openKCount);
+    service = new TradeLogic(openKCountMax, openKCountMin, openKCountMean);
 
     // service->onKLineOpen();
     // return 0;

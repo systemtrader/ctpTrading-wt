@@ -25,7 +25,9 @@ private:
     list<KLineBlock> _bList;
 
     // 算法参数
-    int _kLineCount;
+    int _kLineCountMax;
+    int _kLineCountMin;
+    int _kLineCountMean;
     int _openIndex; // 开仓K线
 
     // 开仓参数
@@ -48,7 +50,7 @@ private:
 
 
 public:
-    TradeLogic(int count);
+    TradeLogic(int countMax, int countMin, int countMean);
     ~TradeLogic();
 
     void init(); // 初始化历史K线

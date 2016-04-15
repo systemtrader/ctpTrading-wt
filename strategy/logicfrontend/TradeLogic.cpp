@@ -2,9 +2,11 @@
 #include <vector>
 #include <fstream>
 
-TradeLogic::TradeLogic(int count)
+TradeLogic::TradeLogic(int countMax, int countMin, int countMean)
 {
-    _kLineCount = count;
+    _kLineCountMax = countMax;
+    _kLineCountMin = countMin;
+    _kLineCountMean = countMean;
     _max = _min = _mean = 0;
     _store = new Redis("127.0.0.1", 6379, 1);
     _openIndex = -1;
@@ -154,7 +156,9 @@ void TradeLogic::_calculateOpen()
     if ((int)_bList.size() < _kLineCount) return;
 
     double * maxArr, * minArr;
-    int count = _kLineCount;
+    int count = 0;
+    count = _kLineCountMax > _kLineCountMin ? _kLineCountMax : _kLineCountMin;
+    count = count > _kLineCountMean ? count : _kLineCountMean;
 
     maxArr = (double*) malloc(count * sizeof(double));
     minArr = (double*) malloc(count * sizeof(double));
@@ -169,9 +173,9 @@ void TradeLogic::_calculateOpen()
         i++;
     }
 
-    _max  = Lib::max(maxArr, count);
-    _min  = Lib::min(minArr, count);
-    _mean = Lib::mean(minArr, count);
+    _max  = Lib::max(maxArr, _kLineCountMax);
+    _min  = Lib::min(minArr, _kLineCountMin);
+    _mean = Lib::mean(minArr, _kLineCountMean);
     free(maxArr);
     free(minArr);
     _closeAction = CLOSE_ACTION_OPEN;
