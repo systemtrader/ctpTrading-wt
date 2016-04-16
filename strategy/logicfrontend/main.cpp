@@ -16,10 +16,13 @@ int main(int argc, char const *argv[])
     int openKCountMax = getOptionToInt("open_k_count_max");
     int openKCountMin = getOptionToInt("open_k_count_min");
     int openKCountMean = getOptionToInt("open_k_count_mean");
+    int kRang = getOptionToInt("k_range");
+    int sellCloseKLineNum = getOptionToInt("");
+    int buyCloseKLineNum = getOptionToInt("");
 
     int logicFrontSrvPort = getOptionToInt("logic_front_srv_port");
 
-    service = new TradeLogic(openKCountMax, openKCountMin, openKCountMean);
+    service = new TradeLogic(openKCountMax, openKCountMin, openKCountMean, kRang, sellCloseKLineNum, buyCloseKLineNum);
 
     // service->onKLineOpen();
     // return 0;

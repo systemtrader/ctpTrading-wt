@@ -2,19 +2,20 @@
 #include <vector>
 #include <fstream>
 
-TradeLogic::TradeLogic(int countMax, int countMin, int countMean)
+TradeLogic::TradeLogic(int countMax, int countMin, int countMean, int kRang, 
+        int sellCloseKLineNum, int buyCloseKLineNum)
 {
-    _kLineCountMax = countMax;
-    _kLineCountMin = countMin;
-    _kLineCountMean = countMean;
+    _openMaxKLineNum = countMax;
+    _openMinKLineNum = countMin;
+    _openMeanKLineNum = countMean;
+    _kRang = kRang;
+    _sellCloseKLineNum = sellCloseKLineNum;
+    _buyCloseKLineNum = buyCloseKLineNum;
+
     _max = _min = _mean = 0;
     _store = new Redis("127.0.0.1", 6379, 1);
-    _openIndex = -1;
-    _closeAction = CLOSE_ACTION_DONOTHING;
-    // KLineBlock b = KLineBlock::makeSimple("0", "1", "10", "20", "9", "20", "1");
-    // _bList.push_front(b);
-    // KLineBlock b1 = KLineBlock::makeSimple("1", "1", "20", "21", "10", "10", "1");
-    // _bList.push_front(b1);
+
+    _store->set("TRADE_STATUS", Lib::itos(TRADE_STATUS_NOTHING)); // 模拟代码，要删掉TODO
 }
 
 TradeLogic::~TradeLogic()
@@ -39,6 +40,7 @@ void TradeLogic::init()
 
 void TradeLogic::onKLineOpen()
 {
+    if ((int)_bList.size() == 0) return;
     int status = _getStatus();
     // cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
     // cout << "status: " << status << endl;
@@ -46,26 +48,42 @@ void TradeLogic::onKLineOpen()
     // cout << "blist'length: " << _bList.size() << endl;
     // cout << "openIndex: " << _openIndex << endl;
     // cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
+    KLineBlock lastBlock = _bList.front();
     switch (status) {
-        // 开仓
-        case TRADE_STATUS_NOTHING:
-        case TRADE_STATUS_BUYOPENING:
-        case TRADE_STATUS_SELLOPENING:
+
+        case TRADE_STATUS_NOTHING: // 没有任何操作，只能计算开仓条件
             _calculateOpen();
+            _openedKLineMax = _openedKLineMin = lastBlock.getClosePrice(); // 初始化
             break;
-
-        // 卖平仓
-        case TRADE_STATUS_BUYOPENED:
-        case TRADE_STATUS_SELLCLOSING:
-            _closeAction = CLOSE_ACTION_SELLCLOSE;
+        case TRADE_STATUS_BUYOPENING: // 状态为正在买开仓，则K线闭合时，可能买成功，也可能放弃本次购买重新开仓，所以计算卖平仓与开仓条件
+            _calculateOpen();
             _calculateSellClose();
+            _openedKLineMin = lastBlock.getClosePrice(); // 初始化
+            break;
+        case TRADE_STATUS_SELLOPENING: // 与买开仓类似
+            _calculateOpen();
+            _calculateBuyClose();
+            _openedKLineMax = lastBlock.getClosePrice(); // 初始化
             break;
 
-        // 买平仓
-        case TRADE_STATUS_SELLOPENED:
-        case TRADE_STATUS_BUYCLOSING:
-            _closeAction = CLOSE_ACTION_BUYCLOSE;
+        case TRADE_STATUS_BUYOPENED: // 买开仓已成状态，计算卖平仓参数
+            _calculateSellClose();
+            _openedKLineMin = lastBlock.getClosePrice(); // 初始化
+            break;
+        case TRADE_STATUS_SELLCLOSING: // 正在卖平中，则K线闭合时，可能卖成，状态转变为空仓，计算开仓参数，也可能一直再卖，所以还要计算卖平条件
+            _calculateOpen();
+            _calculateSellClose();
+            _openedKLineMin = lastBlock.getClosePrice(); // 初始化
+            break;
+
+        case TRADE_STATUS_SELLOPENED: // 与上述类似
             _calculateBuyClose();
+            _openedKLineMax = lastBlock.getClosePrice(); // 初始化
+            break;
+        case TRADE_STATUS_BUYCLOSING: // 同上
+            _calculateOpen();
+            _calculateBuyClose();
+            _openedKLineMax = lastBlock.getClosePrice(); // 初始化
             break;
 
         default:
@@ -79,10 +97,14 @@ void TradeLogic::onKLineClose(KLineBlock block)
     // cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
     // cout << "closeAction: " << _closeAction << endl;
     // cout << "blist'length: " << _bList.size() << endl;
-    switch (_closeAction) {
+    // 
+    int status = _getStatus();
+    switch (status) {
 
-        case CLOSE_ACTION_OPEN:
-            if (block.getClosePrice() > _max && block.getClosePrice() > _mean) {
+        case TRADE_STATUS_NOTHING: // 空仓，判断是否开仓
+        case TRADE_STATUS_BUYOPENING: // 状态为正在买开仓，说明从上一个K线关闭一直没买成功，则放弃重新买
+        case TRADE_STATUS_SELLOPENING: // 同上
+            if (block.getClosePrice() > _max) {
                 // 发送消息，购买系统中更新状态，现在模拟成功状态 TODO
                 _store->set("TRADE_STATUS", Lib::itos(TRADE_STATUS_BUYOPENED));
                 // log
@@ -92,8 +114,7 @@ void TradeLogic::onKLineClose(KLineBlock block)
                 info << "BUY_OPEN" << "|";
                 info << "OPEN_PRICE" << "|" << block.getClosePrice() << endl;
                 info.close();
-            }
-            if (block.getClosePrice() < _min && block.getClosePrice() < _mean) {
+            } else if (block.getClosePrice() < _min) {
                 // 发送消息，购买系统中更新状态，现在模拟成功状态 TODO
                 _store->set("TRADE_STATUS", Lib::itos(TRADE_STATUS_SELLOPENED));
                 // log
@@ -103,42 +124,51 @@ void TradeLogic::onKLineClose(KLineBlock block)
                 info << "SELL_OPEN" << "|";
                 info << "OPEN_PRICE" << "|" << block.getClosePrice() << endl;
                 info.close();
+            } else { // 不符合开仓条件
+                // 通知下单系统放弃正在进行的操作 TODO
+                _store->set("TRADE_STATUS", Lib::itos(TRADE_STATUS_NOTHING));
             }
-            _openIndex = block.getIndex();
-            // _openPrice = block.getClosePrice();
             break;
 
-        case CLOSE_ACTION_SELLCLOSE:
-        {
-            // 发送消息，购买系统中更新状态，现在模拟成功状态 TODO
-            _store->set("TRADE_STATUS", Lib::itos(TRADE_STATUS_NOTHING));
-            _openIndex = -1;
-            // log
-            ofstream info;
-            Lib::initInfoLogHandle(info);
-            info << "onKLineClose" << "|";
-            info << "SELL_CLOSE" << "|";
-            info << "CLOSE_PRICE" << "|" << block.getClosePrice() << endl;
-            info.close();
+        case TRADE_STATUS_BUYOPENED: 
+        case TRADE_STATUS_SELLCLOSING: 
+            if (block.getClosePrice() < _sellClosePoint) {
+                // 发送消息，购买系统中更新状态，现在模拟成功状态 TODO
+                _store->set("TRADE_STATUS", Lib::itos(TRADE_STATUS_NOTHING));
+                // log
+                ofstream info;
+                Lib::initInfoLogHandle(info);
+                info << "onKLineClose" << "|";
+                info << "SELL_CLOSE" << "|";
+                info << "CLOSE_PRICE" << "|" << block.getClosePrice() << endl;
+                info.close();
+            } else {
+                _store->set("TRADE_STATUS", Lib::itos(TRADE_STATUS_BUYOPENED));
+            }
             break;
-        }
-        case CLOSE_ACTION_BUYCLOSE:
-        {
-            // 发送消息，购买系统中更新状态，现在模拟成功状态 TODO
-            _store->set("TRADE_STATUS", Lib::itos(TRADE_STATUS_NOTHING));
-            _openIndex = -1;
-            // log
-            ofstream info;
-            Lib::initInfoLogHandle(info);
-            info << "onKLineClose" << "|";
-            info << "BUY_CLOSE" << "|";
-            info << "CLOSE_PRICE" << "|" << block.getClosePrice() << endl;
-            info.close();
+
+        case TRADE_STATUS_SELLOPENED:
+        case TRADE_STATUS_BUYCLOSING: 
+            if (block.getClosePrice() > _buyClosePoint) {
+                // 发送消息，购买系统中更新状态，现在模拟成功状态 TODO
+                _store->set("TRADE_STATUS", Lib::itos(TRADE_STATUS_NOTHING));
+                // log
+                ofstream info;
+                Lib::initInfoLogHandle(info);
+                info << "onKLineClose" << "|";
+                info << "BUY_CLOSE" << "|";
+                info << "CLOSE_PRICE" << "|" << block.getClosePrice() << endl;
+                info.close();
+            } else {
+                _store->set("TRADE_STATUS", Lib::itos(TRADE_STATUS_SELLOPENED));
+            }
             break;
-        }
+
         default:
             break;
     }
+
+
     // cout << "openIndex: " << _openIndex << endl;
     // cout << "status: " << _getStatus() << endl;
     // cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
@@ -153,37 +183,34 @@ int TradeLogic::_getStatus()
 
 void TradeLogic::_calculateOpen()
 {
-    if ((int)_bList.size() < _kLineCount) return;
-
-    double * maxArr, * minArr;
+    // 获取最大K线个数（当前几个参数相同）
     int count = 0;
-    count = _kLineCountMax > _kLineCountMin ? _kLineCountMax : _kLineCountMin;
-    count = count > _kLineCountMean ? count : _kLineCountMean;
+    count = _openMaxKLineNum > _openMinKLineNum ? _openMaxKLineNum : _openMinKLineNum;
+    count = count > _openMeanKLineNum ? count : _openMeanKLineNum;
 
-    maxArr = (double*) malloc(count * sizeof(double));
-    minArr = (double*) malloc(count * sizeof(double));
+    // 当前K线不足判断，直接返回，不作操作 
+    if ((int)_bList.size() < count) return;
 
+    // 计算当前范围内的开仓参数
     list<KLineBlock>::iterator item = _bList.begin();
-    int cnt = count, i = 0, currIndex = item->getIndex();
+    _max = item->getMaxPrice();
+    _min = item->getMinPrice();
+
+    double sum = 0; // 计算平均值用
+    int cnt = count, currIndex = item->getIndex();
     while (1) {
-        *(maxArr + i) = item->getMaxPrice();
-        *(minArr + i) = item->getMinPrice();
+        _max = _max > item->getMaxPrice() ? _max : item->getMaxPrice();
+        _min = _min < item->getMinPrice() ? _min : item->getMinPrice();
+        sum += item->getMinPrice();
         if (--cnt == 0) break;
         item++;
-        i++;
     }
-
-    _max  = Lib::max(maxArr, _kLineCountMax);
-    _min  = Lib::min(minArr, _kLineCountMin);
-    _mean = Lib::mean(minArr, _kLineCountMean);
-    free(maxArr);
-    free(minArr);
-    _closeAction = CLOSE_ACTION_OPEN;
+    _mean = sum / count;
 
     // log
     ofstream info;
     Lib::initInfoLogHandle(info);
-    info << "_calculateOpen" << "|";
+    info << "LogicFrontend[calculateOpen]" << "|";
     info << "max" << "|" << _max << "|";
     info << "mean" << "|" << _mean << "|";
     info << "min" << "|" << _min << "|";
@@ -194,48 +221,29 @@ void TradeLogic::_calculateOpen()
 
 void TradeLogic::_calculateBuyClose()
 {
-    int maxPos, minPos;
-    double maxPrice, minPrice;
-    _getSpecialKLine(&maxPos, &minPos, &maxPrice, &minPrice);
-    int lastIndex = _bList.front().getIndex();
-    if (minPos == lastIndex) {
-        _closeAction = CLOSE_ACTION_DONOTHING;
-        return;
-    }
-    _closeAction = CLOSE_ACTION_BUYCLOSE;
+    KLineBlock lastBlock = _bList.front();
+    _openedKLineMin = _openedKLineMin < lastBlock.getClosePrice() ? _openedKLineMin : lastBlock.getClosePrice();
+    _buyClosePoint = _openedKLineMin + _kRang * (_buyCloseKLineNum - 0.5);
+    //log
+    ofstream info;
+    Lib::initInfoLogHandle(info);
+    info << "LogicFrontend[calculateBuyClose]" << "|";
+    info << "openedKLineMin" << "|" << _openedKLineMin << "|";
+    info << "buyClosePoint" << "|" << _buyClosePoint << endl;
+    info.close();
 }
 
 void TradeLogic::_calculateSellClose()
 {
-    int maxPos, minPos;
-    double maxPrice, minPrice;
-    _getSpecialKLine(&maxPos, &minPos, &maxPrice, &minPrice);
-    cout << "maxPos:[" << maxPos << "], maxPrice:[" << maxPrice << "]" << endl;
-    int lastIndex = _bList.front().getIndex();
-    if (maxPos == lastIndex) {
-        _closeAction = CLOSE_ACTION_DONOTHING;
-        return;
-    }
-    _closeAction = CLOSE_ACTION_SELLCLOSE;
+    KLineBlock lastBlock = _bList.front();
+    _openedKLineMax = _openedKLineMax > lastBlock.getClosePrice() ? _openedKLineMax : lastBlock.getClosePrice();
+    _sellClosePoint = _openedKLineMax - _kRang * (_sellCloseKLineNum - 0.5);
+    //log
+    ofstream info;
+    Lib::initInfoLogHandle(info);
+    info << "LogicFrontend[calculateSellClose]" << "|";
+    info << "openedKLineMax" << "|" << _openedKLineMax << "|";
+    info << "sellClosePoint" << "|" << _sellClosePoint << endl;
+    info.close();
 }
 
-void TradeLogic::_getSpecialKLine(int * maxPos, int * minPos, double * maxPrice, double * minPrice)
-{
-    list<KLineBlock>::iterator item = _bList.begin();
-    *minPos = *maxPos = item->getIndex();
-    *maxPrice = *minPrice = item->getClosePrice();
-    double tmp;
-    while (1) {
-        if (item->getIndex() == _openIndex) break;
-        tmp = item->getClosePrice();
-        if (tmp > *maxPrice) {
-            *maxPrice = tmp;
-            *maxPos = item->getIndex();
-        }
-        if (tmp < *minPrice) {
-            *minPrice = tmp;
-            *minPos = item->getIndex();
-        }
-        item++;
-    }
-}

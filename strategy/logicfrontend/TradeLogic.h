@@ -11,11 +11,6 @@
 
 using namespace std;
 
-#define CLOSE_ACTION_OPEN 0
-#define CLOSE_ACTION_SELLCLOSE 1
-#define CLOSE_ACTION_BUYCLOSE 2
-#define CLOSE_ACTION_DONOTHING 3
-
 class TradeLogic
 {
 private:
@@ -25,15 +20,25 @@ private:
     list<KLineBlock> _bList;
 
     // 算法参数
-    int _kLineCountMax;
-    int _kLineCountMin;
-    int _kLineCountMean;
-    int _openIndex; // 开仓K线
+    int _openMaxKLineNum; // 开仓用K线条数
+    int _openMinKLineNum; // 开仓用K线条数
+    int _openMeanKLineNum; // 开仓用K线条数
+    int _kRang; // K线赋值
+    int _sellCloseKLineNum; // 卖平仓K线条数
+    int _buyCloseKLineNum; // 买平仓K线条数
 
-    // 开仓参数
+    // 开仓判断依据
     double _max;
     double _mean;
     double _min;
+
+    // 平仓判断依据
+    double _sellClosePoint;
+    double _buyClosePoint;
+
+    // 开仓情况下，当前K线组峰、谷值
+    double _openedKLineMax;
+    double _openedKLineMin;
 
 
     // 判断仓位状态
@@ -45,12 +50,9 @@ private:
     // 计算买平仓参数
     void _calculateBuyClose();
 
-    // 计算最大
-    void _getSpecialKLine(int * maxPos, int * minPos, double * maxPrice, double * minPrice);
-
-
 public:
-    TradeLogic(int countMax, int countMin, int countMean);
+    TradeLogic(int countMax, int countMin, int countMean, int kRang, 
+        int sellCloseKLineNum, int buyCloseKLineNum);
     ~TradeLogic();
 
     void init(); // 初始化历史K线
