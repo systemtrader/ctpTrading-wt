@@ -57,8 +57,10 @@ bool action(string msg, std::vector<string> params)
         Tick tick = {0};
         tick.date   = params[2];
         tick.time   = params[3];
-        tick.price  = atof(params[4].c_str());
-        tick.volume = atoi(params[5].c_str());
+        tick.price  = Lib::stod(params[4]);
+        tick.volume = Lib::stoi(params[5]);
+        tick.bidPrice1 = Lib::stod(params[6]);
+        tick.askPrice1 = Lib::stod(params[7]);
         service->onTickCome(tick);
     }
     return false;

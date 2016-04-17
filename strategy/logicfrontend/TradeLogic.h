@@ -5,6 +5,7 @@
 #include "../KLineBlock.h"
 #include "../../libs/Lib.h"
 #include "../../libs/Redis.h"
+#include "../Tick.h"
 #include <string>
 #include <list>
 #include <iostream>
@@ -14,6 +15,9 @@ using namespace std;
 class TradeLogic
 {
 private:
+
+    string _cfdIp;
+    int _cfdPort;
 
     int _closeAction;
     Redis * _store;
@@ -49,6 +53,10 @@ private:
     void _calculateSellClose();
     // 计算买平仓参数
     void _calculateBuyClose();
+
+    void _sendMsg(string msg, double price = 0);
+
+    Tick _getTick();
 
 public:
     TradeLogic(int countMax, int countMin, int countMean, int kRang, 

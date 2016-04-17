@@ -1,21 +1,24 @@
 #include "TradeLogic.h"
+#include "../../libs/Socket.h"
 #include <vector>
 #include <fstream>
 
 TradeLogic::TradeLogic(int countMax, int countMin, int countMean, int kRang, 
         int sellCloseKLineNum, int buyCloseKLineNum)
 {
-    _openMaxKLineNum = countMax;
-    _openMinKLineNum = countMin;
+    _openMaxKLineNum  = countMax;
+    _openMinKLineNum  = countMin;
     _openMeanKLineNum = countMean;
     _kRang = kRang;
     _sellCloseKLineNum = sellCloseKLineNum;
-    _buyCloseKLineNum = buyCloseKLineNum;
+    _buyCloseKLineNum  = buyCloseKLineNum;
 
     _max = _min = _mean = 0;
     _store = new Redis("127.0.0.1", 6379, 1);
 
-    _store->set("TRADE_STATUS", Lib::itos(TRADE_STATUS_NOTHING)); // 模拟代码，要删掉TODO
+    _cfdIp   = getOptionToChar("trade_backend_srv_ip");
+    _cfdPort = getOptionToInt("trade_backend_srv_port");
+
 }
 
 TradeLogic::~TradeLogic()
@@ -42,12 +45,6 @@ void TradeLogic::onKLineOpen()
 {
     if ((int)_bList.size() == 0) return;
     int status = _getStatus();
-    // cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
-    // cout << "status: " << status << endl;
-    // cout << "closeAction: " << _closeAction << endl;
-    // cout << "blist'length: " << _bList.size() << endl;
-    // cout << "openIndex: " << _openIndex << endl;
-    // cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
     KLineBlock lastBlock = _bList.front();
     switch (status) {
 
@@ -94,10 +91,6 @@ void TradeLogic::onKLineOpen()
 void TradeLogic::onKLineClose(KLineBlock block)
 {
     _bList.push_front(block);
-    // cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
-    // cout << "closeAction: " << _closeAction << endl;
-    // cout << "blist'length: " << _bList.size() << endl;
-    // 
     int status = _getStatus();
     switch (status) {
 
@@ -105,74 +98,40 @@ void TradeLogic::onKLineClose(KLineBlock block)
         case TRADE_STATUS_BUYOPENING: // 状态为正在买开仓，说明从上一个K线关闭一直没买成功，则放弃重新买
         case TRADE_STATUS_SELLOPENING: // 同上
             if (block.getClosePrice() > _max) {
-                // 发送消息，购买系统中更新状态，现在模拟成功状态 TODO
-                _store->set("TRADE_STATUS", Lib::itos(TRADE_STATUS_BUYOPENED));
-                // log
-                ofstream info;
-                Lib::initInfoLogHandle(info);
-                info << "onKLineClose" << "|";
-                info << "BUY_OPEN" << "|";
-                info << "OPEN_PRICE" << "|" << block.getClosePrice() << endl;
-                info.close();
+                _sendMsg(CMD_MSG_TRADE_BUYOPEN, block.getClosePrice());
             } else if (block.getClosePrice() < _min) {
-                // 发送消息，购买系统中更新状态，现在模拟成功状态 TODO
-                _store->set("TRADE_STATUS", Lib::itos(TRADE_STATUS_SELLOPENED));
-                // log
-                ofstream info;
-                Lib::initInfoLogHandle(info);
-                info << "onKLineClose" << "|";
-                info << "SELL_OPEN" << "|";
-                info << "OPEN_PRICE" << "|" << block.getClosePrice() << endl;
-                info.close();
+                _sendMsg(CMD_MSG_TRADE_SELLOPEN, block.getClosePrice());
             } else { // 不符合开仓条件
-                // 通知下单系统放弃正在进行的操作 TODO
-                _store->set("TRADE_STATUS", Lib::itos(TRADE_STATUS_NOTHING));
+                if (status == TRADE_STATUS_BUYOPENING || status == TRADE_STATUS_SELLOPENING)
+                    _sendMsg(CMD_MSG_TRADE_CANCEL);
             }
             break;
 
         case TRADE_STATUS_BUYOPENED: 
         case TRADE_STATUS_SELLCLOSING: 
             if (block.getClosePrice() < _sellClosePoint) {
-                // 发送消息，购买系统中更新状态，现在模拟成功状态 TODO
-                _store->set("TRADE_STATUS", Lib::itos(TRADE_STATUS_NOTHING));
-                // log
-                ofstream info;
-                Lib::initInfoLogHandle(info);
-                info << "onKLineClose" << "|";
-                info << "SELL_CLOSE" << "|";
-                info << "CLOSE_PRICE" << "|" << block.getClosePrice() << endl;
-                info.close();
+                Tick tick = _getTick();
+                _sendMsg(CMD_MSG_TRADE_SELLCLOSE, tick.bidPrice1);
             } else {
-                _store->set("TRADE_STATUS", Lib::itos(TRADE_STATUS_BUYOPENED));
+                if (status == TRADE_STATUS_SELLCLOSING)
+                    _sendMsg(CMD_MSG_TRADE_CANCEL);
             }
             break;
 
         case TRADE_STATUS_SELLOPENED:
         case TRADE_STATUS_BUYCLOSING: 
             if (block.getClosePrice() > _buyClosePoint) {
-                // 发送消息，购买系统中更新状态，现在模拟成功状态 TODO
-                _store->set("TRADE_STATUS", Lib::itos(TRADE_STATUS_NOTHING));
-                // log
-                ofstream info;
-                Lib::initInfoLogHandle(info);
-                info << "onKLineClose" << "|";
-                info << "BUY_CLOSE" << "|";
-                info << "CLOSE_PRICE" << "|" << block.getClosePrice() << endl;
-                info.close();
+                Tick tick = _getTick();
+                _sendMsg(CMD_MSG_TRADE_BUYCLOSE, tick.askPrice1);
             } else {
-                _store->set("TRADE_STATUS", Lib::itos(TRADE_STATUS_SELLOPENED));
+                if (status == TRADE_STATUS_BUYCLOSING)
+                    _sendMsg(CMD_MSG_TRADE_CANCEL);
             }
             break;
 
         default:
             break;
     }
-
-
-    // cout << "openIndex: " << _openIndex << endl;
-    // cout << "status: " << _getStatus() << endl;
-    // cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
-
 }
 
 int TradeLogic::_getStatus()
@@ -224,6 +183,7 @@ void TradeLogic::_calculateBuyClose()
     KLineBlock lastBlock = _bList.front();
     _openedKLineMin = _openedKLineMin < lastBlock.getClosePrice() ? _openedKLineMin : lastBlock.getClosePrice();
     _buyClosePoint = _openedKLineMin + _kRang * (_buyCloseKLineNum - 0.5);
+
     //log
     ofstream info;
     Lib::initInfoLogHandle(info);
@@ -238,6 +198,7 @@ void TradeLogic::_calculateSellClose()
     KLineBlock lastBlock = _bList.front();
     _openedKLineMax = _openedKLineMax > lastBlock.getClosePrice() ? _openedKLineMax : lastBlock.getClosePrice();
     _sellClosePoint = _openedKLineMax - _kRang * (_sellCloseKLineNum - 0.5);
+
     //log
     ofstream info;
     Lib::initInfoLogHandle(info);
@@ -247,3 +208,34 @@ void TradeLogic::_calculateSellClose()
     info.close();
 }
 
+Tick TradeLogic::_getTick()
+{
+    string tickStr = _store->get("CURRENT_TICK");
+    vector<string> params = Lib::split(tickStr, "_");
+    Tick tick = {0};
+    tick.date   = params[1];
+    tick.time   = params[2];
+    tick.price  = Lib::stod(params[3]);
+    tick.volume = Lib::stoi(params[4]);
+    tick.bidPrice1 = Lib::stod(params[5]);
+    tick.askPrice1 = Lib::stod(params[6]);
+    return tick;
+}
+
+void TradeLogic::_sendMsg(string msg, double price)
+{
+    int cfd = getCSocket(_cfdIp, _cfdPort);
+    string cmd = msg + "_" + Lib::dtos(price);
+    sendMsg(cfd, cmd);
+    close(cfd);
+
+    //log
+    KLineBlock lastBlock = _bList.front();
+    ofstream info;
+    Lib::initInfoLogHandle(info);
+    info << "LogicFrontend[sendMsg]" << "|";
+    info << "action" << "|" << msg << "|";
+    info << "price" << "|" << price << "|";
+    info << "kLineIndex" << "|" << lastBlock.getIndex() << endl;
+    info.close();
+}

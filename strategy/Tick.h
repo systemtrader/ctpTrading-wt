@@ -8,9 +8,11 @@ using namespace std;
 struct Tick
 {
     double price;
+    int volume;
+    double bidPrice1;
+    double askPrice1;
     string date;
     string time;
-    int volume;
 };
 
 

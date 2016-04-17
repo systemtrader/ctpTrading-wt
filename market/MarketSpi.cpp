@@ -99,7 +99,9 @@ void MarketSpi::_saveMarketData(CThostFtdcDepthMarketDataField *data)
                   string(data->TradingDay) + "_" +
                   string(data->UpdateTime) + "_" +
                   Lib::dtos(data->LastPrice) + "_" +
-                  Lib::itos(data->Volume);
+                  Lib::itos(data->Volume) + "_" +
+                  Lib::dtos(data->BidPrice1) + "_" + 
+                  Lib::dtos(data->AskPrice1);
     // 发送给K线系统
     string cmd = CMD_MSG_TICK + "_" + storeData;
     sendMsg(_cfd, cmd);

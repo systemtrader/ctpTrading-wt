@@ -23,9 +23,7 @@ int main(int argc, char const *argv[])
     int logicFrontSrvPort = getOptionToInt("logic_front_srv_port");
 
     service = new TradeLogic(openKCountMax, openKCountMin, openKCountMean, kRang, sellCloseKLineNum, buyCloseKLineNum);
-
-    // service->onKLineOpen();
-    // return 0;
+    service->init();
 
     // 服务化
     int sfd = getSSocket(logicFrontSrvPort);
