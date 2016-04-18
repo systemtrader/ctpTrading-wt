@@ -10,32 +10,35 @@
 #include <string>
 #include <iostream>
 
+using namespace std;
+
 #define MAX_BUF 1024
-typedef void (*ACTIONCALLBACK)(long int, void*);
+typedef bool (*ACTIONCALLBACK)(long int, const void*);
 
 class QService
 {
 private:
-    int id;
-    ACTIONCALLBACK callback;
+    ACTIONCALLBACK _callback;
+    int _msgID;
+    int _msgStructLen;
 public:
-    QService(int);
+    QService(int, int);
     ~QService();
 
-    setAction(ACTIONCALLBACK);
-    run();
+    void setAction(ACTIONCALLBACK);
+    void run();
 
 };
 
 class QClient
 {
 private:
-    int id;
-    int msgLen;
+    int _msgLen;
+    int _msgID;
 public:
     QClient(int, int);
     ~QClient();
-    send(void*);
+    void send(void*);
 };
 
 #endif
