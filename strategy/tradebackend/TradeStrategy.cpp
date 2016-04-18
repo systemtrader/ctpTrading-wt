@@ -2,11 +2,11 @@
 
 timer_t timer;
 extern int timeoutSec;
-extern TradeStrategy * ts; 
+extern TradeStrategy * service;
 
 void timeout(union sigval v)
 {
-    ts->timeout(v.sival_int);
+    service->timeout();
     return;
 }
 
@@ -32,7 +32,7 @@ void setTimer(int action)
 
 TradeStrategy::TradeStrategy()
 {
-    _cancelFlag = false;
+    _orderingID = _currentOrderID = 0;
     _store = new Redis("127.0.0.1", 6379, 1);
 }
 
@@ -45,6 +45,7 @@ TradeStrategy::~TradeStrategy()
 void TradeStrategy::tradeAction(int action, double price, int total)
 {
     int status = _getStatus();
+    _currentOrderID++;
     switch (action) {
 
         case TRADE_ACTION_BUYOPEN:
@@ -67,7 +68,7 @@ void TradeStrategy::tradeAction(int action, double price, int total)
                 case TRADE_STATUS_BUYOPENING:
                     _cancelAction();
                 case TRADE_STATUS_NOTHING:
-                    _sendMsg(); 
+                    _sendMsg();
                     break;
                 case TRADE_STATUS_SELLOPENING:
                 default:
@@ -123,13 +124,13 @@ void TradeStrategy::_successBack()
     ofstream info;
     Lib::initInfoLogHandle(info);
     info << "TradeStrategy[successBack]" << "|";
-    info << "status" << "|" << _getStatus() endl;
+    info << "status" << "|" << _getStatus() << endl;
     info.close();
 }
 
 void TradeStrategy::_cancelBack()
 {
-    if (_needZ()) {
+    if (_orderingID == 0 || _currentOrderID == _orderingID) {
         _zhuijia();
     }
 }
@@ -137,26 +138,19 @@ void TradeStrategy::_cancelBack()
 void TradeStrategy::timeout()
 {
     _cancelAction();
+    if (_orderingID == 0 || _currentOrderID == _orderingID) {
+        _zhuijia();
+    }
 }
 
 void TradeStrategy::_cancelAction()
 {
-    // 
-}
-
-void TradeStrategy::_needZ()
-{
-    return !_cancelFlag;
-}
-
-int TradeStrategy::_getStatus()
-{
-    string status = _store->get("TRADE_STATUS");
-    return Lib::stoi(status);
+    _sendMsg();
 }
 
 void TradeStrategy::_zhuijia()
 {
+    _orderingID = _currentOrderID;
     double price;
     Tick tick = _getTick();
     int status = _getStatus();
@@ -165,14 +159,47 @@ void TradeStrategy::_zhuijia()
         case TRADE_STATUS_BUYOPENING:
             price = tick.price;
             // TODO 发送消息
+            _sendMsg();
             break;
         case TRADE_STATUS_SELLCLOSING:
             price = tick.price - 30;
+            _sendMsg();
             break;
         case TRADE_STATUS_BUYCLOSING:
             price = tick.price + 30;
+            _sendMsg();
             break;
         default:
-            break; 
+            break;
     }
+}
+
+void TradeStrategy::_sendMsg()
+{
+
+}
+
+Tick TradeStrategy::_getTick()
+{
+    string tickStr = _store->get("CURRENT_TICK");
+    vector<string> params = Lib::split(tickStr, "_");
+    Tick tick = {0};
+    tick.date   = params[1];
+    tick.time   = params[2];
+    tick.price  = Lib::stod(params[3]);
+    tick.volume = Lib::stoi(params[4]);
+    tick.bidPrice1 = Lib::stod(params[5]);
+    tick.askPrice1 = Lib::stod(params[6]);
+    return tick;
+}
+
+int TradeStrategy::_getStatus()
+{
+    string status = _store->get("TRADE_STATUS");
+    return Lib::stoi(status);
+}
+
+void TradeStrategy::_setStatus(int status)
+{
+    _store->set("TRADE_STATUS", Lib::itos(status));
 }

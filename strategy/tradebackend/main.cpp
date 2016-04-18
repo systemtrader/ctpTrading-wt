@@ -42,7 +42,7 @@ int main(int argc, char const *argv[])
             break;
         }
         close(cfd);
-    }    
+    }
     close(sfd);
     cout << "Trade backend stop success!" << endl;
     return 0;
@@ -57,18 +57,18 @@ bool action(string msg, std::vector<string> params)
     }
     // 下单操作
     if (msg.compare(CMD_MSG_TRADE_BUYOPEN) == 0) {
-        service->tradeAction(TRADE_ACTION_BUYOPEN, params[1], 1);
+        service->tradeAction(TRADE_ACTION_BUYOPEN, Lib::stod(params[1]), 1);
     }
     if (msg.compare(CMD_MSG_TRADE_SELLOPEN) == 0) {
-        service->tradeAction(TRADE_ACTION_SELLOPEN, params[1], 1);
+        service->tradeAction(TRADE_ACTION_SELLOPEN, Lib::stod(params[1]), 1);
     }
     if (msg.compare(CMD_MSG_TRADE_SELLCLOSE) == 0) {
-        service->tradeAction(TRADE_ACTION_SELLCLOSE, params[1], 1);
+        service->tradeAction(TRADE_ACTION_SELLCLOSE, Lib::stod(params[1]), 1);
     }
     if (msg.compare(CMD_MSG_TRADE_BUYCLOSE) == 0) {
-        service->tradeAction(TRADE_ACTION_BUYCLOSE, params[1], 1);
+        service->tradeAction(TRADE_ACTION_BUYCLOSE, Lib::stod(params[1]), 1);
     }
-    
+
     // 下单回馈
     if (msg.compare(CMD_MSG_ON_TRADED) == 0) {
         service->onTradeMsgBack(true);

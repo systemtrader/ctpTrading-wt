@@ -18,14 +18,15 @@ class TradeStrategy
 private:
 
     Redis * _store;
-    bool _cancelFlag;
+
+    int _orderingID;
+    int _currentOrderID;
 
     void _cancelBack();
     void _successBack();
     void _cancelAction();
 
-    // 是否需要追价
-    int _needZ();
+    // 追价
     void _zhuijia();
 
     Tick _getTick();
@@ -41,7 +42,7 @@ public:
 
     void tradeAction(int action, double price, int total = 1);
     void onTradeMsgBack(bool isSuccess);
-    void timeout(int action);
+    void timeout();
 
 };
 

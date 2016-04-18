@@ -1,9 +1,10 @@
 #include "TradeLogic.h"
 #include "../../libs/Socket.h"
+#include "../../cmd.h"
 #include <vector>
 #include <fstream>
 
-TradeLogic::TradeLogic(int countMax, int countMin, int countMean, int kRang, 
+TradeLogic::TradeLogic(int countMax, int countMin, int countMean, int kRang,
         int sellCloseKLineNum, int buyCloseKLineNum)
 {
     _openMaxKLineNum  = countMax;
@@ -107,8 +108,8 @@ void TradeLogic::onKLineClose(KLineBlock block)
             }
             break;
 
-        case TRADE_STATUS_BUYOPENED: 
-        case TRADE_STATUS_SELLCLOSING: 
+        case TRADE_STATUS_BUYOPENED:
+        case TRADE_STATUS_SELLCLOSING:
             if (block.getClosePrice() < _sellClosePoint) {
                 Tick tick = _getTick();
                 _sendMsg(CMD_MSG_TRADE_SELLCLOSE, tick.bidPrice1);
@@ -119,7 +120,7 @@ void TradeLogic::onKLineClose(KLineBlock block)
             break;
 
         case TRADE_STATUS_SELLOPENED:
-        case TRADE_STATUS_BUYCLOSING: 
+        case TRADE_STATUS_BUYCLOSING:
             if (block.getClosePrice() > _buyClosePoint) {
                 Tick tick = _getTick();
                 _sendMsg(CMD_MSG_TRADE_BUYCLOSE, tick.askPrice1);
@@ -147,7 +148,7 @@ void TradeLogic::_calculateOpen()
     count = _openMaxKLineNum > _openMinKLineNum ? _openMaxKLineNum : _openMinKLineNum;
     count = count > _openMeanKLineNum ? count : _openMeanKLineNum;
 
-    // 当前K线不足判断，直接返回，不作操作 
+    // 当前K线不足判断，直接返回，不作操作
     if ((int)_bList.size() < count) return;
 
     // 计算当前范围内的开仓参数

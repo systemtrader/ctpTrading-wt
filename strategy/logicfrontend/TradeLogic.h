@@ -16,7 +16,7 @@ class TradeLogic
 {
 private:
 
-    string _cfdIp;
+    const char * _cfdIp;
     int _cfdPort;
 
     int _closeAction;
@@ -59,7 +59,7 @@ private:
     Tick _getTick();
 
 public:
-    TradeLogic(int countMax, int countMin, int countMean, int kRang, 
+    TradeLogic(int countMax, int countMin, int countMean, int kRang,
         int sellCloseKLineNum, int buyCloseKLineNum);
     ~TradeLogic();
 
