@@ -1,23 +1,20 @@
 #ifndef TRADE_STRATEGY_H
 #define TRADE_STRATEGY_H
 
+#include "../../global.h"
 #include "../global.h"
-#include "../Tick.h"
 #include "../../libs/Redis.h"
-#include "../../libs/Lib.h"
-#include <string>
-#include <iostream>
 #include <sys/time.h>
 #include <signal.h>
 #include <cstring>
-
-using namespace std;
 
 class TradeStrategy
 {
 private:
 
     Redis * _store;
+    QClient * _tradeSrvClient;
+    string _logPath;
 
     int _orderingID;
     int _currentOrderID;
@@ -29,19 +26,19 @@ private:
     // 追价
     void _zhuijia();
 
-    Tick _getTick();
+    TickData _getTick();
 
     int _getStatus();
-    void _setStatus(int status);
+    void _setStatus(int);
 
     void _sendMsg();
 
 public:
-    TradeStrategy();
+    TradeStrategy(int, string);
     ~TradeStrategy();
 
-    void tradeAction(int action, double price, int total = 1);
-    void onTradeMsgBack(bool isSuccess);
+    void tradeAction(int, double, int = 1);
+    void onTradeMsgBack(bool);
     void timeout();
 
 };

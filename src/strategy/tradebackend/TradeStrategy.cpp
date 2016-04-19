@@ -29,16 +29,20 @@ void setTimer(int action)
     timer_settime(timer, 0, &ts, NULL);
 }
 
-
-TradeStrategy::TradeStrategy()
+TradeStrategy::TradeStrategy(int serviceID, string logPath)
 {
+    _logPath = logPath;
     _orderingID = _currentOrderID = 0;
     _store = new Redis("127.0.0.1", 6379, 1);
+    _tradeSrvClient = new QClient(serviceID, sizeof(MSG_TO_TRADE));
+
 }
 
 TradeStrategy::~TradeStrategy()
 {
     delete _store;
+    delete _tradeSrvClient;
+    cout << "~TradeStrategy" << endl;
 }
 
 
@@ -122,8 +126,8 @@ void TradeStrategy::_successBack()
 
     // log
     ofstream info;
-    Lib::initInfoLogHandle(info);
-    info << "TradeStrategy[successBack]" << "|";
+    Lib::initInfoLogHandle(_logPath, info);
+    info << "TradeStrategySrv[successBack]" << "|";
     info << "status" << "|" << _getStatus() << endl;
     info.close();
 }
@@ -152,7 +156,7 @@ void TradeStrategy::_zhuijia()
 {
     _orderingID = _currentOrderID;
     double price;
-    Tick tick = _getTick();
+    TickData tick = _getTick();
     int status = _getStatus();
     switch (status) {
         case TRADE_STATUS_SELLOPENING:
@@ -179,18 +183,10 @@ void TradeStrategy::_sendMsg()
 
 }
 
-Tick TradeStrategy::_getTick()
+TickData TradeStrategy::_getTick()
 {
     string tickStr = _store->get("CURRENT_TICK");
-    vector<string> params = Lib::split(tickStr, "_");
-    Tick tick = {0};
-    tick.date   = params[1];
-    tick.time   = params[2];
-    tick.price  = Lib::stod(params[3]);
-    tick.volume = Lib::stoi(params[4]);
-    tick.bidPrice1 = Lib::stod(params[5]);
-    tick.askPrice1 = Lib::stod(params[6]);
-    return tick;
+    return Lib::string2TickData(tickStr);
 }
 
 int TradeStrategy::_getStatus()

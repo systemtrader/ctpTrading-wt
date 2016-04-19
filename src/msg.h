@@ -43,5 +43,10 @@ typedef struct msg_trade_data
 
 // tradeStrategySrv->tradeSrv
 #define MSG_ORDER 12
+typedef struct msg_trade
+{
+    long int msgType;
+
+} MSG_TO_TRADE;
 
 #endif

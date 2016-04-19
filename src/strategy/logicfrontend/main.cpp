@@ -28,9 +28,9 @@ int main(int argc, char const *argv[])
     // 服务化
     QService tradeLogicSrv(tradeLogicSrvID, sizeof(MSG_TO_TRADE_LOGIC));
     tradeLogicSrv.setAction(action);
-    cout << "TradeLogic frontend start success!" << endl;
+    cout << "TradeLogic service start success!" << endl;
     tradeLogicSrv.run();
-    cout << "TradeLogic frontend stop success!" << endl;
+    cout << "TradeLogic service stop success!" << endl;
     return 0;
 }
 
