@@ -10,39 +10,61 @@ KLineBlock::~KLineBlock()
 
 }
 
-void KLineBlock::init(int index, string date, string time,
-    double tick, int volume)
+void KLineBlock::init(int index, TickData tick)
 {
     _index = index;
-    _openDate = date;
-    _openTime = time;
+    _openDate = string(tick.date);
+    _openTime = string(tick.time);
 
-    _maxPrice = tick;
-    _minPrice = tick;
-    _openPrice = tick;
-    _closePrice = tick;
-
-    _volume = volume;
+    _maxPrice = _minPrice = _openPrice = _closePrice = tick.price;
+    _volume = tick.volume;
 
     _type = KLINE_TYPE_UNKOWN;
 }
 
-void KLineBlock::update(double tick, int volume)
+void KLineBlock::update(TickData tick)
 {
-    if (tick > _maxPrice) {
-        _maxPrice = tick;
+    if (tick.price > _maxPrice) {
+        _maxPrice = tick.price;
     }
-    if (tick < _minPrice) {
-        _minPrice = tick;
+    if (tick.price < _minPrice) {
+        _minPrice = tick.price;
     }
-    _closePrice = tick;
+    _closePrice = tick.price;
+    _closeDate = string(tick.date);
+    _closeTime = string(tick.time);
 }
 
-void KLineBlock::close(string date, string time)
+void KLineBlock::close()
 {
-    _closeDate = date;
-    _closeTime = time;
     _type = _openPrice > _closePrice ? KLINE_TYPE_UP : KLINE_TYPE_DOWN;
+}
+
+KLineBlockData KLineBlock::exportData()
+{
+    KLineBlockData block = {0};
+    block.index = _index;
+    block.open = _openPrice;
+    block.max = _maxPrice;
+    block.min = _minPrice;
+    block.close = _closePrice;
+    return block;
+}
+
+string KLineBlock::exportString()
+{
+    string str = Lib::itos(_index) + "_" +
+                 Lib::itos(_type) + "_" +
+                 _openDate + "_" +
+                 _openTime + "_" +
+                 Lib::dtos(_openPrice) + "_" +
+                 Lib::dtos(_maxPrice) + "_" +
+                 Lib::dtos(_minPrice) + "_" +
+                 Lib::dtos(_closePrice) + "_" +
+                 Lib::itos(_volume) + "_" +
+                 _closeDate + "_" +
+                 _closeTime;
+    return str;
 }
 
 double KLineBlock::getMaxPrice()
@@ -100,17 +122,14 @@ int KLineBlock::getVolume()
     return _volume;
 }
 
-KLineBlock KLineBlock::makeSimple(string index, string type, string openPrice,
-    string maxPrice, string minPrice, string closePrice, string volume)
+KLineBlock KLineBlock::makeViaData(KLineBlockData blockData)
 {
     KLineBlock block;
-    block._index      = Lib::stoi(index);
-    block._type       = Lib::stoi(type);
-    block._openPrice  = Lib::stod(openPrice);
-    block._maxPrice   = Lib::stod(maxPrice);
-    block._minPrice   = Lib::stod(minPrice);
-    block._closePrice = Lib::stod(closePrice);
-    block._volume     = Lib::stoi(volume);
+    block._index      = blockData.index;
+    block._openPrice  = blockData.open;
+    block._maxPrice   = blockData.max;
+    block._minPrice   = blockData.min;
+    block._closePrice = blockData.close;
     return block;
 }
 

@@ -14,6 +14,11 @@ typedef struct Tick
 
 typedef struct KLineBlockData
 {
+    int index;
+    double open;
+    double max;
+    double min;
+    double close;
 
 } KLineBlockData;
 

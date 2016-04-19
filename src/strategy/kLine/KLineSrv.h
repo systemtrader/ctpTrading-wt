@@ -1,30 +1,34 @@
 #ifndef K_LINE_SRV_H
 #define K_LINE_SRV_H
-#include "../KLineBlock.h"
-#include "../Tick.h"
+
+#include "../../global.h"
 #include "../../libs/Redis.h"
+#include "../../protos/KLineBlock.h"
+#include <cmath>
 
 class KLineSrv
 {
 private:
 
+    QClient * _tradeLogicSrvClient;
     KLineBlock * _currentBlock;
     Redis * _store;
-    int _msgFD;
 
     int _index;
     int _kRange;
 
-    int _isBlockExist();
-    int _checkBlockClose(Tick tick);
-    void _initBlock(Tick tick);
-    void _updateBlock(Tick tick);
-    void _closeBlock(Tick tick);
+    string _logPath;
+
+    bool _isBlockExist();
+    bool _checkBlockClose(TickData);
+    void _initBlock(TickData);
+    void _updateBlock(TickData);
+    void _closeBlock(TickData);
 
 public:
-    KLineSrv(int kRange);
+    KLineSrv(int, int, string);
     ~KLineSrv();
 
-    void onTickCome(Tick tick);
+    void onTickCome(TickData);
 };
 #endif

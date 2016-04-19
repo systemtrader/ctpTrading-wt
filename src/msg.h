@@ -37,6 +37,7 @@ typedef struct msg_k_line
 typedef struct msg_trade_data
 {
     long int msgType;
+    double price;
 
 } MSG_TO_TRADE_STRATEGY;
 

@@ -1,73 +1,54 @@
 #include "TradeLogic.h"
-#include "../../iniReader/iniReader.h"
-#include "../../libs/Socket.h"
-#include "../../libs/Lib.h"
-#include "../../cmd.h"
-#include <vector>
 
 TradeLogic * service;
 
-bool action(string msg, std::vector<string>);
+bool action(long int, const void *);
 
 int main(int argc, char const *argv[])
 {
     // 初始化参数
-    parseIniFile("config.ini");
-    int openKCountMax = getOptionToInt("open_k_count_max");
-    int openKCountMin = getOptionToInt("open_k_count_min");
-    int openKCountMean = getOptionToInt("open_k_count_mean");
-    int kRang = getOptionToInt("k_range");
-    int sellCloseKLineNum = getOptionToInt("");
-    int buyCloseKLineNum = getOptionToInt("");
+    parseIniFile("../../../etc/config.ini");
+    int openMaxKCount        = getOptionToInt("open_max_k_count");
+    int openMinKCount        = getOptionToInt("open_min_k_count");
+    int openMeanKCount       = getOptionToInt("open_mean_k_count");
+    int kRang                = getOptionToInt("k_range");
+    int closeSellKRangeCount = getOptionToInt("close_sell_k_range_count");
+    int closeBuyKRangeCount  = getOptionToInt("close_buy_k_range_count");
 
-    int logicFrontSrvPort = getOptionToInt("logic_front_srv_port");
+    int tradeLogicSrvID    = getOptionToInt("trade_logic_service_id");
+    int tradeStrategySrvID = getOptionToInt("trade_strategy_service_id");
 
-    service = new TradeLogic(openKCountMax, openKCountMin, openKCountMean, kRang, sellCloseKLineNum, buyCloseKLineNum);
+    string logPath = getOptionToString("log_path");
+
+
+    service = new TradeLogic(openMaxKCount, openMinKCount, openMeanKCount, kRang, 
+        closeSellKRangeCount, closeBuyKRangeCount, tradeStrategySrvID, logPath);
     service->init();
 
     // 服务化
-    int sfd = getSSocket(logicFrontSrvPort);
-
-    char buff[1024];
-    string msgLine, msg;
-    vector<string> params;
-    int cfd, n;
+    QService tradeLogicSrv(tradeLogicSrvID, sizeof(MSG_TO_TRADE_LOGIC));
+    tradeLogicSrv.setAction(action);
     cout << "TradeLogic frontend start success!" << endl;
-    if ((cfd = accept(sfd, (struct sockaddr *)NULL, NULL)) == -1) {
-        cout << "accept socket error: " << strerror(errno) <<  endl;
-    }
-    while ((n = recv(cfd, buff, 1024, 0)) > 0) {
-        buff[n] = '\0';
-        msgLine = string(buff);
-        msgLine = trim(msgLine);
-        params = Lib::split(msgLine, "_");
-        msg = params[0];
-        if (action(msg, params)) {
-            break;
-        }
-    }
-    close(cfd);
-    close(sfd);
+    tradeLogicSrv.run();
     cout << "TradeLogic frontend stop success!" << endl;
     return 0;
 }
 
-bool action(string msg, std::vector<string> params)
+bool action(long int msgType, const void * data)
 {
-    cout << "MSG:" << msg << endl;
-    if (msg.compare(CMD_MSG_SHUTDOWN) == 0) {
+    cout << "MSG:" << msgType << endl;
+    if (msgType == MSG_SHUTDOWN) {
         if (service) delete service;
-        return true;
+        return false;
     }
-    if (msg.compare(CMD_MSG_KLINE_OPEN) == 0) {
+    if (msgType == MSG_KLINE_OPEN) {
         service->onKLineOpen();
     }
-    if (msg.compare(CMD_MSG_KLINE_CLOSE) == 0) {
-        KLineBlock block = KLineBlock::makeSimple(params[2], params[3], params[6],
-            params[7], params[8], params[9], params[10]);
+    if (msgType == MSG_KLINE_CLOSE) {
+        KLineBlock block = KLineBlock::makeViaData(((MSG_TO_TRADE_LOGIC*)data)->block);
         block.show();
         service->onKLineClose(block);
     }
-    return false;
+    return true;
 }
 

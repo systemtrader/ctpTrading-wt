@@ -1,43 +1,46 @@
 #include "TradeLogic.h"
-#include "../../libs/Socket.h"
-#include "../../cmd.h"
-#include <vector>
-#include <fstream>
 
 TradeLogic::TradeLogic(int countMax, int countMin, int countMean, int kRang,
-        int sellCloseKLineNum, int buyCloseKLineNum)
+        int sellCloseKLineNum, int buyCloseKLineNum, int serviceID, string logPath)
 {
-    _openMaxKLineNum  = countMax;
-    _openMinKLineNum  = countMin;
-    _openMeanKLineNum = countMean;
+    _openMaxKLineCount  = countMax;
+    _openMinKLineCount  = countMin;
+    _openMeanKLineCount = countMean;
     _kRang = kRang;
-    _sellCloseKLineNum = sellCloseKLineNum;
-    _buyCloseKLineNum  = buyCloseKLineNum;
+    _closeSellKRangeCount = sellCloseKLineNum;
+    _closeBuyKRangeCount  = buyCloseKLineNum;
+    _logPath = logPath;
 
     _max = _min = _mean = 0;
     _store = new Redis("127.0.0.1", 6379, 1);
 
-    _cfdIp   = getOptionToChar("trade_backend_srv_ip");
-    _cfdPort = getOptionToInt("trade_backend_srv_port");
+    _tradeStrategySrvClient = new QClient(serviceID, sizeof(MSG_TO_TRADE_STRATEGY));
 
 }
 
 TradeLogic::~TradeLogic()
 {
     delete _store;
+    delete _tradeStrategySrvClient;
+    cout << "~TradeLogicSrv" << endl;
 }
 
 void TradeLogic::init()
 {
     string res;
     KLineBlock tmp;
+    KLineBlockData tmpData = {0};
     vector<string> params;
     while(1) {
         res = _store->pop("HISTORY_KLINE");
         if (res.length() == 0) break;
         params = Lib::split(res, "_");
-        tmp = KLineBlock::makeSimple(params[0], params[8], params[3],
-            params[5], params[6], params[4], params[7]);
+        tmpData.index = Lib::stoi(params[0]);
+        tmpData.open = Lib::stod(params[4]);
+        tmpData.max = Lib::stod(params[5]);
+        tmpData.min = Lib::stod(params[6]);
+        tmpData.close = Lib::stod(params[7]);
+        tmp = KLineBlock::makeViaData(tmpData);
         _bList.push_front(tmp);
     }
 }
@@ -99,12 +102,12 @@ void TradeLogic::onKLineClose(KLineBlock block)
         case TRADE_STATUS_BUYOPENING: // 状态为正在买开仓，说明从上一个K线关闭一直没买成功，则放弃重新买
         case TRADE_STATUS_SELLOPENING: // 同上
             if (block.getClosePrice() > _max) {
-                _sendMsg(CMD_MSG_TRADE_BUYOPEN, block.getClosePrice());
+                _sendMsg(MSG_TRADE_BUYOPEN, block.getClosePrice());
             } else if (block.getClosePrice() < _min) {
-                _sendMsg(CMD_MSG_TRADE_SELLOPEN, block.getClosePrice());
+                _sendMsg(MSG_TRADE_SELLOPEN, block.getClosePrice());
             } else { // 不符合开仓条件
                 if (status == TRADE_STATUS_BUYOPENING || status == TRADE_STATUS_SELLOPENING)
-                    _sendMsg(CMD_MSG_TRADE_CANCEL);
+                    _sendMsg(MSG_TRADE_CANCEL);
             }
             break;
 
@@ -112,10 +115,10 @@ void TradeLogic::onKLineClose(KLineBlock block)
         case TRADE_STATUS_SELLCLOSING:
             if (block.getClosePrice() < _sellClosePoint) {
                 Tick tick = _getTick();
-                _sendMsg(CMD_MSG_TRADE_SELLCLOSE, tick.bidPrice1);
+                _sendMsg(MSG_TRADE_SELLCLOSE, tick.bidPrice1);
             } else {
                 if (status == TRADE_STATUS_SELLCLOSING)
-                    _sendMsg(CMD_MSG_TRADE_CANCEL);
+                    _sendMsg(MSG_TRADE_CANCEL);
             }
             break;
 
@@ -123,10 +126,10 @@ void TradeLogic::onKLineClose(KLineBlock block)
         case TRADE_STATUS_BUYCLOSING:
             if (block.getClosePrice() > _buyClosePoint) {
                 Tick tick = _getTick();
-                _sendMsg(CMD_MSG_TRADE_BUYCLOSE, tick.askPrice1);
+                _sendMsg(MSG_TRADE_BUYCLOSE, tick.askPrice1);
             } else {
                 if (status == TRADE_STATUS_BUYCLOSING)
-                    _sendMsg(CMD_MSG_TRADE_CANCEL);
+                    _sendMsg(MSG_TRADE_CANCEL);
             }
             break;
 
@@ -145,8 +148,8 @@ void TradeLogic::_calculateOpen()
 {
     // 获取最大K线个数（当前几个参数相同）
     int count = 0;
-    count = _openMaxKLineNum > _openMinKLineNum ? _openMaxKLineNum : _openMinKLineNum;
-    count = count > _openMeanKLineNum ? count : _openMeanKLineNum;
+    count = _openMaxKLineCount > _openMinKLineCount ? _openMaxKLineCount : _openMinKLineCount;
+    count = count > _openMeanKLineCount ? count : _openMeanKLineCount;
 
     // 当前K线不足判断，直接返回，不作操作
     if ((int)_bList.size() < count) return;
@@ -169,8 +172,8 @@ void TradeLogic::_calculateOpen()
 
     // log
     ofstream info;
-    Lib::initInfoLogHandle(info);
-    info << "LogicFrontend[calculateOpen]" << "|";
+    Lib::initInfoLogHandle(_logPath, info);
+    info << "TradeLogicSrv[calculateOpen]" << "|";
     info << "max" << "|" << _max << "|";
     info << "mean" << "|" << _mean << "|";
     info << "min" << "|" << _min << "|";
@@ -183,12 +186,12 @@ void TradeLogic::_calculateBuyClose()
 {
     KLineBlock lastBlock = _bList.front();
     _openedKLineMin = _openedKLineMin < lastBlock.getClosePrice() ? _openedKLineMin : lastBlock.getClosePrice();
-    _buyClosePoint = _openedKLineMin + _kRang * (_buyCloseKLineNum - 0.5);
+    _buyClosePoint = _openedKLineMin + _kRang * (_closeBuyKRangeCount - 0.5);
 
     //log
     ofstream info;
-    Lib::initInfoLogHandle(info);
-    info << "LogicFrontend[calculateBuyClose]" << "|";
+    Lib::initInfoLogHandle(_logPath, info);
+    info << "TradeLogicSrv[calculateBuyClose]" << "|";
     info << "openedKLineMin" << "|" << _openedKLineMin << "|";
     info << "buyClosePoint" << "|" << _buyClosePoint << endl;
     info.close();
@@ -198,44 +201,36 @@ void TradeLogic::_calculateSellClose()
 {
     KLineBlock lastBlock = _bList.front();
     _openedKLineMax = _openedKLineMax > lastBlock.getClosePrice() ? _openedKLineMax : lastBlock.getClosePrice();
-    _sellClosePoint = _openedKLineMax - _kRang * (_sellCloseKLineNum - 0.5);
+    _sellClosePoint = _openedKLineMax - _kRang * (_closeSellKRangeCount - 0.5);
 
     //log
     ofstream info;
-    Lib::initInfoLogHandle(info);
-    info << "LogicFrontend[calculateSellClose]" << "|";
+    Lib::initInfoLogHandle(_logPath, info);
+    info << "TradeLogicSrv[calculateSellClose]" << "|";
     info << "openedKLineMax" << "|" << _openedKLineMax << "|";
     info << "sellClosePoint" << "|" << _sellClosePoint << endl;
     info.close();
 }
 
-Tick TradeLogic::_getTick()
+TickData TradeLogic::_getTick()
 {
     string tickStr = _store->get("CURRENT_TICK");
-    vector<string> params = Lib::split(tickStr, "_");
-    Tick tick = {0};
-    tick.date   = params[1];
-    tick.time   = params[2];
-    tick.price  = Lib::stod(params[3]);
-    tick.volume = Lib::stoi(params[4]);
-    tick.bidPrice1 = Lib::stod(params[5]);
-    tick.askPrice1 = Lib::stod(params[6]);
-    return tick;
+    return Lib::string2TickData(tickStr);
 }
 
-void TradeLogic::_sendMsg(string msg, double price)
+void TradeLogic::_sendMsg(int msgType, double price)
 {
-    int cfd = getCSocket(_cfdIp, _cfdPort);
-    string cmd = msg + "_" + Lib::dtos(price);
-    sendMsg(cfd, cmd);
-    close(cfd);
+    MSG_TO_TRADE_STRATEGY msg = {0};
+    msg.msgType = msgType;
+    msg.price = price;
+    _tradeStrategySrvClient->send((void *)&msg);
 
     //log
     KLineBlock lastBlock = _bList.front();
     ofstream info;
-    Lib::initInfoLogHandle(info);
-    info << "LogicFrontend[sendMsg]" << "|";
-    info << "action" << "|" << msg << "|";
+    Lib::initInfoLogHandle(_logPath, info);
+    info << "TradeLogicSrv[sendMsg]" << "|";
+    info << "action" << "|" << msgType << "|";
     info << "price" << "|" << price << "|";
     info << "kLineIndex" << "|" << lastBlock.getIndex() << endl;
     info.close();

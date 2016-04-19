@@ -1,6 +1,8 @@
 #ifndef K_LINE_BLOCK_H
 #define K_LINE_BLOCK_H
+
 #include "../libs/Lib.h"
+#include "Data.h"
 #include <string>
 #include <iostream>
 #include <vector>
@@ -34,10 +36,12 @@ public:
     KLineBlock();
     ~KLineBlock();
 
-    void init(int index, string date, string time,
-        double tick, int volume);
-    void update(double tick, int volume);
-    void close(string date, string time);
+    void init(int, TickData);
+    void update(TickData);
+    void close();
+    void show();
+    KLineBlockData exportData();
+    string exportString();
 
     double getMaxPrice();
     double getMinPrice();
@@ -51,9 +55,6 @@ public:
     int getIndex();
     int getVolume();
 
-    static KLineBlock makeSimple(string index, string type, string openPrice,
-        string maxPrice, string minPrice, string closePrice, string volume);
-
-    void show();
+    static KLineBlock makeViaData(KLineBlockData);
 };
 #endif

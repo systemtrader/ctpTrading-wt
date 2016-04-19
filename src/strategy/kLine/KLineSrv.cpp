@@ -1,30 +1,24 @@
 #include "KLineSrv.h"
-#include "../../libs/Lib.h"
-#include "../../libs/Socket.h"
-#include "../../iniReader/iniReader.h"
-#include "../../cmd.h"
-#include <cmath>
 
-KLineSrv::KLineSrv(int kRange)
+KLineSrv::KLineSrv(int kRange, int serviceID, string logPath)
 {
     _index = 0;
     _kRange = kRange;
+    _logPath = logPath;
     _currentBlock = NULL;
-    _store = new Redis("127.0.0.1", 6379, 1);
-    int          port = getOptionToInt("logic_front_srv_port");
-    const char * ip   = getOptionToChar("logic_front_srv_ip");
 
-    _msgFD = getCSocket(ip, port);
+    _store = new Redis("127.0.0.1", 6379, 1);
+    _tradeLogicSrvClient = new QClient(serviceID, sizeof(MSG_TO_TRADE_LOGIC));
 }
 
 KLineSrv::~KLineSrv()
 {
-    close(_msgFD);
     delete _store;
+    delete _tradeLogicSrvClient;
     cout << "~KLineSrv" << endl;
 }
 
-void KLineSrv::onTickCome(Tick tick)
+void KLineSrv::onTickCome(TickData tick)
 {
     if (_isBlockExist()) {
         _updateBlock(tick);
@@ -38,61 +32,66 @@ void KLineSrv::onTickCome(Tick tick)
     }
 }
 
-int KLineSrv::_isBlockExist()
+bool KLineSrv::_isBlockExist()
 {
-    if (NULL == _currentBlock) return 0;
-    return 1;
+    if (NULL == _currentBlock) return false;
+    return true;
 }
 
-void KLineSrv::_initBlock(Tick tick)
+void KLineSrv::_initBlock(TickData tick)
 {
     _currentBlock = new KLineBlock();
-    _currentBlock->init(_index, tick.date, tick.time,
-        tick.price, tick.volume);
-    // 发送消息TODO
-    string msgData = Lib::itos(_index) + "_" +
-                    Lib::dtos(tick.price) + "_" +
-                    Lib::itos(tick.volume);
-    string msg = CMD_MSG_KLINE_OPEN + "_" + msgData;
-    sendMsg(_msgFD, msg);
+    _currentBlock->init(_index, tick);
+
+    // 发送消息
+    MSG_TO_TRADE_LOGIC msg = {0};
+    msg.msgType = MSG_KLINE_OPEN;
+    msg.block = _currentBlock->exportData();
+    _tradeLogicSrvClient->send((void *)&msg);
+    
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info);
+    info << "KLineSrv[open]" << "|";
+    info << "index" << "|" << _index << endl;
+    info.close();
+
     _index++;
 }
 
-int KLineSrv::_checkBlockClose(Tick tick)
+bool KLineSrv::_checkBlockClose(TickData tick)
 {
     if (abs(_currentBlock->getOpenPrice() - tick.price) > _kRange) {
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
-void KLineSrv::_updateBlock(Tick tick)
+void KLineSrv::_updateBlock(TickData tick)
 {
-    _currentBlock->update(tick.price, tick.volume);
+    _currentBlock->update(tick);
 }
 
 void KLineSrv::_closeBlock(Tick tick)
 {
-    _currentBlock->close(tick.date, tick.time);
-    string localTime = Lib::getDate("%Y%m%d-%H:%M:%S");
+    _currentBlock->close();
     string keyQ = "K_LINE_Q";
-    string storeData = localTime + "_" +
-                    Lib::itos(_currentBlock->getIndex()) + "_" +
-                    Lib::itos(_currentBlock->getType()) + "_" +
-                    _currentBlock->getOpenDate() + "_" +
-                    _currentBlock->getOpenTime() + "_" +
-                    Lib::dtos(_currentBlock->getOpenPrice()) + "_" +
-                    Lib::dtos(_currentBlock->getMaxPrice()) + "_" +
-                    Lib::dtos(_currentBlock->getMinPrice()) + "_" +
-                    Lib::dtos(_currentBlock->getClosePrice()) + "_" +
-                    Lib::itos(_currentBlock->getVolume()) + "_" +
-                    _currentBlock->getCloseDate() + "_" +
-                    _currentBlock->getCloseTime();
+    string strData = _currentBlock->exportString();
+    KLineBlockData blockData = _currentBlock->exportData();
     delete _currentBlock;
     _currentBlock = NULL;
+
     // 发送消息
-    string msg = CMD_MSG_KLINE_CLOSE + "_" + storeData;
-    sendMsg(_msgFD, msg);
+    MSG_TO_TRADE_LOGIC msg = {0};
+    msg.msgType = MSG_KLINE_CLOSE;
+    msg.block = blockData;
+    _tradeLogicSrvClient->send((void *)&msg);
+
     // 储存消息
-    _store->push(keyQ, storeData);
+    _store->push(keyQ, strData);
+
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info);
+    info << "KLineSrv[close]" << "|";
+    info << "index" << "|" << blockData.index << endl;
+    info.close();
 }

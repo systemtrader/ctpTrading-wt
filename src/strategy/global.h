@@ -1,5 +1,5 @@
-#ifndef GLOBAL_H
-#define GLOBAL_H
+#ifndef TRADE_GLOBAL_H
+#define TRADE_GLOBAL_H
 
 #define TRADE_STATUS_NOTHING    0
 #define TRADE_STATUS_BUYOPENED  1

@@ -1,21 +1,18 @@
-#include "../libs/Lib.h"
-#include "../libs/Socket.h"
-#include "../iniReader/iniReader.h"
+#include "../global.h"
 
 int main(int argc, char const *argv[])
 {
     string fileName = string(argv[1]);
 
-    parseIniFile("../bin/config.ini");
-    int          kLineSrvPort = getOptionToInt("k_line_srv_port");
-    const char * kLineSrvIp   = getOptionToChar("k_line_srv_ip");
-    int frequency = getOptionToInt("history_frequency");
+    parseIniFile("../../etc/config.ini");
+    int kLineSrvID  = getOptionToInt("k_line_service_id");
+    QClient klineClient(kLineSrvID, sizeof(MSG_TO_KLINE));
 
-    int cfd = getCSocket(kLineSrvIp, kLineSrvPort);
+    MSG_TO_KLINE msg = {0};
+    msg.msgType = MSG_TICK;
 
     std::vector<string> params;
     string line;
-    string msg;
 
     ifstream handle;
     handle.open(fileName.c_str());
@@ -24,12 +21,11 @@ int main(int argc, char const *argv[])
         getline(handle, line); // Saves the line in STRING.
         if (line.length() <= 0) continue;
         params = Lib::split(line, ",");
-        msg = "4__date_time_" + params[3] + "_" + params[4] + "_" + params[2];
-        // cout << msg << endl;
-        sendMsg(cfd, msg);
-        usleep(frequency*1000);
+
+        msg.tick.price = Lib::stod(params[3]);
+        msg.tick.volume = Lib::stoi(params[4]);
+        klineClient.send((void *)&msg);
     }
-    close(cfd);
     handle.close();
 
     return 0;

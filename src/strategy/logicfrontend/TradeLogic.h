@@ -1,35 +1,29 @@
 #ifndef TRADE_LOGIC_H
 #define TRADE_LOGIC_H
 
+#include "../../global.h"
 #include "../global.h"
-#include "../KLineBlock.h"
-#include "../../libs/Lib.h"
 #include "../../libs/Redis.h"
-#include "../Tick.h"
-#include <string>
+#include "../../protos/KLineBlock.h"
 #include <list>
-#include <iostream>
-
-using namespace std;
 
 class TradeLogic
 {
 private:
 
-    const char * _cfdIp;
-    int _cfdPort;
+    Redis * _store;
+    QClient * _tradeStrategySrvClient;
 
     int _closeAction;
-    Redis * _store;
     list<KLineBlock> _bList;
 
     // 算法参数
-    int _openMaxKLineNum; // 开仓用K线条数
-    int _openMinKLineNum; // 开仓用K线条数
-    int _openMeanKLineNum; // 开仓用K线条数
+    int _openMaxKLineCount; // 开仓用K线条数
+    int _openMinKLineCount; // 开仓用K线条数
+    int _openMeanKLineCount; // 开仓用K线条数
     int _kRang; // K线赋值
-    int _sellCloseKLineNum; // 卖平仓K线条数
-    int _buyCloseKLineNum; // 买平仓K线条数
+    int _closeSellKRangeCount; // 卖平仓K线条数
+    int _closeBuyKRangeCount; // 买平仓K线条数
 
     // 开仓判断依据
     double _max;
@@ -44,6 +38,7 @@ private:
     double _openedKLineMax;
     double _openedKLineMin;
 
+    string _logPath;
 
     // 判断仓位状态
     int _getStatus();
@@ -54,13 +49,12 @@ private:
     // 计算买平仓参数
     void _calculateBuyClose();
 
-    void _sendMsg(string msg, double price = 0);
+    void _sendMsg(int, double = 0);
 
-    Tick _getTick();
+    TickData _getTick();
 
 public:
-    TradeLogic(int countMax, int countMin, int countMean, int kRang,
-        int sellCloseKLineNum, int buyCloseKLineNum);
+    TradeLogic(int, int, int, int, int, int, int, string);
     ~TradeLogic();
 
     void init(); // 初始化历史K线

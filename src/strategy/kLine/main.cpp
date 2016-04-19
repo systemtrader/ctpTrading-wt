@@ -1,68 +1,40 @@
 #include "KLineSrv.h"
-#include "../../iniReader/iniReader.h"
-#include "../../libs/Socket.h"
-#include "../../libs/Lib.h"
-#include "../../cmd.h"
-#include <vector>
 
 KLineSrv * service;
 
-bool action(string msg, std::vector<string>);
+bool action(long int, const void *);
 
 int main(int argc, char const *argv[])
 {
     // 初始化参数
-    parseIniFile("config.ini");
-    int kRange   = getOptionToInt("k_range");
-    int kLineSrvPort = getOptionToInt("k_line_srv_port");
+    parseIniFile("../../../etc/config.ini");
+    int kRange          = getOptionToInt("k_range");
+    int kLineSrvID      = getOptionToInt("k_line_service_id");
+    int tradeLogicSrvID = getOptionToInt("trade_logic_service_id");
+    string logPath      = getOptionToString("log_path");
 
-    service = new KLineSrv(kRange);
+    service = new KLineSrv(kRange, tradeLogicSrvID, logPath);
 
     // 服务化
-    int sfd = getSSocket(kLineSrvPort);
-
-    char buff[1024];
-    string msgLine, msg;
-    vector<string> params;
-    int cfd, n;
+    QService kLineSrv(kLineSrvID, sizeof(MSG_TO_KLINE));
+    kLineSrv.setAction(action);
     cout << "KLineSrv start success!" << endl;
-    if ((cfd = accept(sfd, (struct sockaddr *)NULL, NULL)) == -1) {
-        cout << "accept socket error: " << strerror(errno) <<  endl;
-    }
-    while ((n = recv(cfd, buff, 1024, 0)) > 0) {
-        buff[n] = '\0';
-        msgLine = string(buff);
-        msgLine = trim(msgLine);
-        params = Lib::split(msgLine, "_");
-        msg = params[0];
-        if (action(msg, params)) {
-            break;
-        }
-    }
-    close(cfd);
-    close(sfd);
+    kLineSrv.run();
     cout << "KLineSrv stop success!" << endl;
+
     return 0;
 }
 
-bool action(string msg, std::vector<string> params)
+bool action(long int msgType, const void * data)
 {
-    cout << "MSG:" << msg << endl;
-    if (msg.compare(CMD_MSG_SHUTDOWN) == 0) {
-        if (service)
-            delete service;
-        return true;
+    cout << "MSG:" << msgType << endl;
+    if (msgType == MSG_SHUTDOWN) {
+        if (service) delete service;
+        return false;
     }
-    if (msg.compare(CMD_MSG_TICK) == 0) {
-        Tick tick = {0};
-        tick.date   = params[2];
-        tick.time   = params[3];
-        tick.price  = Lib::stod(params[4]);
-        tick.volume = Lib::stoi(params[5]);
-        tick.bidPrice1 = Lib::stod(params[6]);
-        tick.askPrice1 = Lib::stod(params[7]);
-        service->onTickCome(tick);
+    if (msgType == MSG_TICK) {
+        service->onTickCome(((MSG_TO_KLINE*)data)->tick);
     }
-    return false;
+    return true;
 }
 

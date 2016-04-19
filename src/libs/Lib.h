@@ -40,6 +40,7 @@ public:
     static double mean(double arr[], int cnt);
 
     static string tickData2String(TickData tick);
+    static TickData string2TickData(string str);
 
     Lib();
     ~Lib();

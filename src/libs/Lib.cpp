@@ -158,3 +158,19 @@ string Lib::tickData2String(TickData tick)
                  Lib::itos(tick.msec);
     return str;
 }
+
+TickData Lib::string2TickData(string str)
+{
+    std::vector<string> params;
+    params = split(str, "_");
+    Tick tick = {0};
+    tick.price = Lib::stod(params[0]);
+    tick.volume = Lib::stoi(params[1]);
+    tick.bidPrice1 = Lib::stod(params[2]);
+    tick.askPrice1 = Lib::stod(params[3]);
+    strcpy(tick.date, params[4].c_str());
+    strcpy(tick.time, params[5].c_str());
+    tick.msec = Lib::stoi(params[6]);
+    return tick;
+}
+
