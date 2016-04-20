@@ -4,7 +4,7 @@ using namespace std;
 
 MarketSpi::MarketSpi(CThostFtdcMdApi * mdApi, string logPath,
     int serviceID,
-    string brokerID, string userID, string password)
+    string brokerID, string userID, string password, string instrumnetID)
 {
     _mdApi = mdApi;
     _logPath = logPath;
@@ -12,6 +12,7 @@ MarketSpi::MarketSpi(CThostFtdcMdApi * mdApi, string logPath,
     _userID = userID;
     _password = password;
     _brokerID = brokerID;
+    _instrumnetID = instrumnetID
 
     _klineClient = new QClient(serviceID, sizeof(MSG_TO_KLINE));
     _store = new Redis("127.0.0.1", 6379, 1);
@@ -56,8 +57,7 @@ void MarketSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
     info << "MaxOrderRef" << "|" << pRspUserLogin->MaxOrderRef << endl;
     info.close();
 
-    string instrumnetID = getOptionToString("instrumnet_id");
-    char * Instrumnet[]={Lib::stoc(instrumnetID)};
+    char * Instrumnet[]={Lib::stoc(_instrumnetID)};
     int res = _mdApi->SubscribeMarketData (Instrumnet, 1);
     Lib::sysReqLog(_logPath, "M_SubscribeMarketData", res);
 }

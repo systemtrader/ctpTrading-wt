@@ -19,6 +19,7 @@ private:
     string _brokerID;
     string _userID;
     string _password;
+    string _instrumnetID;
 
     string _logPath;
 
@@ -26,7 +27,7 @@ private:
 
 public:
 
-    MarketSpi(CThostFtdcMdApi *, string, int, string, string, string);
+    MarketSpi(CThostFtdcMdApi *, string, int, string, string, string, string);
     ~MarketSpi();
 
     void OnFrontConnected();

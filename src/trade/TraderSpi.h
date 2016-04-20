@@ -1,9 +1,8 @@
 #ifndef TRADER_SPI_H
 #define TRADER_SPI_H
 
-#include "../ThostFtdcTraderApi.h"
-#include <fstream>
-#include <string>
+#include "TradeSrv.h"
+#include "../global.h"
 #include <cstring>
 
 using namespace std;
@@ -12,16 +11,17 @@ class TraderSpi : public CThostFtdcTraderSpi
 {
 private:
 
-    CThostFtdcTraderApi * _tApi;
+    TradeSrv * _service;
+    string _logPath;
 
 public:
-    TraderSpi(CThostFtdcTraderApi *);
+    TraderSpi(TradeSrv *, string);
     ~TraderSpi();
 
     void OnFrontConnected();
     void OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
         CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
-    void OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder, 
+    void OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder,
         CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
     ///错误应答
     void OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
@@ -31,12 +31,15 @@ public:
     void OnRtnTrade(CThostFtdcTradeField *pTrade);
     ///报单录入错误回报
     void OnErrRtnOrderInsert(CThostFtdcInputOrderField *pInputOrder, CThostFtdcRspInfoField *pRspInfo);
-    void OnRspQryExchange(CThostFtdcExchangeField *pExchange, 
+    // void OnRspQryExchange(CThostFtdcExchangeField *pExchange,
+    //     CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+    // void OnRspQryDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarketData,
+    //     CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+    // void OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm,
+    //     CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+    void OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInvestorPosition, 
         CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
-    void OnRspQryDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarketData, 
-        CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
-    void OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm, 
-        CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+
 };
 
 #endif
