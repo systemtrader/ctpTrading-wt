@@ -7,7 +7,7 @@ bool action(long int, const void *);
 int main(int argc, char const *argv[])
 {
     // 初始化参数
-    parseIniFile("../../../etc/config.ini");
+    parseIniFile("../etc/config.ini");
     int kRange          = getOptionToInt("k_range");
     int kLineSrvID      = getOptionToInt("k_line_service_id");
     int tradeLogicSrvID = getOptionToInt("trade_logic_service_id");

@@ -9,3 +9,4 @@ readCsvSendToTick
 test/
 config.*
 a.out
+ni_*

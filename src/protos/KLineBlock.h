@@ -24,6 +24,8 @@ private:
     double _minPrice;
     double _openPrice;
     double _closePrice;
+    int _openMsec;
+    int _closeMsec;
 
     string _openDate;
     string _openTime;

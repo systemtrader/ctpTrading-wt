@@ -16,7 +16,7 @@ void shutdown(int sig)
 int main(int argc, char const *argv[])
 {
     // 初始化参数
-    parseIniFile("../../etc/config.ini");
+    parseIniFile("../etc/config.ini");
     string flowPath = getOptionToString("flow_path");
     string logPath  = getOptionToString("log_path");
     string bid      = getOptionToString("market_broker_id");

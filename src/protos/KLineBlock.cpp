@@ -15,6 +15,7 @@ void KLineBlock::init(int index, TickData tick)
     _index = index;
     _openDate = string(tick.date);
     _openTime = string(tick.time);
+    _openMsec = tick.msec;
 
     _maxPrice = _minPrice = _openPrice = _closePrice = tick.price;
     _volume = tick.volume;
@@ -33,6 +34,7 @@ void KLineBlock::update(TickData tick)
     _closePrice = tick.price;
     _closeDate = string(tick.date);
     _closeTime = string(tick.time);
+    _closeMsec = tick.msec;
 }
 
 void KLineBlock::close()
@@ -57,13 +59,15 @@ string KLineBlock::exportString()
                  Lib::itos(_type) + "_" +
                  _openDate + "_" +
                  _openTime + "_" +
+                 Lib::itos(_openMsec) + "_" +
                  Lib::dtos(_openPrice) + "_" +
                  Lib::dtos(_maxPrice) + "_" +
                  Lib::dtos(_minPrice) + "_" +
                  Lib::dtos(_closePrice) + "_" +
                  Lib::itos(_volume) + "_" +
                  _closeDate + "_" +
-                 _closeTime;
+                 _closeTime + "_" +
+                 Lib::itos(_closeMsec);
     return str;
 }
 

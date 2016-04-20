@@ -24,7 +24,6 @@ class ReadHistory
             unset($line['id']);
             $dataStr = implode('_', $line);
             $res = $this->rds->lPush("HISTORY_KLINE", $dataStr);
-            var_dump($res);
         }
     }
 }

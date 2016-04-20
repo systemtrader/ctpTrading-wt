@@ -7,7 +7,7 @@ bool action(long int, const void *);
 int main(int argc, char const *argv[])
 {
     // 初始化参数
-    parseIniFile("../../../etc/config.ini");
+    parseIniFile("../etc/config.ini");
     int openMaxKCount        = getOptionToInt("open_max_k_count");
     int openMinKCount        = getOptionToInt("open_min_k_count");
     int openMeanKCount       = getOptionToInt("open_mean_k_count");
@@ -20,8 +20,7 @@ int main(int argc, char const *argv[])
 
     string logPath = getOptionToString("log_path");
 
-
-    service = new TradeLogic(openMaxKCount, openMinKCount, openMeanKCount, kRang, 
+    service = new TradeLogic(openMaxKCount, openMinKCount, openMeanKCount, kRang,
         closeSellKRangeCount, closeBuyKRangeCount, tradeStrategySrvID, logPath);
     service->init();
 

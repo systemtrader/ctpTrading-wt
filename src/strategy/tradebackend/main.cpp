@@ -8,7 +8,7 @@ bool action(long int, const void *);
 int main(int argc, char const *argv[])
 {
     // 初始化参数
-    parseIniFile("../../../etc/config.ini");
+    parseIniFile("../etc/config.ini");
     timeoutSec = getOptionToInt("trade_timeout_sec");
 
     int tradeStrategySrvID = getOptionToInt("trade_strategy_service_id");

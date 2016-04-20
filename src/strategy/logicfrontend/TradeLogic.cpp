@@ -31,15 +31,16 @@ void TradeLogic::init()
     KLineBlock tmp;
     KLineBlockData tmpData = {0};
     vector<string> params;
+
     while(1) {
         res = _store->pop("HISTORY_KLINE");
         if (res.length() == 0) break;
         params = Lib::split(res, "_");
         tmpData.index = Lib::stoi(params[0]);
-        tmpData.open = Lib::stod(params[4]);
-        tmpData.max = Lib::stod(params[5]);
-        tmpData.min = Lib::stod(params[6]);
-        tmpData.close = Lib::stod(params[7]);
+        tmpData.open = Lib::stod(params[5]);
+        tmpData.max = Lib::stod(params[7]);
+        tmpData.min = Lib::stod(params[8]);
+        tmpData.close = Lib::stod(params[6]);
         tmp = KLineBlock::makeViaData(tmpData);
         _bList.push_front(tmp);
     }
