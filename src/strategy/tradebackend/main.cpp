@@ -34,6 +34,7 @@ bool action(long int msgType, const void * data)
         return false;
     }
     MSG_TO_TRADE_STRATEGY msg = *((MSG_TO_TRADE_STRATEGY*)data);
+    cout << msg.price << "|" << msg.kIndex << endl;
     // 下单操作
     if (msgType == MSG_TRADE_BUYOPEN) {
         service->tradeAction(TRADE_ACTION_BUYOPEN, msg.price, 1, msg.kIndex);
@@ -46,6 +47,9 @@ bool action(long int msgType, const void * data)
     }
     if (msgType == MSG_TRADE_BUYCLOSE) {
         service->tradeAction(TRADE_ACTION_BUYCLOSE, msg.price, 1, msg.kIndex);
+    }
+    if (msgType == MSG_TRADE_CANCEL) {
+        service->tradeAction(TRADE_ACTION_CANCEL, msg.price, 1, msg.kIndex);
     }
 
     // 下单回馈

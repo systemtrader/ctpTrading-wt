@@ -147,9 +147,16 @@ void TradeStrategy::_cancelBack(int orderID)
 
 void TradeStrategy::timeout(int orderID)
 {
-    _cancelAction(orderID);
-    if (orderID == _currentOrderID) {
-        _zhuijia();
+    int status = _getStatus();
+    if (status == TRADE_STATUS_SELLOPENING || 
+        status == TRADE_STATUS_BUYOPENING ||
+        status == TRADE_STATUS_SELLCLOSING ||
+        status == TRADE_STATUS_BUYCLOSING)
+    {
+        _cancelAction(orderID);
+        if (orderID == _currentOrderID) {
+            _zhuijia();
+        }
     }
 }
 
@@ -204,6 +211,7 @@ void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen)
     msg.isBuy = isBuy;
     msg.total = total;
     msg.isOpen = isOpen;
+    msg.orderID = _currentOrderID;
     _tradeSrvClient->send((void *)&msg);
 
     ofstream info;

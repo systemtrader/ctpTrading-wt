@@ -3,7 +3,7 @@
 
 #include "protos/Data.h"
 
-#define MSG_SHUTDOWN 1
+#define MSG_SHUTDOWN 99
 
 // market->klineSrv
 #define MSG_TICK 2

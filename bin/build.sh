@@ -13,3 +13,6 @@ g++ -o tradeStrategySrv ../src/strategy/tradebackend/*.cpp ../src/libs/*.cpp ../
 
 # 测试模块
 # g++ -o tradeTest ../src/test/trade.cpp ../include/iniReader/*.cpp ../src/libs/*.cpp -lhiredis
+g++ -o tradeStrategyBefore ../src/test/tradeStrategyBefore.cpp ../include/iniReader/*.cpp ../src/libs/*.cpp -lhiredis
+g++ -o tradeStrategyAfter ../src/test/tradeStrategyAfter.cpp ../include/iniReader/*.cpp ../src/libs/*.cpp -lhiredis
+
