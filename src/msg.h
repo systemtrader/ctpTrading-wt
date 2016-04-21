@@ -44,6 +44,7 @@ typedef struct msg_trade_data
 
 // tradeStrategySrv->tradeSrv
 #define MSG_ORDER 12
+#define MSG_ORDER_CANCEL 13
 typedef struct msg_trade
 {
     long int msgType;
@@ -51,7 +52,7 @@ typedef struct msg_trade
     bool isBuy;
     int total;
     bool isOpen;
-    bool isCancel;
+    int orderID;
 
 } MSG_TO_TRADE;
 

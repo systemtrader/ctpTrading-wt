@@ -16,6 +16,8 @@ private:
     QClient * _tradeSrvClient;
     string _logPath;
 
+    bool _isSelfCancel;
+
     int _currentOrderID;
     int _doingOrderID;
 
@@ -31,7 +33,7 @@ private:
     int _getStatus();
     void _setStatus(int);
 
-    void _sendMsg(double, int, bool, bool, bool = false);
+    void _sendMsg(double, int, bool, bool);
 
 public:
     TradeStrategy(int, string);

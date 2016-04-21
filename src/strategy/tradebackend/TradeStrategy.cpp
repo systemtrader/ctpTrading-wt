@@ -32,7 +32,6 @@ void setTimer(int orderID)
 TradeStrategy::TradeStrategy(int serviceID, string logPath)
 {
     _logPath = logPath;
-    _orderingID = _currentOrderID = 0;
     _store = new Redis("127.0.0.1", 6379, 1);
     _tradeSrvClient = new QClient(serviceID, sizeof(MSG_TO_TRADE));
 
@@ -50,6 +49,7 @@ void TradeStrategy::tradeAction(int action, double price, int total, int kIndex)
 {
     int status = _getStatus();
     _currentOrderID = kIndex;
+    _isSelfCancel = false;
     switch (action) {
 
         case TRADE_ACTION_BUYOPEN:
@@ -92,7 +92,7 @@ void TradeStrategy::tradeAction(int action, double price, int total, int kIndex)
             _sendMsg(price, total, false, false);
             break;
         default:
-            _cancelAction();
+            _cancelAction(_doingOrderID);
             break;
     }
     // 启动定时器
@@ -139,7 +139,8 @@ void TradeStrategy::_successBack(int orderID)
 
 void TradeStrategy::_cancelBack(int orderID)
 {
-    if (_orderingID == 0 || _currentOrderID == _orderingID) {
+    if (_isSelfCancel) return;
+    if (orderID == _currentOrderID) {
         _zhuijia();
     }
 }
@@ -152,14 +153,25 @@ void TradeStrategy::timeout(int orderID)
     }
 }
 
-void TradeStrategy::_cancelAction()
+void TradeStrategy::_cancelAction(int orderID)
 {
-    _sendMsg(0, 0, true, true, true);
+    _isSelfCancel = true;
+    MSG_TO_TRADE msg = {0};
+    msg.msgType = MSG_ORDER_CANCEL;
+    msg.orderID = orderID;
+    _tradeSrvClient->send((void *)&msg);
+
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info);
+    info << "TradeStrategySrv[cancel]" << "|";
+    info << "kIndex" << "|" << orderID << endl;
+    info.close();
 }
 
 void TradeStrategy::_zhuijia()
 {
     double price;
+    _doingOrderID = _currentOrderID;
     TickData tick = _getTick();
     int status = _getStatus();
     switch (status) {
@@ -184,7 +196,7 @@ void TradeStrategy::_zhuijia()
     }
 }
 
-void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen, bool isCancel)
+void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen)
 {
     MSG_TO_TRADE msg = {0};
     msg.msgType = MSG_ORDER;
@@ -192,8 +204,7 @@ void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen, b
     msg.isBuy = isBuy;
     msg.total = total;
     msg.isOpen = isOpen;
-    msg.isCancel = isCancel;
-    clt.send((void *)&msg);
+    _tradeSrvClient->send((void *)&msg);
 
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
