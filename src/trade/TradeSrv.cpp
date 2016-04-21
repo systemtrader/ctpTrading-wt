@@ -126,6 +126,14 @@ void TradeSrv::onOrderRtn(CThostFtdcOrderField * const msg)
 
 }
 
+void TradeSrv::cancel()
+{
+    CThostFtdcInputOrderActionField req = {0};
+
+    int res = _tradeApi->ReqOrderAction(&req, 0);
+    Lib::sysReqLog(_logPath, "TradeSrv[getPosition]", res);
+}
+
 CThostFtdcInputOrderField TradeSrv::_createOrder(bool isBuy, int total, double price,
     // double stopPrice,
     TThostFtdcOffsetFlagEnType offsetFlag, // 开平标志

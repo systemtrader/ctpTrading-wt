@@ -38,6 +38,7 @@ typedef struct msg_trade_data
 {
     long int msgType;
     double price;
+    int kIndex;
 
 } MSG_TO_TRADE_STRATEGY;
 
@@ -50,6 +51,7 @@ typedef struct msg_trade
     bool isBuy;
     int total;
     bool isOpen;
+    bool isCancel;
 
 } MSG_TO_TRADE;
 

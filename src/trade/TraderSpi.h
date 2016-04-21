@@ -33,7 +33,8 @@ public:
     void OnErrRtnOrderInsert(CThostFtdcInputOrderField *pInputOrder, CThostFtdcRspInfoField *pRspInfo);
     void OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInvestorPosition,
         CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
-
+    void OnRspOrderAction(CThostFtdcInputOrderActionField *pInputOrderAction,
+        CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 };
 
 #endif

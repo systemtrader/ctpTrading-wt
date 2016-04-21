@@ -58,7 +58,7 @@ void TradeStrategy::tradeAction(int action, double price, int total)
                 case TRADE_STATUS_SELLOPENING:
                     _cancelAction();
                 case TRADE_STATUS_NOTHING:
-                    _sendMsg();
+                    _sendMsg(price, total, true, true);
                     break;
                 case TRADE_STATUS_BUYOPENING:
                 default:
@@ -72,7 +72,7 @@ void TradeStrategy::tradeAction(int action, double price, int total)
                 case TRADE_STATUS_BUYOPENING:
                     _cancelAction();
                 case TRADE_STATUS_NOTHING:
-                    _sendMsg();
+                    _sendMsg(price, total, false, true);
                     break;
                 case TRADE_STATUS_SELLOPENING:
                 default:
@@ -82,12 +82,12 @@ void TradeStrategy::tradeAction(int action, double price, int total)
 
         case TRADE_ACTION_BUYCLOSE:
             _setStatus(TRADE_STATUS_BUYCLOSING);
-            _sendMsg();
+            _sendMsg(price, total, true, false);
             break;
 
         case TRADE_ACTION_SELLCLOSE:
             _setStatus(TRADE_STATUS_SELLCLOSING);
-            _sendMsg();
+            _sendMsg(price, total, false, false);
             break;
         default:
             _cancelAction();
@@ -149,7 +149,7 @@ void TradeStrategy::timeout()
 
 void TradeStrategy::_cancelAction()
 {
-    _sendMsg();
+    _sendMsg(0, 0, true, true, true);
 }
 
 void TradeStrategy::_zhuijia()
@@ -160,27 +160,45 @@ void TradeStrategy::_zhuijia()
     int status = _getStatus();
     switch (status) {
         case TRADE_STATUS_SELLOPENING:
+            price = tick.price;
+            _sendMsg(price, 1, false, true);
+            break;
         case TRADE_STATUS_BUYOPENING:
             price = tick.price;
-            // TODO 发送消息
-            _sendMsg();
+            _sendMsg(price, 1, true, true);
             break;
         case TRADE_STATUS_SELLCLOSING:
             price = tick.price - 30;
-            _sendMsg();
+            _sendMsg(price, 1, false, false);
             break;
         case TRADE_STATUS_BUYCLOSING:
             price = tick.price + 30;
-            _sendMsg();
+            _sendMsg(price, 1, true, false);
             break;
         default:
             break;
     }
 }
 
-void TradeStrategy::_sendMsg()
+void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen, bool isCancel)
 {
+    MSG_TO_TRADE msg = {0};
+    msg.msgType = MSG_ORDER;
+    msg.price = price;
+    msg.isBuy = isBuy;
+    msg.total = total;
+    msg.isOpen = isOpen;
+    msg.isCancel = isCancel;
+    clt.send((void *)&msg);
 
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info);
+    info << "TradeStrategySrv[sendOrder]" << "|";
+    info << "price" << "|" << price << "|";
+    info << "total" << "|" << total << "|";
+    info << "isBuy" << "|" << isBuy << "|";
+    info << "isOpen" << "|" << isOpen << endl;
+    info.close();
 }
 
 TickData TradeStrategy::_getTick()

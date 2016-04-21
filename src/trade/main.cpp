@@ -44,7 +44,11 @@ bool action(long int msgType, const void * data)
     }
     if (msgType == MSG_ORDER) {
         MSG_TO_TRADE msg = *((MSG_TO_TRADE*)data);
-        service->trade(msg.price, msg.total, msg.isBuy, msg.isOpen);
+        if (msg.isCancel) {
+            service->cancel();
+        } else {
+            service->trade(msg.price, msg.total, msg.isBuy, msg.isOpen);
+        }
     }
     return true;    return true;
 }

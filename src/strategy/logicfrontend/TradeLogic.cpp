@@ -221,13 +221,14 @@ TickData TradeLogic::_getTick()
 
 void TradeLogic::_sendMsg(int msgType, double price)
 {
+    KLineBlock lastBlock = _bList.front();
     MSG_TO_TRADE_STRATEGY msg = {0};
     msg.msgType = msgType;
     msg.price = price;
+    msg.kIndex = lastBlock.getIndex();
     _tradeStrategySrvClient->send((void *)&msg);
 
     //log
-    KLineBlock lastBlock = _bList.front();
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeLogicSrv[sendMsg]" << "|";

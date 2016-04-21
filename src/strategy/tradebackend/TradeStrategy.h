@@ -31,7 +31,7 @@ private:
     int _getStatus();
     void _setStatus(int);
 
-    void _sendMsg();
+    void _sendMsg(double, int, bool, bool, bool = false);
 
 public:
     TradeStrategy(int, string);
