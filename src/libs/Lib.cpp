@@ -48,7 +48,7 @@ string Lib::itos(int num)
 
 void Lib::sysErrLog(string logPath, string logName, CThostFtdcRspInfoField *info, int id, int isLast)
 {
-    if (info->ErrorID != 0) {
+    if (info && info->ErrorID != 0) {
         ofstream sysLogger;
         logPath = logPath + getDate("%Y%m%d") + ".log";
         sysLogger.open(logPath.c_str(), ios::app);

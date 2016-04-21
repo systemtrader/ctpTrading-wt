@@ -46,6 +46,10 @@ typedef struct msg_trade_data
 typedef struct msg_trade
 {
     long int msgType;
+    double price;
+    bool isBuy;
+    int total;
+    bool isOpen;
 
 } MSG_TO_TRADE;
 

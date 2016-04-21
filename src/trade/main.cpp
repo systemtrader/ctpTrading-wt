@@ -20,15 +20,16 @@ int main(int argc, char const *argv[])
     int tradeSrvID         = getOptionToInt("trade_service_id");
     int tradeStrategySrvID = getOptionToInt("trade_strategy_service_id");
 
+
     service = new TradeSrv(bid, userID, password, tURL, instrumnetID,
         flowPath, logPath, tradeStrategySrvID);
     service->init();
-    
+
     // 服务化
-    QService TradeSrv(tradeSrvID, sizeof(MSG_TO_TRADE));
-    TradeSrv.setAction(action);
+    QService Qsrv(tradeSrvID, sizeof(MSG_TO_TRADE));
+    Qsrv.setAction(action);
     cout << "TradeSrv start success!" << endl;
-    TradeSrv.run();
+    Qsrv.run();
     cout << "TradeSrv stop success!" << endl;
 
     return 0;
@@ -41,7 +42,10 @@ bool action(long int msgType, const void * data)
         if (service) delete service;
         return false;
     }
-    // ... TODO
-    return true;
+    if (msgType == MSG_ORDER) {
+        MSG_TO_TRADE msg = *((MSG_TO_TRADE*)data);
+        service->trade(msg.price, msg.total, msg.isBuy, msg.isOpen);
+    }
+    return true;    return true;
 }
 

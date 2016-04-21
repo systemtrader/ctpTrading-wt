@@ -26,6 +26,9 @@ TradeSrv::~TradeSrv()
         _tradeApi->Release();
         _tradeApi = NULL;
     }
+    if (_traderSpi) {
+        delete _traderSpi;
+    }
     cout << "~TradeSrv" << endl;
 }
 
@@ -33,8 +36,8 @@ void TradeSrv::init()
 {
     // 初始化交易接口
     _tradeApi = CThostFtdcTraderApi::CreateFtdcTraderApi(Lib::stoc(_flowPath));
-    TraderSpi traderSpi(this, _logPath); // 初始化回调实例
-    _tradeApi->RegisterSpi(&traderSpi);
+    _traderSpi = new TraderSpi(this, _logPath); // 初始化回调实例
+    _tradeApi->RegisterSpi(_traderSpi);
     // _tradeApi->SubscribePrivateTopic(THOST_TERT_QUICK);
     // _tradeApi->SubscribePublicTopic(THOST_TERT_QUICK);
     _tradeApi->SubscribePrivateTopic(THOST_TERT_RESUME);
@@ -70,7 +73,11 @@ void TradeSrv::getPosition()
 
 void TradeSrv::onPositionRtn(CThostFtdcInvestorPositionField * const ret)
 {
-
+    _ydPostion = 0;
+    setStatus(TRADE_STATUS_NOTHING);
+    if (ret) {
+        _ydPostion = ret->YdPosition;
+    }
 }
 
 void TradeSrv::setStatus(int status)
@@ -93,8 +100,16 @@ void TradeSrv::setMaxOrderRef(int maxOrderRef)
     _maxOrderRef = maxOrderRef;
 }
 
-void TradeSrv::trade(bool isBuy, int total, double price, TThostFtdcOffsetFlagEnType flag)
+void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen)
 {
+    cout << price << "|" << total << "|" << isBuy << "|" << isOpen << endl;
+    TThostFtdcOffsetFlagEnType flag = THOST_FTDC_OFEN_Open;
+    if (!isOpen) {
+        flag = THOST_FTDC_OFEN_CloseToday;
+        if (_ydPostion > 0) {
+            flag = THOST_FTDC_OFEN_Close;
+        }
+    }
     CThostFtdcInputOrderField order = _createOrder(isBuy, total, price, flag,
             THOST_FTDC_HFEN_Speculation, THOST_FTDC_OPT_LimitPrice, THOST_FTDC_TC_GFD, THOST_FTDC_VC_CV);
     int res = _tradeApi->ReqOrderInsert(&order, 0);

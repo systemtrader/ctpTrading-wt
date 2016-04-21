@@ -16,10 +16,10 @@ int main(int argc, char const *argv[])
     service = new KLineSrv(kRange, tradeLogicSrvID, logPath);
 
     // 服务化
-    QService kLineSrv(kLineSrvID, sizeof(MSG_TO_KLINE));
-    kLineSrv.setAction(action);
+    QService Qsrv(kLineSrvID, sizeof(MSG_TO_KLINE));
+    Qsrv.setAction(action);
     cout << "KLineSrv start success!" << endl;
-    kLineSrv.run();
+    Qsrv.run();
     cout << "KLineSrv stop success!" << endl;
 
     return 0;

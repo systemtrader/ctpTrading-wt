@@ -1,17 +1,6 @@
 #include "TraderSpi.h"
 #include "../libs/Lib.h"
 
-extern string brokerID;
-extern string userID;
-extern string password;
-
-extern int reqID;
-extern int orderRef;
-
-extern TThostFtdcFrontIDType   frontID;
-extern TThostFtdcSessionIDType sessionID;
-
-
 TraderSpi::TraderSpi(TradeSrv * service, string logPath)
 {
     _service = service;
@@ -47,7 +36,7 @@ void TraderSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
     info.close();
 }
 
-void TraderSpi::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInvestorPosition, 
+void TraderSpi::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInvestorPosition,
         CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
     Lib::sysErrLog(_logPath, "TradeSrv[onPosition]", pRspInfo, nRequestID, bIsLast);
@@ -56,10 +45,13 @@ void TraderSpi::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInves
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeSrv[onPosition]" << "|";
-    info << "YdPosition" << "|" << pInvestorPosition->YdPosition << "|";
-    info << "Position" << "|" << pInvestorPosition->Position << "|";
-    info << "OpenVolume" << "|" << pInvestorPosition->OpenVolume << endl;
-    info << "CloseVolume" << "|" << pInvestorPosition->CloseVolume << endl;
+    if (pInvestorPosition) {
+        info << "YdPosition" << "|" << pInvestorPosition->YdPosition << "|";
+        info << "Position" << "|" << pInvestorPosition->Position << "|";
+        info << "OpenVolume" << "|" << pInvestorPosition->OpenVolume << "|";
+        info << "CloseVolume" << "|" << pInvestorPosition->CloseVolume;
+    }
+    info << endl;
     info.close();
 
 }

@@ -32,7 +32,6 @@ void QService::run()
 {
     void * data;
     data = malloc(_msgStructLen);
-
     while(true)
     {
         if(msgrcv(_msgID, data, MAX_BUF, 0, 0) == -1)

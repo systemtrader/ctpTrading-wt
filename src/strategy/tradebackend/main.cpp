@@ -18,10 +18,10 @@ int main(int argc, char const *argv[])
     service = new TradeStrategy(tradeSrvID, logPath);
 
     // 服务化
-    QService tradeStrategySrv(tradeStrategySrvID, sizeof(MSG_TO_TRADE_STRATEGY));
-    tradeStrategySrv.setAction(action);
+    QService Qsrv(tradeStrategySrvID, sizeof(MSG_TO_TRADE_STRATEGY));
+    Qsrv.setAction(action);
     cout << "TradeStrategy service start success!" << endl;
-    tradeStrategySrv.run();
+    Qsrv.run();
     cout << "TradeStrategy service stop success!" << endl;
     return 0;
 }

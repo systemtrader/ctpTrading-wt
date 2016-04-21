@@ -2,8 +2,12 @@
 #define TRADE_SRV_H
 
 #include "../../include/ThostFtdcTraderApi.h"
+#include "../strategy/global.h"
 #include "../global.h"
 #include "../libs/Redis.h"
+
+
+class TraderSpi;
 
 class TradeSrv
 {
@@ -24,8 +28,10 @@ private:
     int _maxOrderRef;
     int _reqID;
 
-    CThostFtdcTraderApi * _tradeApi;
+    bool _ydPostion; // 昨仓
 
+    CThostFtdcTraderApi * _tradeApi;
+    TraderSpi * _traderSpi;
     QClient * _tradeStrategySrvClient;
 
     CThostFtdcInputOrderField _createOrder(bool, int, double,
@@ -51,7 +57,7 @@ public:
     void login();
     void getPosition();
     void onPositionRtn(CThostFtdcInvestorPositionField * const);
-    void trade(bool, int, double, TThostFtdcOffsetFlagEnType);
+    void trade(double, int, bool, bool);
     void onTraded(CThostFtdcTradeField * const);
     void onOrderRtn(CThostFtdcOrderField * const);
 

@@ -28,7 +28,6 @@ class Consumer
             $st = $this->mysql->prepare($sql);
             $result = $st->execute($data);
             $re = $this->mysql->lastInsertId();
-            var_dump($re);
         } catch(Exception $e) {
             var_dump($e);
         }

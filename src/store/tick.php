@@ -18,7 +18,7 @@ class Tick
         while (true) {
             $data = $this->consumer->popViaRds("MARKET_TICK_Q");
             if ($data) {
-                $time = strtotime($data[4] . " " . $data[5]);
+                $time = $data[4] ? strtotime($data[4] . " " . $data[5]) : time();
                 $msec = $data[6];
                 $price = $data[0];
                 $volume = $data[1];

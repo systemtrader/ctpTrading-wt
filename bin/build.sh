@@ -11,3 +11,5 @@ g++ -o tradeSrv ../src/trade/*.cpp ../src/libs/*.cpp ../include/iniReader/*.cpp 
 # g++ -o readCsvSendToTick ../src/history/ReadCsvSendTick.cpp ../src/libs/*.cpp ../include/iniReader/*.cpp -lhiredis
 # g++ -o tradeStrategySuccess ../src/history/tradeStrategySuccess.cpp ../src/libs/*.cpp ../include/iniReader/*.cpp -lhiredis
 
+# 测试模块
+g++ -o tradeTest ../src/test/trade.cpp ../include/iniReader/*.cpp ../src/libs/*.cpp -lhiredis

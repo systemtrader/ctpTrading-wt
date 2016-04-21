@@ -25,10 +25,10 @@ int main(int argc, char const *argv[])
     service->init();
 
     // 服务化
-    QService tradeLogicSrv(tradeLogicSrvID, sizeof(MSG_TO_TRADE_LOGIC));
-    tradeLogicSrv.setAction(action);
+    QService Qsrv(tradeLogicSrvID, sizeof(MSG_TO_TRADE_LOGIC));
+    Qsrv.setAction(action);
     cout << "TradeLogic service start success!" << endl;
-    tradeLogicSrv.run();
+    Qsrv.run();
     cout << "TradeLogic service stop success!" << endl;
     return 0;
 }

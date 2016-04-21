@@ -31,13 +31,7 @@ public:
     void OnRtnTrade(CThostFtdcTradeField *pTrade);
     ///报单录入错误回报
     void OnErrRtnOrderInsert(CThostFtdcInputOrderField *pInputOrder, CThostFtdcRspInfoField *pRspInfo);
-    // void OnRspQryExchange(CThostFtdcExchangeField *pExchange,
-    //     CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
-    // void OnRspQryDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarketData,
-    //     CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
-    // void OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm,
-    //     CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
-    void OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInvestorPosition, 
+    void OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInvestorPosition,
         CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 
 };
