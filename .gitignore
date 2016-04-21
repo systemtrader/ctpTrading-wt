@@ -6,6 +6,7 @@ tradeSrv
 tradeLogicSrv
 tradeStrategySrv
 readCsvSendToTick
+tradeStrategySuccess
 *Test
 config.*
 a.out
