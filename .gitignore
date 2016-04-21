@@ -1,2 +1,12 @@
-config.h
 sftp-config.json
+cmdCenter
+kLineSrv
+marketSrv
+tradeSrv
+tradeLogicSrv
+tradeStrategySrv
+readCsvSendToTick
+*Test
+config.*
+a.out
+ni_*
