@@ -16,12 +16,12 @@ private:
     QClient * _tradeSrvClient;
     string _logPath;
 
-    int _orderingID;
     int _currentOrderID;
+    int _doingOrderID;
 
-    void _cancelBack();
-    void _successBack();
-    void _cancelAction();
+    void _cancelBack(int);
+    void _successBack(int);
+    void _cancelAction(int);
 
     // 追价
     void _zhuijia();
@@ -37,9 +37,9 @@ public:
     TradeStrategy(int, string);
     ~TradeStrategy();
 
-    void tradeAction(int, double, int = 1);
-    void onTradeMsgBack(bool);
-    void timeout();
+    void tradeAction(int, double, int, int);
+    void onTradeMsgBack(bool, int);
+    void timeout(int);
 
 };
 

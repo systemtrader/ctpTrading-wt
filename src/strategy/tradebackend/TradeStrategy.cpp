@@ -6,11 +6,11 @@ extern TradeStrategy * service;
 
 void timeout(union sigval v)
 {
-    service->timeout();
+    service->timeout(v.sival_int);
     return;
 }
 
-void setTimer(int action)
+void setTimer(int orderID)
 {
     // 设定定时器
     struct sigevent evp;
@@ -18,7 +18,7 @@ void setTimer(int action)
 
     memset(&evp, 0, sizeof(evp));
     evp.sigev_notify = SIGEV_THREAD;
-    evp.sigev_value.sival_int = action;
+    evp.sigev_value.sival_int = orderID;
     evp.sigev_notify_function = timeout;
     timer_create(CLOCK_REALTIME, &evp, &timer);
 
@@ -46,21 +46,22 @@ TradeStrategy::~TradeStrategy()
 }
 
 
-void TradeStrategy::tradeAction(int action, double price, int total)
+void TradeStrategy::tradeAction(int action, double price, int total, int kIndex)
 {
     int status = _getStatus();
-    _currentOrderID++;
+    _currentOrderID = kIndex;
     switch (action) {
 
         case TRADE_ACTION_BUYOPEN:
             _setStatus(TRADE_STATUS_BUYOPENING);
             switch (status) {
                 case TRADE_STATUS_SELLOPENING:
-                    _cancelAction();
+                case TRADE_STATUS_BUYOPENING:
+                    _cancelAction(_doingOrderID);
                 case TRADE_STATUS_NOTHING:
+                    _setStatus(TRADE_STATUS_BUYOPENING);
                     _sendMsg(price, total, true, true);
                     break;
-                case TRADE_STATUS_BUYOPENING:
                 default:
                     break;
             }
@@ -70,11 +71,12 @@ void TradeStrategy::tradeAction(int action, double price, int total)
             _setStatus(TRADE_STATUS_SELLOPENING);
             switch (status) {
                 case TRADE_STATUS_BUYOPENING:
-                    _cancelAction();
+                case TRADE_STATUS_SELLOPENING:
+                    _cancelAction(_doingOrderID);
                 case TRADE_STATUS_NOTHING:
+                    _setStatus(TRADE_STATUS_SELLOPENING);
                     _sendMsg(price, total, false, true);
                     break;
-                case TRADE_STATUS_SELLOPENING:
                 default:
                     break;
             }
@@ -94,19 +96,19 @@ void TradeStrategy::tradeAction(int action, double price, int total)
             break;
     }
     // 启动定时器
-    setTimer(action);
+    setTimer(_currentOrderID);
 }
 
-void TradeStrategy::onTradeMsgBack(bool isSuccess)
+void TradeStrategy::onTradeMsgBack(bool isSuccess, int orderID)
 {
     if (isSuccess) {
-        _successBack();
+        _successBack(orderID);
     } else {
-        _cancelBack();
+        _cancelBack(orderID);
     }
 }
 
-void TradeStrategy::_successBack()
+void TradeStrategy::_successBack(int orderID)
 {
     int status = _getStatus();
     switch (status) {
@@ -124,25 +126,28 @@ void TradeStrategy::_successBack()
             break;
     }
 
+    // todo 记录交易
+
     // log
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeStrategySrv[successBack]" << "|";
+    info << "kIndex" << "|" << orderID << "|";
     info << "status" << "|" << _getStatus() << endl;
     info.close();
 }
 
-void TradeStrategy::_cancelBack()
+void TradeStrategy::_cancelBack(int orderID)
 {
     if (_orderingID == 0 || _currentOrderID == _orderingID) {
         _zhuijia();
     }
 }
 
-void TradeStrategy::timeout()
+void TradeStrategy::timeout(int orderID)
 {
-    _cancelAction();
-    if (_orderingID == 0 || _currentOrderID == _orderingID) {
+    _cancelAction(orderID);
+    if (orderID == _currentOrderID) {
         _zhuijia();
     }
 }
@@ -154,7 +159,6 @@ void TradeStrategy::_cancelAction()
 
 void TradeStrategy::_zhuijia()
 {
-    _orderingID = _currentOrderID;
     double price;
     TickData tick = _getTick();
     int status = _getStatus();
