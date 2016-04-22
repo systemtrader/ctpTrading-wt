@@ -28,13 +28,14 @@ int main(int argc, char const *argv[])
 
 bool action(long int msgType, const void * data)
 {
-    cout << "MSG:" << msgType << endl;
+    cout << "MSG|" <<  msgType;
     if (msgType == MSG_SHUTDOWN) {
+        cout << endl;
         if (service) delete service;
         return false;
     }
     MSG_TO_TRADE_STRATEGY msg = *((MSG_TO_TRADE_STRATEGY*)data);
-    cout << msg.price << "|" << msg.kIndex << endl;
+    cout << "|PRICE|" << msg.price << "|KINDEX|"  << msg.kIndex << endl;
     // 下单操作
     if (msgType == MSG_TRADE_BUYOPEN) {
         service->tradeAction(TRADE_ACTION_BUYOPEN, msg.price, 1, msg.kIndex);
