@@ -3,7 +3,7 @@
 
 #include "protos/Data.h"
 
-#define MSG_SHUTDOWN 1
+#define MSG_SHUTDOWN 99
 
 // market->klineSrv
 #define MSG_TICK 2
@@ -38,11 +38,13 @@ typedef struct msg_trade_data
 {
     long int msgType;
     double price;
+    int kIndex;
 
 } MSG_TO_TRADE_STRATEGY;
 
 // tradeStrategySrv->tradeSrv
 #define MSG_ORDER 12
+#define MSG_ORDER_CANCEL 13
 typedef struct msg_trade
 {
     long int msgType;
@@ -50,6 +52,7 @@ typedef struct msg_trade
     bool isBuy;
     int total;
     bool isOpen;
+    int orderID;
 
 } MSG_TO_TRADE;
 

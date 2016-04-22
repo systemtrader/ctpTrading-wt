@@ -24,6 +24,7 @@ int main(int argc, char const *argv[])
     msg.isBuy = isBuy;
     msg.total = 1;
     msg.isOpen = openclose;
+    msg.isCancel = false;
     clt.send((void *)&msg);
 
     return 0;

@@ -87,6 +87,17 @@ void TraderSpi::OnRtnTrade(CThostFtdcTradeField *pTrade)
 
 }
 
+void TraderSpi::OnRspOrderAction(CThostFtdcInputOrderActionField *pInputOrderAction,
+        CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+    _service->onCancel(pInputOrderAction);
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info);
+    info << "TradeSrv[onTrade]" << "|";
+    // info << "TradeID" << "|" << pInputOrderAction->TradeID << endl;
+    info.close();
+}
+
 void TraderSpi::OnErrRtnOrderInsert(CThostFtdcInputOrderField *pInputOrder,
     CThostFtdcRspInfoField *pRspInfo)
 {
