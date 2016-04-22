@@ -22,17 +22,19 @@ void TraderSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
     CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
     Lib::sysErrLog(_logPath, "TradeSrv[onLogin]", pRspInfo, nRequestID, bIsLast);
-    _service->setFrontID(pRspUserLogin->FrontID);
-    _service->setSessionID(pRspUserLogin->SessionID);
-    _service->setMaxOrderRef(atoi(pRspUserLogin->MaxOrderRef));
+    _service->onLogin(pRspUserLogin);
     _service->getPosition();
 
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
-    info << "TradeSrv[onLogin]" << "|";
-    info << "SessionID" << "|" << pRspUserLogin->SessionID << "|";
-    info << "TradingDay" << "|" << pRspUserLogin->TradingDay << "|";
-    info << "MaxOrderRef" << "|" << pRspUserLogin->MaxOrderRef << endl;
+    info << "TradeSrv[onLogin]";
+    if (pRspUserLogin) {
+        info << "|SessionID|" << pRspUserLogin->SessionID;
+        info << "|FrontID|" << pRspUserLogin->FrontID;
+        info << "|TradingDay|" << pRspUserLogin->TradingDay;
+        info << "|MaxOrderRef|" << pRspUserLogin->MaxOrderRef;
+    }
+    info << endl;
     info.close();
 }
 
@@ -46,10 +48,11 @@ void TraderSpi::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInves
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeSrv[onPosition]" << "|";
     if (pInvestorPosition) {
-        info << "YdPosition" << "|" << pInvestorPosition->YdPosition << "|";
-        info << "Position" << "|" << pInvestorPosition->Position << "|";
-        info << "OpenVolume" << "|" << pInvestorPosition->OpenVolume << "|";
-        info << "CloseVolume" << "|" << pInvestorPosition->CloseVolume;
+        info << "|bIsLast|" << bIsLast;
+        info << "|TradingDay|" << pInvestorPosition->TradingDay;
+        info << "|Position|" << pInvestorPosition->Position;
+        info << "|TodayPosition|" << pInvestorPosition->TodayPosition;
+        info << "|PosiDirection|" << pInvestorPosition->PosiDirection;
     }
     info << endl;
     info.close();
@@ -67,13 +70,16 @@ void TraderSpi::OnRtnOrder(CThostFtdcOrderField *pOrder)
     _service->onOrderRtn(pOrder);
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
-    info << "TradeSrv[onOrder]" << "|";
-    info << "FrontID" << "|" << pOrder->FrontID << "|";
-    info << "SessionID" << "|" << pOrder->SessionID << "|";
-    info << "OrderRef" << "|" << pOrder->OrderRef << "|";
-    info << "OrderSubmitStatus" << "|" << pOrder->OrderSubmitStatus << endl;
+    info << "TradeSrv[onOrder]";
+    if (pOrder) {
+        info << "|FrontID|" << pOrder->FrontID;
+        info << "|SessionID|" << pOrder->SessionID;
+        info << "|OrderRef|" << pOrder->OrderRef;
+        info << "|OrderSubmitStatus|" << pOrder->OrderSubmitStatus;
+        info << "|OrderStatus|" << pOrder->OrderStatus;
+    }
+    info << endl;
     info.close();
-
 }
 
 void TraderSpi::OnRtnTrade(CThostFtdcTradeField *pTrade)
@@ -81,8 +87,13 @@ void TraderSpi::OnRtnTrade(CThostFtdcTradeField *pTrade)
     _service->onTraded(pTrade);
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
-    info << "TradeSrv[onTrade]" << "|";
-    info << "TradeID" << "|" << pTrade->TradeID << endl;
+    info << "TradeSrv[onTrade]";
+    if (pTrade) {
+        info << "|OrderRef|" << pTrade->OrderRef;
+        info << "|TradeID|" << pTrade->TradeID;
+        info << "|OrderLocalID|" << pTrade->OrderLocalID;
+    }
+    info << endl;
     info.close();
 
 }
@@ -90,11 +101,18 @@ void TraderSpi::OnRtnTrade(CThostFtdcTradeField *pTrade)
 void TraderSpi::OnRspOrderAction(CThostFtdcInputOrderActionField *pInputOrderAction,
         CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
+    Lib::sysErrLog(_logPath, "TradeSrv[onOrderAction]", pRspInfo, nRequestID, bIsLast);
     _service->onCancel(pInputOrderAction);
+
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
-    info << "TradeSrv[onTrade]" << "|";
-    // info << "TradeID" << "|" << pInputOrderAction->TradeID << endl;
+    info << "TradeSrv[onOrderAction]";
+    if (pInputOrderAction) {
+        info << "|OrderRef|" << pInputOrderAction->OrderRef;
+        info << "|OrderActionRef|" << pInputOrderAction->OrderActionRef;
+        info << "|SessionID|" << pInputOrderAction->SessionID;
+    }
+    info << endl;
     info.close();
 }
 

@@ -12,6 +12,7 @@ TradeSrv::TradeSrv(string brokerID, string userID, string password,
     _flowPath = flowPath;
     _logPath = logPath;
     _reqID = 0;
+    _closeYdReqID = 0;
 
     _store = new Redis("127.0.0.1", 6379, 1);
     _tradeStrategySrvClient = new QClient(serviceID, sizeof(MSG_TO_TRADE_STRATEGY));
@@ -30,6 +31,11 @@ TradeSrv::~TradeSrv()
         delete _traderSpi;
     }
     cout << "~TradeSrv" << endl;
+}
+
+void TradeSrv::setStatus(int status)
+{
+    _store->set("TRADE_STATUS", Lib::itos(status));
 }
 
 void TradeSrv::init()
@@ -59,6 +65,15 @@ void TradeSrv::login()
     Lib::sysReqLog(_logPath, "TradeSrv[login]", res);
 }
 
+void TradeSrv::onLogin(CThostFtdcRspUserLoginField * const rsp)
+{
+    if (!rsp) return;
+    _frontID = rsp->FrontID;
+    _sessionID = rsp->SessionID;
+    _maxOrderRef = atoi(rsp->MaxOrderRef);
+    _tradingDay = string(rsp->TradingDay);
+}
+
 void TradeSrv::getPosition()
 {
     CThostFtdcQryInvestorPositionField req = {0};
@@ -71,75 +86,96 @@ void TradeSrv::getPosition()
     Lib::sysReqLog(_logPath, "TradeSrv[getPosition]", res);
 }
 
-void TradeSrv::onPositionRtn(CThostFtdcInvestorPositionField * const ret)
+void TradeSrv::onPositionRtn(CThostFtdcInvestorPositionField * const rsp)
 {
-    _ydPostion = 0;
+    if (!rsp) return;
     setStatus(TRADE_STATUS_NOTHING);
-    if (ret) {
-        _ydPostion = ret->YdPosition;
+    _ydPostion = rsp->Position - rsp->TodayPosition;
+    if (_ydPostion > 0) {
+        // TODO 根据哪个字段判断具体仓位
     }
 }
 
-void TradeSrv::setStatus(int status)
+void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int orderID)
 {
-    _store->set("TRADE_STATUS", Lib::itos(status));
-}
-
-void TradeSrv::setSessionID(TThostFtdcSessionIDType sessionID)
-{
-    _sessionID = sessionID;
-}
-
-void TradeSrv::setFrontID(TThostFtdcFrontIDType frontID)
-{
-    _frontID = frontID;
-}
-
-void TradeSrv::setMaxOrderRef(int maxOrderRef)
-{
-    _maxOrderRef = maxOrderRef;
-}
-
-void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen)
-{
-    cout << price << "|" << total << "|" << isBuy << "|" << isOpen << endl;
     TThostFtdcOffsetFlagEnType flag = THOST_FTDC_OFEN_Open;
     if (!isOpen) {
         flag = THOST_FTDC_OFEN_CloseToday;
         if (_ydPostion > 0) {
             flag = THOST_FTDC_OFEN_Close;
+            _closeYdReqID = orderID;
         }
     }
-    CThostFtdcInputOrderField order = _createOrder(isBuy, total, price, flag,
+    CThostFtdcInputOrderField order = _createOrder(orderID, isBuy, total, price, flag,
             THOST_FTDC_HFEN_Speculation, THOST_FTDC_OPT_LimitPrice, THOST_FTDC_TC_GFD, THOST_FTDC_VC_CV);
     int res = _tradeApi->ReqOrderInsert(&order, 0);
     Lib::sysReqLog(_logPath, "TradeSrv[trade]", res);
 }
 
-void TradeSrv::onTraded(CThostFtdcTradeField * const msg)
+void TradeSrv::onTraded(CThostFtdcTradeField * const rsp)
 {
-
+    if (!rsp) return;
+    int orderID = _getOrderIDByRef(atoi(rsp->OrderRef));
+    MSG_TO_TRADE_STRATEGY msg = {0};
+    msg.msgType = MSG_TRADE_BACK_TRADED;
+    msg.kIndex = orderID;
+    _tradeStrategySrvClient->send((void *)&msg);
 }
 
-void TradeSrv::onOrderRtn(CThostFtdcOrderField * const msg)
+void TradeSrv::onOrderRtn(CThostFtdcOrderField * const rsp)
 {
-
+    if (!rsp) return;
+    if (rsp->OrderStatus != THOST_FTDC_OST_Canceled) return;
+    // 撤单情况
+    int orderID = _getOrderIDByRef(atoi(rsp->OrderRef));
+    MSG_TO_TRADE_STRATEGY msg = {0};
+    msg.msgType = MSG_TRADE_BACK_CANCELED;
+    msg.kIndex = orderID;
+    _tradeStrategySrvClient->send((void *)&msg);
 }
 
-void TradeSrv::cancel()
+void TradeSrv::cancel(int orderID)
 {
     CThostFtdcInputOrderActionField req = {0};
+
+    strcpy(req.BrokerID,   Lib::stoc(_brokerID));
+    strcpy(req.InvestorID, Lib::stoc(_userID));
+    strcpy(req.UserID,     Lib::stoc(_userID));
+    req.FrontID = _frontID;
+    req.SessionID = _sessionID;
+    sprintf(req.OrderRef, "%d", _getOrderRefByID(orderID));
+    req.ActionFlag = THOST_FTDC_AF_Delete;
 
     int res = _tradeApi->ReqOrderAction(&req, 0);
     Lib::sysReqLog(_logPath, "TradeSrv[getPosition]", res);
 }
 
-void TradeSrv::onCancel(CThostFtdcInputOrderActionField * const msg)
+void TradeSrv::onCancel(CThostFtdcInputOrderActionField * const rsp)
 {
-
+    if (!rsp) return;
+    // int orderID = _getOrderIDByRef(atoi(rsp->OrderRef));
+    // MSG_TO_TRADE_STRATEGY msg = {0};
+    // msg.msgType = MSG_TRADE_BACK_CANCELED;
+    // msg.kIndex = orderID;
+    // _tradeStrategySrvClient->send((void *)&msg);
 }
 
-CThostFtdcInputOrderField TradeSrv::_createOrder(bool isBuy, int total, double price,
+int TradeSrv::_getOrderRefByID(int orderID)
+{
+    _maxOrderRef++;
+    string key = "ORDER_REF_" + Lib::itos(_maxOrderRef);
+    _store->set(key, Lib::itos(orderID));
+    return _maxOrderRef;
+}
+
+int TradeSrv::_getOrderIDByRef(int orderRef)
+{
+    string key = "ORDER_REF_" + Lib::itos(orderRef);
+    string res = _store->get(key);
+    return Lib::stoi(res);
+}
+
+CThostFtdcInputOrderField TradeSrv::_createOrder(int orderID, bool isBuy, int total, double price,
     // double stopPrice,
     TThostFtdcOffsetFlagEnType offsetFlag, // 开平标志
     TThostFtdcHedgeFlagEnType hedgeFlag, // 投机套保标志
@@ -241,12 +277,11 @@ CThostFtdcInputOrderField TradeSrv::_createOrder(bool isBuy, int total, double p
     order.ContingentCondition = contingentCondition;
 
     ///报单引用
-    _maxOrderRef++;
-    sprintf(order.OrderRef, "%d", _maxOrderRef);
+    sprintf(order.OrderRef, "%d", _getOrderRefByID(orderID));
 
     ///请求编号
-    _reqID++;
-    order.RequestID = _reqID;
+    // _reqID++;
+    // order.RequestID = _reqID;
 
     // order.GTDDate = ;///GTD日期
     // order.BusinessUnit = ;///业务单元

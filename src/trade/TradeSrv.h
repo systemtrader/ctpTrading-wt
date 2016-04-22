@@ -23,18 +23,23 @@ private:
     string _tradeFront;
     string _flowPath;
 
+    string _tradingDay;
     TThostFtdcFrontIDType _frontID;
     TThostFtdcSessionIDType _sessionID;
     int _maxOrderRef;
     int _reqID;
 
     bool _ydPostion; // 昨仓
+    int _closeYdReqID; // 平昨仓的reqID
 
     CThostFtdcTraderApi * _tradeApi;
     TraderSpi * _traderSpi;
     QClient * _tradeStrategySrvClient;
 
-    CThostFtdcInputOrderField _createOrder(bool, int, double,
+    int _getOrderRefByID(int);
+    int _getOrderIDByRef(int);
+
+    CThostFtdcInputOrderField _createOrder(int, bool, int, double,
         TThostFtdcOffsetFlagEnType, // 开平标志
         TThostFtdcHedgeFlagEnType = THOST_FTDC_HFEN_Speculation, // 投机套保标志
         TThostFtdcOrderPriceTypeType = THOST_FTDC_OPT_LimitPrice, // 报单价格条件
@@ -48,19 +53,21 @@ public:
     TradeSrv(string, string, string, string, string, string, string, int);
     ~TradeSrv();
 
-    void setFrontID(TThostFtdcFrontIDType);
-    void setSessionID(TThostFtdcSessionIDType);
-    void setMaxOrderRef(int);
     void setStatus(int);
 
     void init();
+
     void login();
+    void onLogin(CThostFtdcRspUserLoginField * const);
+
     void getPosition();
     void onPositionRtn(CThostFtdcInvestorPositionField * const);
-    void trade(double, int, bool, bool);
-    void cancel();
+
+    void trade(double, int, bool, bool, int);
     void onTraded(CThostFtdcTradeField * const);
     void onOrderRtn(CThostFtdcOrderField * const);
+
+    void cancel(int);
     void onCancel(CThostFtdcInputOrderActionField * const);
 
 };
