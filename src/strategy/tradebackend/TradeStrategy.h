@@ -17,6 +17,7 @@ private:
     string _logPath;
 
     bool _isSelfCancel;
+    bool _isCancelOver;
 
     int _currentOrderID;
     int _doingOrderID;

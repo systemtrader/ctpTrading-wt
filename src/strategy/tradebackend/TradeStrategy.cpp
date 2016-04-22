@@ -50,6 +50,7 @@ void TradeStrategy::tradeAction(int action, double price, int total, int kIndex)
     int status = _getStatus();
     _currentOrderID = kIndex;
     _isSelfCancel = false;
+    _isCancelOver = false;
     switch (action) {
 
         case TRADE_ACTION_BUYOPEN:
@@ -92,9 +93,11 @@ void TradeStrategy::tradeAction(int action, double price, int total, int kIndex)
             _sendMsg(price, total, false, false);
             break;
         default:
+            _isCancelOver = true;
             _cancelAction(_doingOrderID);
             break;
     }
+    _doingOrderID = _currentOrderID;
     // 启动定时器
     setTimer(_currentOrderID);
 }
@@ -139,6 +142,31 @@ void TradeStrategy::_successBack(int orderID)
 
 void TradeStrategy::_cancelBack(int orderID)
 {
+    // log
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info);
+    info << "TradeStrategySrv[cancelBack]" << "|";
+    info << "kIndex" << "|" << orderID << endl;
+    info.close();
+
+    if (_isCancelOver) {
+        int status = _getStatus();
+        switch (status) {
+            case TRADE_STATUS_BUYOPENING:
+            case TRADE_STATUS_SELLOPENING:
+                _setStatus(TRADE_STATUS_NOTHING);
+                break;
+            case TRADE_STATUS_SELLCLOSING:
+                _setStatus(TRADE_STATUS_BUYOPENED);
+                break;
+            case TRADE_STATUS_BUYCLOSING:
+                _setStatus(TRADE_STATUS_SELLOPENED);
+                break;
+            default:
+                break;
+        }
+        return;
+    }
     if (_isSelfCancel) return;
     if (orderID == _currentOrderID) {
         _zhuijia();
@@ -148,12 +176,19 @@ void TradeStrategy::_cancelBack(int orderID)
 void TradeStrategy::timeout(int orderID)
 {
     int status = _getStatus();
-    if (status == TRADE_STATUS_SELLOPENING || 
+    if (status == TRADE_STATUS_SELLOPENING ||
         status == TRADE_STATUS_BUYOPENING ||
         status == TRADE_STATUS_SELLCLOSING ||
         status == TRADE_STATUS_BUYCLOSING)
     {
+        // log
+        ofstream info;
+        Lib::initInfoLogHandle(_logPath, info);
+        info << "TradeStrategySrv[timeout]" << "|";
+        info << "kIndex" << "|" << orderID << endl;
+        info.close();
         _cancelAction(orderID);
+
         if (orderID == _currentOrderID) {
             _zhuijia();
         }
@@ -177,8 +212,14 @@ void TradeStrategy::_cancelAction(int orderID)
 
 void TradeStrategy::_zhuijia()
 {
+    // log
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info);
+    info << "TradeStrategySrv[zhuijia]" << "|";
+    info << "kIndex" << "|" << _doingOrderID << endl;
+    info.close();
+
     double price;
-    _doingOrderID = _currentOrderID;
     TickData tick = _getTick();
     int status = _getStatus();
     switch (status) {
@@ -201,6 +242,8 @@ void TradeStrategy::_zhuijia()
         default:
             break;
     }
+    // 启动定时器
+    setTimer(_doingOrderID);
 }
 
 void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen)
@@ -220,7 +263,8 @@ void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen)
     info << "price" << "|" << price << "|";
     info << "total" << "|" << total << "|";
     info << "isBuy" << "|" << isBuy << "|";
-    info << "isOpen" << "|" << isOpen << endl;
+    info << "isOpen" << "|" << isOpen << "|";
+    info << "kIndex" << "|" << _currentOrderID << endl;
     info.close();
 }
 
