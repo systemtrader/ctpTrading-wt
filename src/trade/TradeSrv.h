@@ -61,6 +61,7 @@ public:
     void cancel();
     void onTraded(CThostFtdcTradeField * const);
     void onOrderRtn(CThostFtdcOrderField * const);
+    void onCancel(CThostFtdcInputOrderActionField * const);
 
 };
 

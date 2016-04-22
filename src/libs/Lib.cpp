@@ -4,12 +4,19 @@
 Lib::Lib(){};
 Lib::~Lib(){};
 
-string Lib::getDate(string format)
+string Lib::getDate(string format, bool needUsec)
 {
-    time_t t = time(0);
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+
+    time_t t;
+    t = tv.tv_sec;
     char tmp[20];
     strftime(tmp, sizeof(tmp), format.c_str(), localtime(&t));
     string s(tmp);
+    if (needUsec) {
+        s += "." + itos(tv.tv_usec);
+    }
     return s;
 };
 
@@ -53,7 +60,7 @@ void Lib::sysErrLog(string logPath, string logName, CThostFtdcRspInfoField *info
         logPath = logPath + getDate("%Y%m%d") + ".log";
         sysLogger.open(logPath.c_str(), ios::app);
 
-        sysLogger << getDate("%Y%m%d-%H:%M:%S") << "|";
+        sysLogger << getDate("%Y%m%d-%H:%M:%S", true) << "|";
         sysLogger << "[ERROR]" << "|";
         sysLogger << logName << "|";
         sysLogger << "ErrCode" << "|" << info->ErrorID << "|";
@@ -71,7 +78,7 @@ void Lib::sysReqLog(string logPath, string logName, int code)
     logPath = logPath + getDate("%Y%m%d") + ".log";
     sysLogger.open(logPath.c_str(), ios::app);
 
-    sysLogger << getDate("%Y%m%d-%H:%M:%S") << "|";
+    sysLogger << getDate("%Y%m%d-%H:%M:%S", true) << "|";
     sysLogger << "[REQUEST]" << "|";
     sysLogger << logName << "|";
     sysLogger << "Code" << "|" << code << endl;
@@ -84,7 +91,7 @@ void Lib::initInfoLogHandle(string logPath, ofstream & infoHandle)
 {
     logPath = logPath + getDate("%Y%m%d") + ".log";
     infoHandle.open(logPath.c_str(), ios::app);
-    infoHandle << getDate("%Y%m%d-%H:%M:%S") << "|";
+    infoHandle << getDate("%Y%m%d-%H:%M:%S", true) << "|";
     infoHandle << "[INFO]" << "|";
 }
 
@@ -92,7 +99,7 @@ void Lib::initMarketLogHandle(string logPath, ofstream & handle)
 {
     logPath = logPath + "market_" + getDate("%Y%m%d") + ".log";
     handle.open(logPath.c_str(), ios::app);
-    handle << getDate("%Y%m%d-%H:%M:%S") << "|";
+    handle << getDate("%Y%m%d-%H:%M:%S", true) << "|";
 }
 
 

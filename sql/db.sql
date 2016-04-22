@@ -11,7 +11,6 @@ CREATE TABLE `kline` (
   `min_price` decimal(10,0) NOT NULL DEFAULT '0',
   `volume` int(11) NOT NULL DEFAULT '0',
   `type` int(11) NOT NULL DEFAULT 0,
-  `option` int(11) NOT NULL DEFAULT 0,
   `mtime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB CHARSET=utf8;

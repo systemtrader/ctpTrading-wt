@@ -4,7 +4,8 @@
 #include "../../include/ThostFtdcUserApiStruct.h"
 #include "../protos/Data.h"
 #include <string>
-#include <time.h>
+// #include <time.h>
+#include <sys/time.h>
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -18,7 +19,7 @@ class Lib
 {
 public:
 
-    static string getDate(string format);
+    static string getDate(string format, bool needUsec = false);
 
     static char * stoc(string str);
     static int stoi(string s);
