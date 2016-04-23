@@ -39,8 +39,8 @@ TradeStrategy::TradeStrategy(int serviceID, string logPath)
 
 TradeStrategy::~TradeStrategy()
 {
-    delete _store;
-    delete _tradeSrvClient;
+    // delete _store;
+    // delete _tradeSrvClient;
     cout << "~TradeStrategy" << endl;
 }
 

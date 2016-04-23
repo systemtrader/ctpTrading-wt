@@ -27,33 +27,48 @@ int main(int argc, char const *argv[])
     int cmd = atoi(argv[1]);
     if (cmd == 0) {
 
-        // stop market
-        int pid = getPid(getOptionToString("pid_path"));
-        kill(pid, 30);
+        // // 关闭市场数据源
+        // int pid = getPid(getOptionToString("pid_path"));
+        // kill(pid, 30);
 
-        // stop kline
-        QClient klineClient(kLineSrvID, sizeof(MSG_TO_KLINE));
-        MSG_TO_KLINE msgkl = {0};
-        msgkl.msgType = MSG_SHUTDOWN;
-        klineClient.send((void *)&msgkl);
+        // // stop kLineSrv
+        // QClient kLineClt(kLineSrvID, sizeof(MSG_TO_KLINE));
+        // MSG_TO_KLINE msgkl = {0};
+        // msgkl.msgType = MSG_SHUTDOWN;
+        // kLineClt.send((void *)&msgkl);
 
-        // stop trade logic
-        QClient tradeLogicClient(tradeLogicSrvID, sizeof(MSG_TO_TRADE_LOGIC));
-        MSG_TO_TRADE_LOGIC msgtl = {0};
-        msgtl.msgType = MSG_SHUTDOWN;
-        tradeLogicClient.send((void *)&msgtl);
+        // // stop tradeLogicSrv
+        // QClient tradeLogicClt(tradeLogicSrvID, sizeof(MSG_TO_TRADE_LOGIC));
+        // MSG_TO_TRADE_LOGIC msgtl = {0};
+        // msgtl.msgType = MSG_SHUTDOWN;
+        // tradeLogicClt.send((void *)&msgtl);
 
+        // // stop tradeStrategySrv
+        // QClient tradeStrategyClt(tradeStrategySrvID, sizeof(MSG_TO_TRADE_STRATEGY));
+        // MSG_TO_TRADE_STRATEGY msgts = {0};
+        // msgts.msgType = MSG_SHUTDOWN;
+        // tradeStrategyClt.send((void *)&msgts);
 
+        // stop tradeSrv
+        QClient tradeClt(tradeSrvID, sizeof(MSG_TO_TRADE));
+        MSG_TO_TRADE msgt = {0};
+        msgt.msgType = MSG_SHUTDOWN;
+        tradeClt.send((void *)&msgt);
 
     } else if (cmd == 1) {
-        // system("./tradeSrv &");
-        system("./kLineSrv &");
-        system("./tradeLogicFrontend &");
-        sleep(1);
-        // 消费队列
-        // system("php ../store/tick.php &");
-        // system("php ../store/kLine.php &");
-        system("./marketSrv &");
+        // php 相关模块启动，负责初始化redis，队列消费者请手动启动
+        // system("php ./readHistoryKLine.php");
+        // sleep(1);
+
+        // // 启动各服务模块
+        system("./tradeSrv &");
+        // system("./tradeStrategySrv &");
+        // system("./tradeLogicSrv &");
+        // system("./kLineSrv &");
+        // sleep(1);
+
+        // 启动数据源
+        // system("./marketSrv &");
     }
     return 0;
 }

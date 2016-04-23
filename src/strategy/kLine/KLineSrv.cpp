@@ -13,8 +13,8 @@ KLineSrv::KLineSrv(int kRange, int serviceID, string logPath)
 
 KLineSrv::~KLineSrv()
 {
-    delete _store;
-    delete _tradeLogicSrvClient;
+    // delete _store;
+    // delete _tradeLogicSrvClient;
     cout << "~KLineSrv" << endl;
 }
 
@@ -51,8 +51,8 @@ void KLineSrv::_initBlock(TickData tick)
     
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
-    info << "KLineSrv[open]" << "|";
-    info << "index" << "|" << _index << endl;
+    info << "KLineSrv[open]";
+    info << "|index|" << _index << endl;
     info.close();
 
     _index++;
@@ -91,7 +91,7 @@ void KLineSrv::_closeBlock(Tick tick)
 
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
-    info << "KLineSrv[close]" << "|";
-    info << "index" << "|" << blockData.index << endl;
+    info << "KLineSrv[close]";
+    info << "|index|" << blockData.index << endl;
     info.close();
 }

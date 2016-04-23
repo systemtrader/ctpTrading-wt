@@ -20,8 +20,8 @@ TradeLogic::TradeLogic(int countMax, int countMin, int countMean, int kRang,
 
 TradeLogic::~TradeLogic()
 {
-    delete _store;
-    delete _tradeStrategySrvClient;
+    // delete _store;
+    // delete _tradeStrategySrvClient;
     cout << "~TradeLogicSrv" << endl;
 }
 
@@ -174,11 +174,11 @@ void TradeLogic::_calculateOpen()
     // log
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
-    info << "TradeLogicSrv[calculateOpen]" << "|";
-    info << "max" << "|" << _max << "|";
-    info << "mean" << "|" << _mean << "|";
-    info << "min" << "|" << _min << "|";
-    info << "index" << "|" << currIndex << endl;
+    info << "TradeLogicSrv[calculateOpen]";
+    info << "|max|" << _max;
+    info << "|mean|" << _mean;
+    info << "|min|" << _min;
+    info << "|index|" << currIndex << endl;
     info.close();
 
 }
@@ -192,9 +192,9 @@ void TradeLogic::_calculateBuyClose()
     //log
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
-    info << "TradeLogicSrv[calculateBuyClose]" << "|";
-    info << "openedKLineMin" << "|" << _openedKLineMin << "|";
-    info << "buyClosePoint" << "|" << _buyClosePoint << endl;
+    info << "TradeLogicSrv[calculateBuyClose]";
+    info << "|openedKLineMin|" << _openedKLineMin;
+    info << "|buyClosePoint|" << _buyClosePoint << endl;
     info.close();
 }
 
@@ -207,9 +207,9 @@ void TradeLogic::_calculateSellClose()
     //log
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
-    info << "TradeLogicSrv[calculateSellClose]" << "|";
-    info << "openedKLineMax" << "|" << _openedKLineMax << "|";
-    info << "sellClosePoint" << "|" << _sellClosePoint << endl;
+    info << "TradeLogicSrv[calculateSellClose]";
+    info << "|openedKLineMax|" << _openedKLineMax;
+    info << "|sellClosePoint|" << _sellClosePoint << endl;
     info.close();
 }
 
@@ -231,9 +231,9 @@ void TradeLogic::_sendMsg(int msgType, double price)
     //log
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
-    info << "TradeLogicSrv[sendMsg]" << "|";
-    info << "action" << "|" << msgType << "|";
-    info << "price" << "|" << price << "|";
-    info << "kLineIndex" << "|" << lastBlock.getIndex() << endl;
+    info << "TradeLogicSrv[sendMsg]";
+    info << "|action|" << msgType;
+    info << "|price|" << price;
+    info << "|kLineIndex|" << lastBlock.getIndex() << endl;
     info.close();
 }

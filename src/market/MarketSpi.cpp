@@ -12,7 +12,7 @@ MarketSpi::MarketSpi(CThostFtdcMdApi * mdApi, string logPath,
     _userID = userID;
     _password = password;
     _brokerID = brokerID;
-    _instrumnetID = instrumnetID
+    _instrumnetID = instrumnetID;
 
     _klineClient = new QClient(serviceID, sizeof(MSG_TO_KLINE));
     _store = new Redis("127.0.0.1", 6379, 1);
@@ -22,8 +22,8 @@ MarketSpi::MarketSpi(CThostFtdcMdApi * mdApi, string logPath,
 MarketSpi::~MarketSpi()
 {
     _mdApi = NULL;
-    delete _store;
-    delete _klineClient;
+    // delete _store;
+    // delete _klineClient;
     cout << "~MarketSpi" << endl;
 }
 
@@ -51,10 +51,13 @@ void MarketSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
 
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
-    info << "MarketSrv[LoginSuccess]" << "|";
-    info << "SessionID" << "|" << pRspUserLogin->SessionID << "|";
-    info << "TradingDay" << "|" << pRspUserLogin->TradingDay << "|";
-    info << "MaxOrderRef" << "|" << pRspUserLogin->MaxOrderRef << endl;
+    info << "MarketSrv[LoginSuccess]";
+    if (pRspUserLogin) {
+        info << "|SessionID|" << pRspUserLogin->SessionID;
+        info << "|TradingDay|" << pRspUserLogin->TradingDay;
+        info << "|MaxOrderRef|" << pRspUserLogin->MaxOrderRef;
+    }
+    info << endl;
     info.close();
 
     char * Instrumnet[]={Lib::stoc(_instrumnetID)};
@@ -86,7 +89,7 @@ void MarketSpi::OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, boo
 
 void MarketSpi::_saveMarketData(CThostFtdcDepthMarketDataField *data)
 {
-
+    if (!data) return;
     // 发送给K线系统
     MSG_TO_KLINE msg = {0};
     msg.msgType = MSG_TICK;

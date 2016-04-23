@@ -20,8 +20,8 @@ TradeSrv::TradeSrv(string brokerID, string userID, string password,
 
 TradeSrv::~TradeSrv()
 {
-    delete _store;
-    delete _tradeStrategySrvClient;
+    // delete _store;
+    // delete _tradeStrategySrvClient;
     if (_tradeApi) {
         _tradeApi->Release();
         _tradeApi = NULL;
