@@ -47,6 +47,12 @@ void Redis::set(string key, string data)
     execCmd(cmd);
 }
 
+void Redis::setnx(string key, string data)
+{
+    string cmd = "setnx " + key + " " + data;
+    execCmd(cmd);
+}
+
 string Redis::get(string key)
 {
     string cmd = "get " + key;

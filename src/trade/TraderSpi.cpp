@@ -75,6 +75,7 @@ void TraderSpi::OnRtnOrder(CThostFtdcOrderField *pOrder)
         info << "|FrontID|" << pOrder->FrontID;
         info << "|SessionID|" << pOrder->SessionID;
         info << "|OrderRef|" << pOrder->OrderRef;
+        info << "|OrderSysID|" << pOrder->OrderSysID;
         info << "|OrderSubmitStatus|" << pOrder->OrderSubmitStatus;
         info << "|OrderStatus|" << pOrder->OrderStatus;
     }

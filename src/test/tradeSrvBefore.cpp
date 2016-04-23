@@ -12,19 +12,25 @@ int main(int argc, char const *argv[])
 
     char oc[2];
     strcpy(oc, argv[3]);
-    int openclose = strcmp(oc, "1") == 0 ? true : false;
+    int isOpen= strcmp(oc, "1") == 0 ? true : false;
+
+    char t[10];
+    strcpy(t, argv[4]);
+    int type = atoi(t); 
+    // #define MSG_ORDER 12
+    // #define MSG_ORDER_CANCEL 13
 
     parseIniFile("../etc/config.ini");
     int tradeSrvID = getOptionToInt("trade_service_id");
     QClient clt(tradeSrvID, sizeof(MSG_TO_TRADE));
 
     MSG_TO_TRADE msg = {0};
-    msg.msgType = MSG_ORDER;
+    msg.msgType = type;
     msg.price = price;
     msg.isBuy = isBuy;
     msg.total = 1;
-    msg.isOpen = openclose;
-    msg.isCancel = false;
+    msg.isOpen = isOpen;
+    msg.orderID = 1;
     clt.send((void *)&msg);
 
     return 0;

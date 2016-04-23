@@ -5,6 +5,7 @@
 #include "../strategy/global.h"
 #include "../global.h"
 #include "../libs/Redis.h"
+#include <map>
 
 
 class TraderSpi;
@@ -27,7 +28,6 @@ private:
     TThostFtdcFrontIDType _frontID;
     TThostFtdcSessionIDType _sessionID;
     int _maxOrderRef;
-    int _reqID;
 
     bool _ydPostion; // 昨仓
     int _closeYdReqID; // 平昨仓的reqID
@@ -36,8 +36,13 @@ private:
     TraderSpi * _traderSpi;
     QClient * _tradeStrategySrvClient;
 
+    void _initOrderRefAndID(int);
     int _getOrderRefByID(int);
     int _getOrderIDByRef(int);
+
+    map<int, CThostFtdcOrderField> _orderInfoMap; 
+    void _setOrderInfo(int, CThostFtdcOrderField * const);
+    CThostFtdcOrderField _getOrderInfo(int);
 
     CThostFtdcInputOrderField _createOrder(int, bool, int, double,
         TThostFtdcOffsetFlagEnType, // 开平标志

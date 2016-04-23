@@ -17,5 +17,6 @@ public:
     void push(string key, string data);
     string pop(string key);
     void set(string key, string data);
+    void setnx(string key, string data);
     string get(string key);
 };

@@ -12,7 +12,7 @@ g++ -o tradeSrv ../src/trade/*.cpp ../src/libs/*.cpp ../include/iniReader/*.cpp 
 # g++ -o tradeStrategySuccess ../src/history/tradeStrategySuccess.cpp ../src/libs/*.cpp ../include/iniReader/*.cpp -lhiredis
 
 # 测试模块
-# g++ -o tradeTest ../src/test/trade.cpp ../include/iniReader/*.cpp ../src/libs/*.cpp -lhiredis
+g++ -o tradeSrvBefore ../src/test/tradeSrvBefore.cpp ../include/iniReader/*.cpp ../src/libs/*.cpp -lhiredis
 # g++ -o tradeStrategyBefore ../src/test/tradeStrategyBefore.cpp ../include/iniReader/*.cpp ../src/libs/*.cpp -lhiredis
 # g++ -o tradeStrategyAfter ../src/test/tradeStrategyAfter.cpp ../include/iniReader/*.cpp ../src/libs/*.cpp -lhiredis
 
