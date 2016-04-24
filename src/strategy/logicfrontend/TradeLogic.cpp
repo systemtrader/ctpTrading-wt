@@ -178,7 +178,7 @@ void TradeLogic::_calculateOpen()
     info << "|max|" << _max;
     info << "|mean|" << _mean;
     info << "|min|" << _min;
-    info << "|index|" << currIndex << endl;
+    info << "|kIndex|" << currIndex << endl;
     info.close();
 
 }
@@ -234,6 +234,6 @@ void TradeLogic::_sendMsg(int msgType, double price)
     info << "TradeLogicSrv[sendMsg]";
     info << "|action|" << msgType;
     info << "|price|" << price;
-    info << "|kLineIndex|" << lastBlock.getIndex() << endl;
+    info << "|kIndex|" << lastBlock.getIndex() << endl;
     info.close();
 }

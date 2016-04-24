@@ -34,5 +34,16 @@ class Consumer
         return $re;
     }
 
+    public function updateDB($sql, $data)
+    {
+        try {
+            $st = $this->mysql->prepare($sql);
+            $re = $st->execute($data);
+        } catch (Exception $e) {
+            var_dump($e);
+        }
+        return $re;
+    }
+
 
 }

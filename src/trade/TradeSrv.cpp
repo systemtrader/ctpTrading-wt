@@ -116,21 +116,35 @@ void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int order
 
     int res = _tradeApi->ReqOrderInsert(&order, orderID);
     Lib::sysReqLog(_logPath, "TradeSrv[trade]", res);
+    // save data
+    string time = Lib::getDate("%Y/%m/%d %H:%M:%S", true);
+    string data = "trade_" + orderID + "_" + _frontID + "_" + _sessionID + "_" +
+                  price + "_" + isBuy + "_" + isOpen + "_" + 
+                  time;
+    _store->push("ORDER_LOGS", data);
 }
 
 void TradeSrv::onTraded(CThostFtdcTradeField * const rsp)
 {
     if (!rsp) return;
+    if (rsp->SessionID != _sessionID) return;
     int orderID = _getOrderIDByRef(atoi(rsp->OrderRef));
     MSG_TO_TRADE_STRATEGY msg = {0};
     msg.msgType = MSG_TRADE_BACK_TRADED;
     msg.kIndex = orderID;
     // _tradeStrategySrvClient->send((void *)&msg);
+    
+    // save data
+    string time = Lib::getDate("%Y/%m/%d %H:%M:%S", true);
+    string data = "traded_" + orderID + "_" + _frontID + "_" + _sessionID + "_" +
+                  time;
+    _store->push("ORDER_LOGS", data);
 }
 
 void TradeSrv::onOrderRtn(CThostFtdcOrderField * const rsp)
 {
     if (!rsp) return;
+    if (rsp->SessionID != _sessionID) return;
     if (rsp->OrderStatus != THOST_FTDC_OST_Canceled) return;
     // 撤单情况
     int orderID = _getOrderIDByRef(atoi(rsp->OrderRef));
@@ -138,6 +152,12 @@ void TradeSrv::onOrderRtn(CThostFtdcOrderField * const rsp)
     msg.msgType = MSG_TRADE_BACK_CANCELED;
     msg.kIndex = orderID;
     // _tradeStrategySrvClient->send((void *)&msg);
+    // 
+    // save data
+    string time = Lib::getDate("%Y/%m/%d %H:%M:%S", true);
+    string data = "orderRtn_" + orderID + "_" + _frontID + "_" + _sessionID + "_" +
+                  time;
+    _store->push("ORDER_LOGS", data);
 }
 
 void TradeSrv::cancel(int orderID)

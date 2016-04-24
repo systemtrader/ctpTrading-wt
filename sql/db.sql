@@ -43,7 +43,8 @@ CREATE TABLE `order` (
   `first_usec` int(11) NOT NULL DEFAULT 0,
   `end_time` datetime NOT NULL COMMENT '首次得到交易回馈时间',
   `end_usec` int(11) NOT NULL DEFAULT 0,
+  `status` int(11) NOT NULL DEFAULT 0,
   `mtime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  KEY `idx_index` (`k_index`)
+  KEY `idx_index_front_session` (`k_index`, `front_id`, `session_id`)
 ) ENGINE=InnoDB CHARSET=utf8;
