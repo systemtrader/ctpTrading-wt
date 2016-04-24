@@ -153,19 +153,25 @@ void TradeLogic::_calculateOpen()
     count = count > _openMeanKLineCount ? count : _openMeanKLineCount;
 
     // 当前K线不足判断，直接返回，不作操作
-    if ((int)_bList.size() < count) return;
-
+    // if ((int)_bList.size() < count) return;
+    count = count > (int)_bList.size() ? (int)_bList.size() : count;
     // 计算当前范围内的开仓参数
     list<KLineBlock>::iterator item = _bList.begin();
-    _max = item->getMaxPrice();
-    _min = item->getMinPrice();
+    // _max = item->getMaxPrice();
+    // _min = item->getMinPrice();
+    _max = item->getClosePrice();
+    _min = item->getClosePrice();
 
     double sum = 0; // 计算平均值用
     int cnt = count, currIndex = item->getIndex();
     while (1) {
-        _max = _max > item->getMaxPrice() ? _max : item->getMaxPrice();
-        _min = _min < item->getMinPrice() ? _min : item->getMinPrice();
-        sum += item->getMinPrice();
+        // _max = _max > item->getMaxPrice() ? _max : item->getMaxPrice();
+        // _min = _min < item->getMinPrice() ? _min : item->getMinPrice();
+        _max = _max > item->getClosePrice() ? _max : item->getClosePrice();
+        _min = _min < item->getClosePrice() ? _min : item->getClosePrice();
+
+        // sum += item->getMinPrice();
+        sum += item->getClosePrice();
         if (--cnt == 0) break;
         item++;
     }
@@ -194,7 +200,9 @@ void TradeLogic::_calculateBuyClose()
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeLogicSrv[calculateBuyClose]";
     info << "|openedKLineMin|" << _openedKLineMin;
-    info << "|buyClosePoint|" << _buyClosePoint << endl;
+    info << "|buyClosePoint|" << _buyClosePoint;
+    info << "|kIndex|" << lastBlock.getIndex();
+    info << endl;
     info.close();
 }
 
@@ -209,7 +217,9 @@ void TradeLogic::_calculateSellClose()
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeLogicSrv[calculateSellClose]";
     info << "|openedKLineMax|" << _openedKLineMax;
-    info << "|sellClosePoint|" << _sellClosePoint << endl;
+    info << "|sellClosePoint|" << _sellClosePoint;
+    info << "|kIndex|" << lastBlock.getIndex();
+    info << endl;
     info.close();
 }
 

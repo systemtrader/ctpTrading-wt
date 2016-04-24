@@ -10,6 +10,7 @@ tradeStrategySuccess
 tradeStrategyBefore
 tradeStrategyAfter
 tradeSrvBefore
+readKLineDataAndSend
 *Test
 config.*
 a.out
