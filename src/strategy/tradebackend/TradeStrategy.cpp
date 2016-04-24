@@ -134,9 +134,10 @@ void TradeStrategy::_successBack(int orderID)
     // log
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
-    info << "TradeStrategySrv[successBack]" << "|";
-    info << "kIndex" << "|" << orderID << "|";
-    info << "status" << "|" << _getStatus() << endl;
+    info << "TradeStrategySrv[successBack]";
+    info << "|kIndex|" << orderID;
+    info << "|status|" << _getStatus();
+    info << endl;
     info.close();
 }
 
@@ -145,8 +146,9 @@ void TradeStrategy::_cancelBack(int orderID)
     // log
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
-    info << "TradeStrategySrv[cancelBack]" << "|";
-    info << "kIndex" << "|" << orderID << endl;
+    info << "TradeStrategySrv[cancelBack]";
+    info << "|kIndex|" << orderID;
+    info << endl;
     info.close();
 
     if (_isCancelOver) {
@@ -184,8 +186,9 @@ void TradeStrategy::timeout(int orderID)
         // log
         ofstream info;
         Lib::initInfoLogHandle(_logPath, info);
-        info << "TradeStrategySrv[timeout]" << "|";
-        info << "kIndex" << "|" << orderID << endl;
+        info << "TradeStrategySrv[timeout]";
+        info << "|kIndex|" << orderID;
+        info << endl;
         info.close();
         _cancelAction(orderID);
 
@@ -205,8 +208,9 @@ void TradeStrategy::_cancelAction(int orderID)
 
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
-    info << "TradeStrategySrv[cancel]" << "|";
-    info << "kIndex" << "|" << orderID << endl;
+    info << "TradeStrategySrv[cancel]";
+    info << "|kIndex|" << orderID;
+    info << endl;
     info.close();
 }
 
@@ -215,8 +219,9 @@ void TradeStrategy::_zhuijia()
     // log
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
-    info << "TradeStrategySrv[zhuijia]" << "|";
-    info << "kIndex" << "|" << _doingOrderID << endl;
+    info << "TradeStrategySrv[zhuijia]";
+    info << "|kIndex|" << _doingOrderID;
+    info << endl;
     info.close();
 
     double price;
@@ -259,12 +264,13 @@ void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen)
 
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
-    info << "TradeStrategySrv[sendOrder]" << "|";
-    info << "price" << "|" << price << "|";
-    info << "total" << "|" << total << "|";
-    info << "isBuy" << "|" << isBuy << "|";
-    info << "isOpen" << "|" << isOpen << "|";
-    info << "kIndex" << "|" << _currentOrderID << endl;
+    info << "TradeStrategySrv[sendOrder]";
+    info << "|price|" << price;
+    info << "|total|" << total;
+    info << "|isBuy|" << isBuy;
+    info << "|isOpen|" << isOpen;
+    info << "|kIndex|" << _currentOrderID;
+    info << endl;
     info.close();
 }
 
