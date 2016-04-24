@@ -11,6 +11,7 @@ class TradeLogic
 {
 private:
 
+    int _isHistoryBack;
     Redis * _store;
     QClient * _tradeStrategySrvClient;
 

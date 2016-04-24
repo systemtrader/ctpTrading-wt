@@ -1,7 +1,7 @@
 #include "TradeLogic.h"
 
 TradeLogic::TradeLogic(int countMax, int countMin, int countMean, int kRang,
-        int sellCloseKLineNum, int buyCloseKLineNum, int serviceID, string logPath)
+        int sellCloseKLineNum, int buyCloseKLineNum, int serviceID, string logPath, int isHistoryBack)
 {
     _openMaxKLineCount  = countMax;
     _openMinKLineCount  = countMin;
@@ -10,6 +10,7 @@ TradeLogic::TradeLogic(int countMax, int countMin, int countMean, int kRang,
     _closeSellKRangeCount = sellCloseKLineNum;
     _closeBuyKRangeCount  = buyCloseKLineNum;
     _logPath = logPath;
+    _isHistoryBack = isHistoryBack;
 
     _max = _min = _mean = 0;
     _store = new Redis("127.0.0.1", 6379, 1);
@@ -115,8 +116,12 @@ void TradeLogic::onKLineClose(KLineBlock block)
         case TRADE_STATUS_BUYOPENED:
         case TRADE_STATUS_SELLCLOSING:
             if (_sellClosePoint > 0 && block.getClosePrice() < _sellClosePoint) {
-                Tick tick = _getTick();
-                _sendMsg(MSG_TRADE_SELLCLOSE, tick.bidPrice1);
+                if (_isHistoryBack) {
+                    _sendMsg(MSG_TRADE_SELLCLOSE, block.getClosePrice());
+                } else {
+                    Tick tick = _getTick();
+                    _sendMsg(MSG_TRADE_SELLCLOSE, tick.bidPrice1);
+                }
             } else {
                 if (status == TRADE_STATUS_SELLCLOSING)
                     _sendMsg(MSG_TRADE_CANCEL);
@@ -126,8 +131,12 @@ void TradeLogic::onKLineClose(KLineBlock block)
         case TRADE_STATUS_SELLOPENED:
         case TRADE_STATUS_BUYCLOSING:
             if (_buyClosePoint > 0 && block.getClosePrice() > _buyClosePoint) {
-                Tick tick = _getTick();
-                _sendMsg(MSG_TRADE_BUYCLOSE, tick.askPrice1);
+                if (_isHistoryBack) {
+                    _sendMsg(MSG_TRADE_BUYCLOSE, block.getClosePrice());
+                } else {
+                    Tick tick = _getTick();
+                    _sendMsg(MSG_TRADE_BUYCLOSE, tick.askPrice1);
+                }
             } else {
                 if (status == TRADE_STATUS_BUYCLOSING)
                     _sendMsg(MSG_TRADE_CANCEL);

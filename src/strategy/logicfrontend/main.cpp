@@ -18,10 +18,12 @@ int main(int argc, char const *argv[])
     int tradeLogicSrvID    = getOptionToInt("trade_logic_service_id");
     int tradeStrategySrvID = getOptionToInt("trade_strategy_service_id");
 
+    int isHistoryBack = getOptionToInt("history_back");
+
     string logPath = getOptionToString("log_path");
 
     service = new TradeLogic(openMaxKCount, openMinKCount, openMeanKCount, kRang,
-        closeSellKRangeCount, closeBuyKRangeCount, tradeStrategySrvID, logPath);
+        closeSellKRangeCount, closeBuyKRangeCount, tradeStrategySrvID, logPath, isHistoryBack);
     service->init();
 
     // 服务化
