@@ -118,8 +118,8 @@ void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int order
     Lib::sysReqLog(_logPath, "TradeSrv[trade]", res);
     // save data
     string time = Lib::getDate("%Y/%m/%d %H:%M:%S", true);
-    string data = "trade_" + orderID + "_" + _frontID + "_" + _sessionID + "_" +
-                  price + "_" + isBuy + "_" + isOpen + "_" + 
+    string data = "trade_" + Lib::itos(orderID) + "_" + Lib::itos(_frontID) + "_" + Lib::itos(_sessionID) + "_" +
+                  Lib::dtos(price) + "_" + Lib::itos((int)isBuy) + "_" + Lib::itos((int)isOpen) + "_" +
                   time;
     _store->push("ORDER_LOGS", data);
 }
@@ -127,16 +127,17 @@ void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int order
 void TradeSrv::onTraded(CThostFtdcTradeField * const rsp)
 {
     if (!rsp) return;
-    if (rsp->SessionID != _sessionID) return;
+    // if (rsp->SessionID != _sessionID) return;
     int orderID = _getOrderIDByRef(atoi(rsp->OrderRef));
+    if (orderID <= 0) return;
     MSG_TO_TRADE_STRATEGY msg = {0};
     msg.msgType = MSG_TRADE_BACK_TRADED;
     msg.kIndex = orderID;
     // _tradeStrategySrvClient->send((void *)&msg);
-    
+
     // save data
     string time = Lib::getDate("%Y/%m/%d %H:%M:%S", true);
-    string data = "traded_" + orderID + "_" + _frontID + "_" + _sessionID + "_" +
+    string data = "traded_" + Lib::itos(orderID) + "_" + Lib::itos(_frontID) + "_" + Lib::itos(_sessionID) + "_" +
                   time;
     _store->push("ORDER_LOGS", data);
 }
@@ -145,17 +146,18 @@ void TradeSrv::onOrderRtn(CThostFtdcOrderField * const rsp)
 {
     if (!rsp) return;
     if (rsp->SessionID != _sessionID) return;
+    int orderID = _getOrderIDByRef(atoi(rsp->OrderRef));
+    _setOrderInfo(orderID, rsp);
     if (rsp->OrderStatus != THOST_FTDC_OST_Canceled) return;
     // 撤单情况
-    int orderID = _getOrderIDByRef(atoi(rsp->OrderRef));
     MSG_TO_TRADE_STRATEGY msg = {0};
     msg.msgType = MSG_TRADE_BACK_CANCELED;
     msg.kIndex = orderID;
     // _tradeStrategySrvClient->send((void *)&msg);
-    // 
+    //
     // save data
     string time = Lib::getDate("%Y/%m/%d %H:%M:%S", true);
-    string data = "orderRtn_" + orderID + "_" + _frontID + "_" + _sessionID + "_" +
+    string data = "orderRtn_" + Lib::itos(orderID) + "_" + Lib::itos(_frontID) + "_" + Lib::itos(_sessionID) + "_" +
                   time;
     _store->push("ORDER_LOGS", data);
 }
@@ -184,7 +186,15 @@ void TradeSrv::cancel(int orderID)
     req.ActionFlag = THOST_FTDC_AF_Delete;
     ///合约代码
     strncpy(req.InstrumentID, orderInfo.InstrumentID, sizeof(TThostFtdcInstrumentIDType));
-
+cout << req.BrokerID << endl;
+cout << req.InvestorID << endl;
+cout << req.OrderRef << endl;
+cout << req.FrontID << endl;
+cout << req.SessionID << endl;
+cout << req.ExchangeID << endl;
+cout << req.OrderSysID << endl;
+cout << req.ActionFlag << endl;
+cout << req.InstrumentID << endl;
     int res = _tradeApi->ReqOrderAction(&req, 0);
     Lib::sysReqLog(_logPath, "TradeSrv[getPosition]", res);
 }

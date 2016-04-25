@@ -49,11 +49,52 @@ void TraderSpi::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInves
     info << "TradeSrv[onPosition]" << "|";
     if (pInvestorPosition) {
         info << "|bIsLast|" << bIsLast;
-        info << "|TradingDay|" << pInvestorPosition->TradingDay;
-        info << "|Position|" << pInvestorPosition->Position;
-        info << "|TodayPosition|" << pInvestorPosition->TodayPosition;
-        info << "|PosiDirection|" << pInvestorPosition->PosiDirection;
+info << "|InstrumentID|" << pInvestorPosition->InstrumentID;
+info << "|BrokerID|" << pInvestorPosition->BrokerID;
+info << "|InvestorID|" << pInvestorPosition->InvestorID;
+info << "|PosiDirection|" << pInvestorPosition->PosiDirection;
+info << "|HedgeFlag|" << pInvestorPosition->HedgeFlag;
+info << "|PositionDate|" << pInvestorPosition->PositionDate;
+info << "|YdPosition|" << pInvestorPosition->YdPosition;
+info << "|Position|" << pInvestorPosition->Position;
+info << "|LongFrozen|" << pInvestorPosition->LongFrozen;
+info << "|ShortFrozen|" << pInvestorPosition->ShortFrozen;
+info << "|LongFrozenAmount|" << pInvestorPosition->LongFrozenAmount;
+info << "|ShortFrozenAmount|" << pInvestorPosition->ShortFrozenAmount;
+info << "|OpenVolume|" << pInvestorPosition->OpenVolume;
+info << "|CloseVolume|" << pInvestorPosition->CloseVolume;
+info << "|OpenAmount|" << pInvestorPosition->OpenAmount;
+info << "|CloseAmount|" << pInvestorPosition->CloseAmount;
+info << "|PositionCost|" << pInvestorPosition->PositionCost;
+info << "|PreMargin|" << pInvestorPosition->PreMargin;
+info << "|UseMargin|" << pInvestorPosition->UseMargin;
+info << "|FrozenMargin|" << pInvestorPosition->FrozenMargin;
+info << "|FrozenCash|" << pInvestorPosition->FrozenCash;
+info << "|FrozenCommission|" << pInvestorPosition->FrozenCommission;
+info << "|CashIn|" << pInvestorPosition->CashIn;
+info << "|Commission|" << pInvestorPosition->Commission;
+info << "|CloseProfit|" << pInvestorPosition->CloseProfit;
+info << "|PositionProfit|" << pInvestorPosition->PositionProfit;
+info << "|PreSettlementPrice|" << pInvestorPosition->PreSettlementPrice;
+info << "|SettlementPrice|" << pInvestorPosition->SettlementPrice;
+info << "|TradingDay|" << pInvestorPosition->TradingDay;
+info << "|SettlementID|" << pInvestorPosition->SettlementID;
+info << "|OpenCost|" << pInvestorPosition->OpenCost;
+info << "|ExchangeMargin|" << pInvestorPosition->ExchangeMargin;
+info << "|CombPosition|" << pInvestorPosition->CombPosition;
+info << "|CombLongFrozen|" << pInvestorPosition->CombLongFrozen;
+info << "|CombShortFrozen|" << pInvestorPosition->CombShortFrozen;
+info << "|CloseProfitByDate|" << pInvestorPosition->CloseProfitByDate;
+info << "|CloseProfitByTrade|" << pInvestorPosition->CloseProfitByTrade;
+info << "|TodayPosition|" << pInvestorPosition->TodayPosition;
+info << "|MarginRateByMoney|" << pInvestorPosition->MarginRateByMoney;
+info << "|MarginRateByVolume|" << pInvestorPosition->MarginRateByVolume;
+info << "|StrikeFrozen|" << pInvestorPosition->StrikeFrozen;
+info << "|StrikeFrozenAmount|" << pInvestorPosition->StrikeFrozenAmount;
+info << "|AbandonFrozen|" << pInvestorPosition->AbandonFrozen;
+
     }
+
     info << endl;
     info.close();
 
