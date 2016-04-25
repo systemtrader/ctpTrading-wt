@@ -117,7 +117,7 @@ void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int order
     int res = _tradeApi->ReqOrderInsert(&order, orderID);
     Lib::sysReqLog(_logPath, "TradeSrv[trade]", res);
     // save data
-    string time = Lib::getDate("%Y/%m/%d %H:%M:%S", true);
+    string time = Lib::getDate("%Y/%m/%d-%H:%M:%S", true);
     string data = "trade_" + Lib::itos(orderID) + "_" + Lib::itos(_frontID) + "_" + Lib::itos(_sessionID) + "_" +
                   Lib::dtos(price) + "_" + Lib::itos((int)isBuy) + "_" + Lib::itos((int)isOpen) + "_" +
                   time;
@@ -136,7 +136,7 @@ void TradeSrv::onTraded(CThostFtdcTradeField * const rsp)
     // _tradeStrategySrvClient->send((void *)&msg);
 
     // save data
-    string time = Lib::getDate("%Y/%m/%d %H:%M:%S", true);
+    string time = Lib::getDate("%Y/%m/%d-%H:%M:%S", true);
     string data = "traded_" + Lib::itos(orderID) + "_" + Lib::itos(_frontID) + "_" + Lib::itos(_sessionID) + "_" +
                   time;
     _store->push("ORDER_LOGS", data);
@@ -156,7 +156,7 @@ void TradeSrv::onOrderRtn(CThostFtdcOrderField * const rsp)
     // _tradeStrategySrvClient->send((void *)&msg);
     //
     // save data
-    string time = Lib::getDate("%Y/%m/%d %H:%M:%S", true);
+    string time = Lib::getDate("%Y/%m/%d-%H:%M:%S", true);
     string data = "orderRtn_" + Lib::itos(orderID) + "_" + Lib::itos(_frontID) + "_" + Lib::itos(_sessionID) + "_" +
                   time;
     _store->push("ORDER_LOGS", data);

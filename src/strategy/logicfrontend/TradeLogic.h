@@ -55,7 +55,7 @@ private:
     TickData _getTick();
 
 public:
-    TradeLogic(int, int, int, int, int, int, int, string);
+    TradeLogic(int, int, int, int, int, int, int, string, int);
     ~TradeLogic();
 
     void init(); // 初始化历史K线
