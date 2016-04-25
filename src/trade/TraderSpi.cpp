@@ -43,61 +43,64 @@ void TraderSpi::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInves
 {
     Lib::sysErrLog(_logPath, "TradeSrv[onPosition]", pRspInfo, nRequestID, bIsLast);
     _service->onPositionRtn(pInvestorPosition);
+    _service->getPositionDetail();
 
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
-    info << "TradeSrv[onPosition]" << "|";
+    info << "TradeSrv[onPosition]";
     if (pInvestorPosition) {
         info << "|bIsLast|" << bIsLast;
-info << "|InstrumentID|" << pInvestorPosition->InstrumentID;
-info << "|BrokerID|" << pInvestorPosition->BrokerID;
-info << "|InvestorID|" << pInvestorPosition->InvestorID;
-info << "|PosiDirection|" << pInvestorPosition->PosiDirection;
-info << "|HedgeFlag|" << pInvestorPosition->HedgeFlag;
-info << "|PositionDate|" << pInvestorPosition->PositionDate;
-info << "|YdPosition|" << pInvestorPosition->YdPosition;
-info << "|Position|" << pInvestorPosition->Position;
-info << "|LongFrozen|" << pInvestorPosition->LongFrozen;
-info << "|ShortFrozen|" << pInvestorPosition->ShortFrozen;
-info << "|LongFrozenAmount|" << pInvestorPosition->LongFrozenAmount;
-info << "|ShortFrozenAmount|" << pInvestorPosition->ShortFrozenAmount;
-info << "|OpenVolume|" << pInvestorPosition->OpenVolume;
-info << "|CloseVolume|" << pInvestorPosition->CloseVolume;
-info << "|OpenAmount|" << pInvestorPosition->OpenAmount;
-info << "|CloseAmount|" << pInvestorPosition->CloseAmount;
-info << "|PositionCost|" << pInvestorPosition->PositionCost;
-info << "|PreMargin|" << pInvestorPosition->PreMargin;
-info << "|UseMargin|" << pInvestorPosition->UseMargin;
-info << "|FrozenMargin|" << pInvestorPosition->FrozenMargin;
-info << "|FrozenCash|" << pInvestorPosition->FrozenCash;
-info << "|FrozenCommission|" << pInvestorPosition->FrozenCommission;
-info << "|CashIn|" << pInvestorPosition->CashIn;
-info << "|Commission|" << pInvestorPosition->Commission;
-info << "|CloseProfit|" << pInvestorPosition->CloseProfit;
-info << "|PositionProfit|" << pInvestorPosition->PositionProfit;
-info << "|PreSettlementPrice|" << pInvestorPosition->PreSettlementPrice;
-info << "|SettlementPrice|" << pInvestorPosition->SettlementPrice;
-info << "|TradingDay|" << pInvestorPosition->TradingDay;
-info << "|SettlementID|" << pInvestorPosition->SettlementID;
-info << "|OpenCost|" << pInvestorPosition->OpenCost;
-info << "|ExchangeMargin|" << pInvestorPosition->ExchangeMargin;
-info << "|CombPosition|" << pInvestorPosition->CombPosition;
-info << "|CombLongFrozen|" << pInvestorPosition->CombLongFrozen;
-info << "|CombShortFrozen|" << pInvestorPosition->CombShortFrozen;
-info << "|CloseProfitByDate|" << pInvestorPosition->CloseProfitByDate;
-info << "|CloseProfitByTrade|" << pInvestorPosition->CloseProfitByTrade;
-info << "|TodayPosition|" << pInvestorPosition->TodayPosition;
-info << "|MarginRateByMoney|" << pInvestorPosition->MarginRateByMoney;
-info << "|MarginRateByVolume|" << pInvestorPosition->MarginRateByVolume;
-info << "|StrikeFrozen|" << pInvestorPosition->StrikeFrozen;
-info << "|StrikeFrozenAmount|" << pInvestorPosition->StrikeFrozenAmount;
-info << "|AbandonFrozen|" << pInvestorPosition->AbandonFrozen;
-
+        info << "|PosiDirection|" << pInvestorPosition->PosiDirection;
+        info << "|PositionDate|" << pInvestorPosition->PositionDate;
+        info << "|YdPosition|" << pInvestorPosition->YdPosition;
+        info << "|Position|" << pInvestorPosition->Position;
+        info << "|OpenVolume|" << pInvestorPosition->OpenVolume;
+        info << "|CloseVolume|" << pInvestorPosition->CloseVolume;
+        info << "|TodayPosition|" << pInvestorPosition->TodayPosition;
     }
-
     info << endl;
     info.close();
+}
 
+void TraderSpi::OnRspQryInvestorPositionDetail(CThostFtdcInvestorPositionDetailField *pInvestorPositionDetail,
+        CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+    Lib::sysErrLog(_logPath, "TradeSrv[onPositionDetail]", pRspInfo, nRequestID, bIsLast);
+    _service->onPositionDetailRtn(pInvestorPositionDetail);
+
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info);
+    info << "TradeSrv[onPosition]";
+    if (pInvestorPositionDetail) {
+info << "|InstrumentID|" << pInvestorPositionDetail->InstrumentID;
+info << "|BrokerID|" << pInvestorPositionDetail->BrokerID;
+info << "|InvestorID|" << pInvestorPositionDetail->InvestorID;
+info << "|HedgeFlag|" << pInvestorPositionDetail->HedgeFlag;
+info << "|Direction|" << pInvestorPositionDetail->Direction;
+info << "|OpenDate|" << pInvestorPositionDetail->OpenDate;
+info << "|TradeID|" << pInvestorPositionDetail->TradeID;
+info << "|Volume|" << pInvestorPositionDetail->Volume;
+info << "|OpenPrice|" << pInvestorPositionDetail->OpenPrice;
+info << "|TradingDay|" << pInvestorPositionDetail->TradingDay;
+info << "|SettlementID|" << pInvestorPositionDetail->SettlementID;
+info << "|TradeType|" << pInvestorPositionDetail->TradeType;
+info << "|CombInstrumentID|" << pInvestorPositionDetail->CombInstrumentID;
+info << "|ExchangeID|" << pInvestorPositionDetail->ExchangeID;
+info << "|CloseProfitByDate|" << pInvestorPositionDetail->CloseProfitByDate;
+info << "|CloseProfitByTrade|" << pInvestorPositionDetail->CloseProfitByTrade;
+info << "|PositionProfitByDate|" << pInvestorPositionDetail->PositionProfitByDate;
+info << "|PositionProfitByTrade|" << pInvestorPositionDetail->PositionProfitByTrade;
+info << "|Margin|" << pInvestorPositionDetail->Margin;
+info << "|ExchMargin|" << pInvestorPositionDetail->ExchMargin;
+info << "|MarginRateByMoney|" << pInvestorPositionDetail->MarginRateByMoney;
+info << "|MarginRateByVolume|" << pInvestorPositionDetail->MarginRateByVolume;
+info << "|LastSettlementPrice|" << pInvestorPositionDetail->LastSettlementPrice;
+info << "|SettlementPrice|" << pInvestorPositionDetail->SettlementPrice;
+info << "|CloseVolume|" << pInvestorPositionDetail->CloseVolume;
+info << "|CloseAmount|" << pInvestorPositionDetail->CloseAmount;
+    }
+    info << endl;
+    info.close();
 }
 
 void TraderSpi::OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder,

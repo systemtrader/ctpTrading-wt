@@ -101,6 +101,39 @@ void TradeSrv::onPositionRtn(CThostFtdcInvestorPositionField * const rsp)
     }
 }
 
+void TradeSrv::getPositionDetail()
+{
+    CThostFtdcQryInvestorPositionDetailField req = {0};
+
+    strcpy(req.BrokerID, Lib::stoc(_brokerID));
+    strcpy(req.InvestorID, Lib::stoc(_userID));
+    strcpy(req.InstrumentID, Lib::stoc(_instrumnetID));
+
+    int res = _tradeApi->ReqQryInvestorPositionDetail(&req, 0);
+    Lib::sysReqLog(_logPath, "TradeSrv[getPositionDetail]", res);
+}
+
+void TradeSrv::onPositionDetailRtn(CThostFtdcInvestorPositionDetailField * const rsp)
+{
+    if (!rsp) return;
+    setStatus(TRADE_STATUS_NOTHING);
+    _ydPostion = 0;
+    if (rsp->Volume > 0 && // 有持仓
+        strcpy(rsp->OpenDate, rsp->TradingDay) != 0 // 昨仓
+    ) {
+        _ydPostion++;
+    }
+    if (_ydPostion > 0) {
+        // TODO 根据哪个字段判断具体仓位
+        if (rsp->Direction == THOST_FTDC_D_Buy) {
+            setStatus(TRADE_STATUS_BUYOPENED);
+        }
+        if (rsp->Direction == THOST_FTDC_D_Sell) {
+            setStatus(TRADE_STATUS_SELLOPENED);
+        }
+    }
+}
+
 void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int orderID)
 {
     TThostFtdcOffsetFlagEnType flag = THOST_FTDC_OFEN_Open;
@@ -186,15 +219,7 @@ void TradeSrv::cancel(int orderID)
     req.ActionFlag = THOST_FTDC_AF_Delete;
     ///合约代码
     strncpy(req.InstrumentID, orderInfo.InstrumentID, sizeof(TThostFtdcInstrumentIDType));
-cout << req.BrokerID << endl;
-cout << req.InvestorID << endl;
-cout << req.OrderRef << endl;
-cout << req.FrontID << endl;
-cout << req.SessionID << endl;
-cout << req.ExchangeID << endl;
-cout << req.OrderSysID << endl;
-cout << req.ActionFlag << endl;
-cout << req.InstrumentID << endl;
+
     int res = _tradeApi->ReqOrderAction(&req, 0);
     Lib::sysReqLog(_logPath, "TradeSrv[getPosition]", res);
 }

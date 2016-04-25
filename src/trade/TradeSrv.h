@@ -40,7 +40,7 @@ private:
     int _getOrderRefByID(int);
     int _getOrderIDByRef(int);
 
-    map<int, CThostFtdcOrderField> _orderInfoMap; 
+    map<int, CThostFtdcOrderField> _orderInfoMap;
     void _setOrderInfo(int, CThostFtdcOrderField * const);
     CThostFtdcOrderField _getOrderInfo(int);
 
@@ -67,6 +67,9 @@ public:
 
     void getPosition();
     void onPositionRtn(CThostFtdcInvestorPositionField * const);
+
+    void getPositionDetail();
+    void onPositionDetailRtn(CThostFtdcInvestorPositionDetailField * const);
 
     void trade(double, int, bool, bool, int);
     void onTraded(CThostFtdcTradeField * const);
