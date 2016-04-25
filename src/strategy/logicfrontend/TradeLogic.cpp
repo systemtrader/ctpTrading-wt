@@ -162,8 +162,8 @@ void TradeLogic::_calculateOpen()
     count = count > _openMeanKLineCount ? count : _openMeanKLineCount;
 
     // 当前K线不足判断，直接返回，不作操作
-    // if ((int)_bList.size() < count) return;
-    count = count > (int)_bList.size() ? (int)_bList.size() : count;
+    if ((int)_bList.size() < count) return;
+    // count = count > (int)_bList.size() ? (int)_bList.size() : count;
     // 计算当前范围内的开仓参数
     list<KLineBlock>::iterator item = _bList.begin();
     // _max = item->getMaxPrice();

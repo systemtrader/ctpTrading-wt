@@ -116,6 +116,7 @@ void TradeSrv::getPositionDetail()
 void TradeSrv::onPositionDetailRtn(CThostFtdcInvestorPositionDetailField * const rsp)
 {
     if (!rsp) return;
+    if (_ydPostion > 0) return;
     setStatus(TRADE_STATUS_NOTHING);
     _ydPostion = 0;
     if (rsp->Volume > 0 && // 有持仓
@@ -160,13 +161,17 @@ void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int order
 void TradeSrv::onTraded(CThostFtdcTradeField * const rsp)
 {
     if (!rsp) return;
-    // if (rsp->SessionID != _sessionID) return;
     int orderID = _getOrderIDByRef(atoi(rsp->OrderRef));
     if (orderID <= 0) return;
+    CThostFtdcOrderField orderInfo = _getOrderInfo(orderID);
+    if (strcmp(orderInfo.ExchangeID, rsp->ExchangeID) != 0 ||
+        strcmp(orderInfo.OrderSysID, rsp->OrderSysID) != 0) // 不是我的订单，我就不处理了
+        return;
+
     MSG_TO_TRADE_STRATEGY msg = {0};
     msg.msgType = MSG_TRADE_BACK_TRADED;
     msg.kIndex = orderID;
-    // _tradeStrategySrvClient->send((void *)&msg);
+    _tradeStrategySrvClient->send((void *)&msg);
 
     // save data
     string time = Lib::getDate("%Y/%m/%d-%H:%M:%S", true);
@@ -186,7 +191,7 @@ void TradeSrv::onOrderRtn(CThostFtdcOrderField * const rsp)
     MSG_TO_TRADE_STRATEGY msg = {0};
     msg.msgType = MSG_TRADE_BACK_CANCELED;
     msg.kIndex = orderID;
-    // _tradeStrategySrvClient->send((void *)&msg);
+    _tradeStrategySrvClient->send((void *)&msg);
     //
     // save data
     string time = Lib::getDate("%Y/%m/%d-%H:%M:%S", true);
