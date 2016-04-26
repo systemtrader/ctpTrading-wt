@@ -1,20 +1,34 @@
 #include "KLineSrv.h"
 
-KLineSrv::KLineSrv(int kRange, int serviceID, string logPath)
+KLineSrv::KLineSrv(int kRange, int serviceID, string logPath, int db)
 {
     _index = 0;
     _kRange = kRange;
     _logPath = logPath;
     _currentBlock = NULL;
 
-    _store = new Redis("127.0.0.1", 6379, 1);
+    _store = new Redis("127.0.0.1", 6379, db);
     _tradeLogicSrvClient = new QClient(serviceID, sizeof(MSG_TO_TRADE_LOGIC));
+
+    // 初始化数据
+    string currentStr = _store->get("CURRENT_BLOCK_STORE");
+    if (currentStr.length() > 0) { // 上次K线未关闭，初始化数据
+        _currentBlock = new KLineBlock();
+        _currentBlock->setVal(currentStr);
+        _store->set("CURRENT_BLOCK_STORE", ""); // 清空记录
+    }
 }
+
+
 
 KLineSrv::~KLineSrv()
 {
     // delete _store;
     // delete _tradeLogicSrvClient;
+    if (_currentBlock->getType() == KLINE_TYPE_UNKOWN) {// k线未封闭则保存K线状态
+        string currentStr = _currentBlock->getVal();
+        _store->set("CURRENT_BLOCK_STORE", currentStr);
+    }
     cout << "~KLineSrv" << endl;
 }
 
@@ -22,13 +36,11 @@ void KLineSrv::onTickCome(TickData tick)
 {
     if (_isBlockExist()) {
         _updateBlock(tick);
-        _currentBlock->show();
         if (_checkBlockClose(tick)) {
             _closeBlock(tick);
         }
     } else {
         _initBlock(tick);
-        _currentBlock->show();
     }
 }
 
@@ -48,7 +60,7 @@ void KLineSrv::_initBlock(TickData tick)
     msg.msgType = MSG_KLINE_OPEN;
     msg.block = _currentBlock->exportData();
     _tradeLogicSrvClient->send((void *)&msg);
-    
+
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "KLineSrv[open]";

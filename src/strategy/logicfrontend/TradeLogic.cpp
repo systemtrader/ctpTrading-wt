@@ -1,7 +1,7 @@
 #include "TradeLogic.h"
 
 TradeLogic::TradeLogic(int countMax, int countMin, int countMean, int kRang,
-        int sellCloseKLineNum, int buyCloseKLineNum, int serviceID, string logPath, int isHistoryBack)
+        int sellCloseKLineNum, int buyCloseKLineNum, int serviceID, string logPath, int isHistoryBack, int db)
 {
     _openMaxKLineCount  = countMax;
     _openMinKLineCount  = countMin;
@@ -13,7 +13,7 @@ TradeLogic::TradeLogic(int countMax, int countMin, int countMean, int kRang,
     _isHistoryBack = isHistoryBack;
 
     _max = _min = _mean = 0;
-    _store = new Redis("127.0.0.1", 6379, 1);
+    _store = new Redis("127.0.0.1", 6379, db);
 
     _tradeStrategySrvClient = new QClient(serviceID, sizeof(MSG_TO_TRADE_STRATEGY));
 

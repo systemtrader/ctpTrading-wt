@@ -20,9 +20,16 @@ int main(int argc, char const *argv[])
     int tradeSrvID         = getOptionToInt("trade_service_id");
     int tradeStrategySrvID = getOptionToInt("trade_strategy_service_id");
 
+    int isDev = getOptionToInt("is_dev");
+    int db;
+    if (isDev) {
+        db = getOptionToInt("rds_db_dev");
+    } else {
+        db = getOptionToInt("rds_db_online");
+    }
 
     service = new TradeSrv(bid, userID, password, tURL, instrumnetID,
-        flowPath, logPath, tradeStrategySrvID);
+        flowPath, logPath, tradeStrategySrvID, db);
     service->init();
 
     // 服务化

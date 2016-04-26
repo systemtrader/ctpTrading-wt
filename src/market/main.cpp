@@ -29,6 +29,14 @@ int main(int argc, char const *argv[])
     int kLineSrvID  = getOptionToInt("k_line_service_id");
     pidPath  = getOptionToString("pid_path");
 
+    int isDev = getOptionToInt("is_dev");
+    int db;
+    if (isDev) {
+        db = getOptionToInt("rds_db_dev");
+    } else {
+        db = getOptionToInt("rds_db_online");
+    }
+
     signal(30, shutdown);
     ofstream pid;
     pid.open(pidPath.c_str(), ios::out);
@@ -37,7 +45,7 @@ int main(int argc, char const *argv[])
 
     // 初始化交易接口
     mApi = CThostFtdcMdApi::CreateFtdcMdApi(flowPath.c_str());
-    MarketSpi mSpi(mApi, logPath, kLineSrvID, bid, userID, password, instrumnetID); // 初始化回调实例
+    MarketSpi mSpi(mApi, logPath, kLineSrvID, bid, userID, password, instrumnetID, db); // 初始化回调实例
     mApi->RegisterSpi(&mSpi);
     mApi->RegisterFront(Lib::stoc(mURL));
     mApi->Init();

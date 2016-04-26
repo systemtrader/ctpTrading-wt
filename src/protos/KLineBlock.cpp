@@ -10,6 +10,31 @@ KLineBlock::~KLineBlock()
 
 }
 
+void KLineBlock::setVal(string str)
+{
+    std::vector<string> params = Lib::split(str, "_");
+    _index = Lib::stoi(params[0]);
+    _openPrice = Lib::stod(params[1]);
+    _openDate = params[2];
+    _openTime = params[3];
+    _openMsec = Lib::stoi(params[4]);
+    _maxPrice = Lib::stod(params[5]);
+    _minPrice = Lib::stod(params[6]);
+    _type = KLINE_TYPE_UNKOWN;
+}
+
+string KLineBlock::getVal()
+{
+    string currentStr = Lib::itos(_index) + "_" +
+                        Lib::dtos(_openPrice) + "_" +
+                        _openDate + "_" +
+                        _openTime + "_" +
+                        Lib::itos(_openMsec) + "_" +
+                        Lib::dtos(_maxPrice) + "_" +
+                        Lib::dtos(_minPrice);
+    return currentStr;
+}
+
 void KLineBlock::init(int index, TickData tick)
 {
     _index = index;
@@ -124,6 +149,11 @@ int KLineBlock::getType()
 int KLineBlock::getVolume()
 {
     return _volume;
+}
+
+int KLineBlock::getOpenMsec()
+{
+    return _openMsec;
 }
 
 KLineBlock KLineBlock::makeViaData(KLineBlockData blockData)

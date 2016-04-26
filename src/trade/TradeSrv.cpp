@@ -2,7 +2,7 @@
 #include "TraderSpi.h"
 
 TradeSrv::TradeSrv(string brokerID, string userID, string password,
-    string tradeFront, string instrumnetID, string flowPath, string logPath, int serviceID)
+    string tradeFront, string instrumnetID, string flowPath, string logPath, int serviceID, int db)
 {
     _brokerID = brokerID;
     _userID = userID;
@@ -13,7 +13,7 @@ TradeSrv::TradeSrv(string brokerID, string userID, string password,
     _logPath = logPath;
     _closeYdReqID = 0;
 
-    _store = new Redis("127.0.0.1", 6379, 1);
+    _store = new Redis("127.0.0.1", 6379, db);
     _tradeStrategySrvClient = new QClient(serviceID, sizeof(MSG_TO_TRADE_STRATEGY));
 
 }

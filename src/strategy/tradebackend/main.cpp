@@ -15,7 +15,15 @@ int main(int argc, char const *argv[])
     int tradeSrvID         = getOptionToInt("trade_service_id");
     string logPath         = getOptionToString("log_path");
 
-    service = new TradeStrategy(tradeSrvID, logPath);
+    int isDev = getOptionToInt("is_dev");
+    int db;
+    if (isDev) {
+        db = getOptionToInt("rds_db_dev");
+    } else {
+        db = getOptionToInt("rds_db_online");
+    }
+
+    service = new TradeStrategy(tradeSrvID, logPath, db);
 
     // 服务化
     QService Qsrv(tradeStrategySrvID, sizeof(MSG_TO_TRADE_STRATEGY));

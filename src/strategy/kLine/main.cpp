@@ -13,7 +13,15 @@ int main(int argc, char const *argv[])
     int tradeLogicSrvID = getOptionToInt("trade_logic_service_id");
     string logPath      = getOptionToString("log_path");
 
-    service = new KLineSrv(kRange, tradeLogicSrvID, logPath);
+    int isDev = getOptionToInt("is_dev");
+    int db;
+    if (isDev) {
+        db = getOptionToInt("rds_db_dev");
+    } else {
+        db = getOptionToInt("rds_db_online");
+    }
+
+    service = new KLineSrv(kRange, tradeLogicSrvID, logPath, db);
 
     // 服务化
     QService Qsrv(kLineSrvID, sizeof(MSG_TO_KLINE));

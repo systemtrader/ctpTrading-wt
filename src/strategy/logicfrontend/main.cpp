@@ -22,8 +22,16 @@ int main(int argc, char const *argv[])
 
     string logPath = getOptionToString("log_path");
 
+    int isDev = getOptionToInt("is_dev");
+    int db;
+    if (isDev) {
+        db = getOptionToInt("rds_db_dev");
+    } else {
+        db = getOptionToInt("rds_db_online");
+    }
+
     service = new TradeLogic(openMaxKCount, openMinKCount, openMeanKCount, kRang,
-        closeSellKRangeCount, closeBuyKRangeCount, tradeStrategySrvID, logPath, isHistoryBack);
+        closeSellKRangeCount, closeBuyKRangeCount, tradeStrategySrvID, logPath, isHistoryBack, db);
     service->init();
 
     // 服务化

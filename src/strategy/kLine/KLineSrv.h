@@ -26,7 +26,7 @@ private:
     void _closeBlock(TickData);
 
 public:
-    KLineSrv(int, int, string);
+    KLineSrv(int, int, string, int);
     ~KLineSrv();
 
     void onTickCome(TickData);

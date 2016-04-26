@@ -53,9 +53,12 @@ public:
     string getOpenTime();
     string getCloseDate();
     string getCloseTime();
+    int getOpenMsec();
     int getType();
     int getIndex();
     int getVolume();
+    void setVal(string);
+    string getVal();
 
     static KLineBlock makeViaData(KLineBlockData);
 };

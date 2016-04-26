@@ -4,7 +4,7 @@ using namespace std;
 
 MarketSpi::MarketSpi(CThostFtdcMdApi * mdApi, string logPath,
     int serviceID,
-    string brokerID, string userID, string password, string instrumnetID)
+    string brokerID, string userID, string password, string instrumnetID, int db)
 {
     _mdApi = mdApi;
     _logPath = logPath;
@@ -15,7 +15,7 @@ MarketSpi::MarketSpi(CThostFtdcMdApi * mdApi, string logPath,
     _instrumnetID = instrumnetID;
 
     _klineClient = new QClient(serviceID, sizeof(MSG_TO_KLINE));
-    _store = new Redis("127.0.0.1", 6379, 1);
+    _store = new Redis("127.0.0.1", 6379, db);
 
 }
 

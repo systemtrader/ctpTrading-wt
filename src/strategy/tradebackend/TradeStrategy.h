@@ -37,7 +37,7 @@ private:
     void _sendMsg(double, int, bool, bool);
 
 public:
-    TradeStrategy(int, string);
+    TradeStrategy(int, string, int);
     ~TradeStrategy();
 
     void tradeAction(int, double, int, int);

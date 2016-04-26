@@ -29,10 +29,10 @@ void setTimer(int orderID)
     timer_settime(timer, 0, &ts, NULL);
 }
 
-TradeStrategy::TradeStrategy(int serviceID, string logPath)
+TradeStrategy::TradeStrategy(int serviceID, string logPath, int db)
 {
     _logPath = logPath;
-    _store = new Redis("127.0.0.1", 6379, 1);
+    _store = new Redis("127.0.0.1", 6379, db);
     _tradeSrvClient = new QClient(serviceID, sizeof(MSG_TO_TRADE));
 
 }

@@ -20,7 +20,7 @@ int main(int argc, char const *argv[])
 
     ifstream handle;
     handle.open(fileName.c_str());
-    Redis * rds = new Redis("127.0.0.1", 6379, 1);
+    Redis * rds = new Redis("127.0.0.1", 6379, 2);
     string tickStr;
     while (!handle.eof()) // To get you all the lines.
     {

@@ -27,7 +27,7 @@ private:
 
 public:
 
-    MarketSpi(CThostFtdcMdApi *, string, int, string, string, string, string);
+    MarketSpi(CThostFtdcMdApi *, string, int, string, string, string, string, int);
     ~MarketSpi();
 
     void OnFrontConnected();
