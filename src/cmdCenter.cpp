@@ -113,6 +113,8 @@ int main(int argc, char const *argv[])
 
     } else if (cmd == 5) {
 
+        system("php /root/source/ctpTrading/src/store/readHistoryKLine.php");
+        sleep(1);
         // 需要手动启动tradeStrategyAfter 1 以及消费者
         system("./tradeStrategySrv &");
         system("./tradeLogicSrv &");

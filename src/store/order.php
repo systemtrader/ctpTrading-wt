@@ -1,5 +1,6 @@
 <?php
 require 'consumer.php';
+
 /**
 *
 */
@@ -16,7 +17,7 @@ class Order
         echo "Order consumer run" . PHP_EOL;
         while (true) {
             $data = $this->consumer->popViaRds("ORDER_LOGS");
-            if ($data) {
+            if (count($data) > 1) {
                 $type = $data[0];
                 if ($type == "trade") {
                     $kIndex = $data[1];
@@ -61,5 +62,5 @@ class Order
     }
 }
 
-$kline = new Order();
-$kline->run();
+$order = new Order();
+$order->run();

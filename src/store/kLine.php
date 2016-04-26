@@ -16,7 +16,7 @@ class KLine
         echo "kLine consumer run" . PHP_EOL;
         while (true) {
             $data = $this->consumer->popViaRds("K_LINE_Q");
-            if ($data) {
+            if (count($data) > 1) {
                 $index = $data[0];
                 $type = $data[1];
                 $openTime = $data[2] ? strtotime($data[2] . " " . $data[3]) : time();
@@ -36,7 +36,7 @@ class KLine
                     $open, $close, $max, $min, $volume, $type,
                 );
                 echo ".";
-                $this->consumer->insertDB($sql, $params);
+                $res = $this->consumer->insertDB($sql, $params);
             } else {
                 sleep(1);
             }

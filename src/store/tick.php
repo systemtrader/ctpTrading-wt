@@ -1,6 +1,6 @@
 <?php
-ini_set('display_error', 0);
 require 'consumer.php';
+
 /**
 *
 */
@@ -17,7 +17,7 @@ class Tick
         echo "tick consumer run" . PHP_EOL;
         while (true) {
             $data = $this->consumer->popViaRds("MARKET_TICK_Q");
-            if ($data) {
+            if (count($data) > 1) {
                 $time = $data[4] ? strtotime($data[4] . " " . $data[5]) : time();
                 $msec = $data[6];
                 $price = $data[0];
