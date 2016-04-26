@@ -16,6 +16,7 @@ KLineSrv::KLineSrv(int kRange, int serviceID, string logPath, int db)
         _currentBlock = new KLineBlock();
         _currentBlock->setVal(currentStr);
         _store->set("CURRENT_BLOCK_STORE", ""); // 清空记录
+        _index = _currentBlock->getIndex() + 1;
     }
 }
 

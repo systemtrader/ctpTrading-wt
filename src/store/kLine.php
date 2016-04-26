@@ -19,7 +19,7 @@ class KLine
             if ($data) {
                 $index = $data[0];
                 $type = $data[1];
-                $openTime = $date[2] ? strtotime($data[2] . " " . $data[3]) : time();
+                $openTime = $data[2] ? strtotime($data[2] . " " . $data[3]) : time();
                 $openMsec = $data[4];
                 $open = $data[5];
                 $max = $data[6];

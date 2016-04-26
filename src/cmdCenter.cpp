@@ -64,7 +64,8 @@ int main(int argc, char const *argv[])
     if (argc == 1) {
         cout << "请输入命令代码：" << endl;
         cout << "1:启动服务|2:停止" << endl;
-        cout << "3:启动回测|4:停止回测" << endl;
+        cout << "3:启动回测(K线输入)|4:停止回测" << endl;
+        cout << "5:启动回测(Tick输入)|6:停止回测" << endl;
         exit(0);
     }
 
@@ -107,6 +108,19 @@ int main(int argc, char const *argv[])
 
     } else if (cmd == 4) {
 
+        stopTradeLogic();
+        stopTradeStrategy();
+
+    } else if (cmd == 5) {
+
+        // 需要手动启动tradeStrategyAfter 1 以及消费者
+        system("./tradeStrategySrv &");
+        system("./tradeLogicSrv &");
+        system("./kLineSrv &");
+
+    } else if (cmd == 6) {
+
+        stopKLine();
         stopTradeLogic();
         stopTradeStrategy();
     }
