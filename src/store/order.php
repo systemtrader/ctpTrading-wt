@@ -2,7 +2,7 @@
 require 'consumer.php';
 
 /**
-*
+* 消费订单数据
 */
 class Order
 {

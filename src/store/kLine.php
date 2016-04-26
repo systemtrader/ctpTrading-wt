@@ -1,7 +1,7 @@
 <?php
 require 'consumer.php';
 /**
-*
+* 消费K线数据
 */
 class KLine
 {

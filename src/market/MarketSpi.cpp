@@ -40,7 +40,7 @@ void MarketSpi::OnFrontConnected()
 
     // 发出登陆请求
     int res = _mdApi->ReqUserLogin(&reqUserLogin, 0);
-    Lib::sysReqLog(_logPath, "M_ReqUserLogin", res);
+    Lib::sysReqLog(_logPath, "MarketSrv[ReqUserLogin]", res);
 }
 
 
@@ -68,7 +68,7 @@ void MarketSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
 void MarketSpi::OnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument,
     CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
-    Lib::sysErrLog(_logPath, "M_OnRspSubMarketData", pRspInfo, nRequestID, bIsLast);
+    Lib::sysErrLog(_logPath, "MarketSrv[OnRspSubMarketData]", pRspInfo, nRequestID, bIsLast);
 }
 
 /**
@@ -84,7 +84,7 @@ void MarketSpi::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarke
 
 void MarketSpi::OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
-    Lib::sysErrLog(_logPath, "M_OnRspError", pRspInfo, nRequestID, bIsLast);
+    Lib::sysErrLog(_logPath, "MarketSrv[OnRspError]", pRspInfo, nRequestID, bIsLast);
 }
 
 void MarketSpi::_saveMarketData(CThostFtdcDepthMarketDataField *data)

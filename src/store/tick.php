@@ -2,7 +2,7 @@
 require 'consumer.php';
 
 /**
-*
+* 消费tick数据
 */
 class Tick
 {

@@ -1,7 +1,7 @@
 <?php
 
 /**
-*
+* 读取历史K线
 */
 class ReadHistory
 {
