@@ -16,11 +16,11 @@ QService::QService(int qid, int msgStructLen)
 QService::~QService()
 {
     //删除消息队列
-    if(msgctl(_msgID, IPC_RMID, 0) == -1)
-    {
-        fprintf(stderr, "msgctl(IPC_RMID) failed\n");
-        exit(EXIT_FAILURE);
-    }
+    // if(msgctl(_msgID, IPC_RMID, 0) == -1)
+    // {
+    //     fprintf(stderr, "msgctl(IPC_RMID) failed\n");
+    //     exit(EXIT_FAILURE);
+    // }
 }
 
 void QService::setAction(ACTIONCALLBACK callback)
@@ -63,9 +63,16 @@ QClient::~QClient()
 
 void QClient::send(void * data)
 {
-    if(msgsnd(_msgID, data, _msgLen, 0) == -1)
+    for (int i = 0; i < 3; ++i)
     {
-        fprintf(stderr, "msgsnd failed: %d\n", errno);
-        exit(EXIT_FAILURE);
+        if(msgsnd(_msgID, data, _msgLen, 0) == -1)
+        {
+            fprintf(stderr, "msgsnd failed: %d\n", errno);
+            usleep(1000);
+        } else {
+            return;
+        }
     }
+    exit(EXIT_FAILURE);
+
 }

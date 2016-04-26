@@ -16,3 +16,4 @@ readKLineDataAndSend
 config.*
 a.out
 ni_*
+test.sh
