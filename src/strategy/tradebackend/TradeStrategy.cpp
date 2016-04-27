@@ -61,6 +61,7 @@ void TradeStrategy::tradeAction(int action, double price, int total, int kIndex)
                     _cancelAction(_doingOrderID);
                 case TRADE_STATUS_NOTHING:
                     _setStatus(TRADE_STATUS_BUYOPENING);
+                    _doingOrderID = _currentOrderID;
                     _sendMsg(price, total, true, true);
                     break;
                 default:
@@ -76,6 +77,7 @@ void TradeStrategy::tradeAction(int action, double price, int total, int kIndex)
                     _cancelAction(_doingOrderID);
                 case TRADE_STATUS_NOTHING:
                     _setStatus(TRADE_STATUS_SELLOPENING);
+                    _doingOrderID = _currentOrderID;
                     _sendMsg(price, total, false, true);
                     break;
                 default:
@@ -85,11 +87,13 @@ void TradeStrategy::tradeAction(int action, double price, int total, int kIndex)
 
         case TRADE_ACTION_BUYCLOSE:
             _setStatus(TRADE_STATUS_BUYCLOSING);
+            _doingOrderID = _currentOrderID;
             _sendMsg(price, total, true, false);
             break;
 
         case TRADE_ACTION_SELLCLOSE:
             _setStatus(TRADE_STATUS_SELLCLOSING);
+            _doingOrderID = _currentOrderID;
             _sendMsg(price, total, false, false);
             break;
         default:
@@ -97,9 +101,8 @@ void TradeStrategy::tradeAction(int action, double price, int total, int kIndex)
             _cancelAction(_doingOrderID);
             break;
     }
-    _doingOrderID = _currentOrderID;
     // 启动定时器
-    setTimer(_currentOrderID);
+    setTimer(_doingOrderID);
 }
 
 void TradeStrategy::onTradeMsgBack(bool isSuccess, int orderID)
@@ -259,7 +262,7 @@ void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen)
     msg.isBuy = isBuy;
     msg.total = total;
     msg.isOpen = isOpen;
-    msg.orderID = _currentOrderID;
+    msg.orderID = _doingOrderID;
     _tradeSrvClient->send((void *)&msg);
 
     ofstream info;
@@ -269,7 +272,7 @@ void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen)
     info << "|total|" << total;
     info << "|isBuy|" << isBuy;
     info << "|isOpen|" << isOpen;
-    info << "|kIndex|" << _currentOrderID;
+    info << "|kIndex|" << _doingOrderID;
     info << endl;
     info.close();
 }

@@ -36,15 +36,17 @@ private:
     TraderSpi * _traderSpi;
     QClient * _tradeStrategySrvClient;
 
-    void _initOrderRefAndID(int);
-    int _getOrderRefByID(int);
-    int _getOrderIDByRef(int);
+    void _initOrderRef(int);
 
-    map<int, CThostFtdcOrderField> _orderInfoMap;
+    // map<int, CThostFtdcOrderField> _orderInfoMap;
+    map<int, map<int, CThostFtdcOrderField> > _orderMap;
+    map<int, int> _orderRefMap;
+
     void _setOrderInfo(int, CThostFtdcOrderField * const);
-    CThostFtdcOrderField _getOrderInfo(int);
+    CThostFtdcOrderField _getOrderInfo(int, int);
+    int _getOrderID(int);
 
-    CThostFtdcInputOrderField _createOrder(int, bool, int, double,
+    CThostFtdcInputOrderField _createOrder(bool, int, double,
         TThostFtdcOffsetFlagEnType, // 开平标志
         TThostFtdcHedgeFlagEnType = THOST_FTDC_HFEN_Speculation, // 投机套保标志
         TThostFtdcOrderPriceTypeType = THOST_FTDC_OPT_LimitPrice, // 报单价格条件

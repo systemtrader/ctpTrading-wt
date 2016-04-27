@@ -34,9 +34,12 @@ CREATE TABLE `order` (
   `k_index` int(11) NOT NULL DEFAULT 0,
   `front_id` int(11) NOT NULL DEFAULT 0,
   `session_id` int(11) NOT NULL DEFAULT 0,
+  `order_ref` int(11) NOT NULL DEFAULT 0,
   `price` decimal(10,2) NOT NULL DEFAULT '0',
   `is_buy` int(1) NOT NULL DEFAULT 0,
   `is_open` int(11) NOT NULL DEFAULT '0',
+  `srv_insert_time` datetime NOT NULL COMMENT '服务器返回的insert时间',
+  `srv_traded_time` datetime NOT NULL COMMENT '服务器返回的成交',
   `start_time` datetime NOT NULL COMMENT '发出交易指令时间',
   `start_usec` int(11) NOT NULL DEFAULT 0,
   `first_time` datetime NOT NULL COMMENT '首次得到交易回馈时间',
@@ -46,5 +49,5 @@ CREATE TABLE `order` (
   `status` int(11) NOT NULL DEFAULT 0,
   `mtime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  KEY `idx_index_front_session` (`k_index`, `front_id`, `session_id`)
+  KEY `idx_front_session_ref` (`front_id`, `session_id`, `order_ref`)
 ) ENGINE=InnoDB CHARSET=utf8;

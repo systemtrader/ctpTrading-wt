@@ -135,24 +135,35 @@ void TradeSrv::onPositionDetailRtn(CThostFtdcInvestorPositionDetailField * const
     }
 }
 
+void TradeSrv::_initOrderRef(int orderID)
+{
+    _maxOrderRef++;
+    _orderRefMap[_maxOrderRef] = orderID;
+    CThostFtdcOrderField info = {0};
+    _orderMap[orderID][_maxOrderRef] = info;
+
+}
+
 void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int orderID)
 {
+    _initOrderRef(orderID);
     TThostFtdcOffsetFlagEnType flag = THOST_FTDC_OFEN_Open;
     if (!isOpen) {
         flag = THOST_FTDC_OFEN_CloseToday;
         if (_ydPostion > 0) {
             flag = THOST_FTDC_OFEN_Close;
-            _closeYdReqID = orderID;
+            // _closeYdReqID = orderID;
         }
     }
-    CThostFtdcInputOrderField order = _createOrder(orderID, isBuy, total, price, flag,
+    CThostFtdcInputOrderField order = _createOrder(isBuy, total, price, flag,
             THOST_FTDC_HFEN_Speculation, THOST_FTDC_OPT_LimitPrice, THOST_FTDC_TC_GFD, THOST_FTDC_VC_AV);
 
     int res = _tradeApi->ReqOrderInsert(&order, orderID);
     Lib::sysReqLog(_logPath, "TradeSrv[trade]", res);
     // save data
     string time = Lib::getDate("%Y/%m/%d-%H:%M:%S", true);
-    string data = "trade_" + Lib::itos(orderID) + "_" + Lib::itos(_frontID) + "_" + Lib::itos(_sessionID) + "_" +
+    string data = "trade_" + Lib::itos(orderID) + "_" +
+                  Lib::itos(_frontID) + "_" + Lib::itos(_sessionID) + "_" + Lib::itos(_maxOrderRef) + "_" +
                   Lib::dtos(price) + "_" + Lib::itos((int)isBuy) + "_" + Lib::itos((int)isOpen) + "_" +
                   time;
     _store->push("ORDER_LOGS", data);
@@ -161,9 +172,11 @@ void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int order
 void TradeSrv::onTraded(CThostFtdcTradeField * const rsp)
 {
     if (!rsp) return;
-    int orderID = _getOrderIDByRef(atoi(rsp->OrderRef));
+
+    int orderID = _getOrderID(atoi(rsp->OrderRef));
     if (orderID <= 0) return;
-    CThostFtdcOrderField orderInfo = _getOrderInfo(orderID);
+
+    CThostFtdcOrderField orderInfo = _getOrderInfo(orderID, atoi(rsp->OrderRef));
     if (strcmp(orderInfo.ExchangeID, rsp->ExchangeID) != 0 ||
         strcmp(orderInfo.OrderSysID, rsp->OrderSysID) != 0) // 不是我的订单，我就不处理了
         return;
@@ -173,10 +186,16 @@ void TradeSrv::onTraded(CThostFtdcTradeField * const rsp)
     msg.kIndex = orderID;
     _tradeStrategySrvClient->send((void *)&msg);
 
+    // 记录完成状态
+    map<int, CThostFtdcOrderField>::iterator iter = _orderMap[orderID].find(atoi(rsp->OrderRef));
+    if(iter != _orderMap[orderID].end()) {
+        _orderMap[orderID].erase(iter);//列表移除
+    }
+
     // save data
     string time = Lib::getDate("%Y/%m/%d-%H:%M:%S", true);
-    string data = "traded_" + Lib::itos(orderID) + "_" + Lib::itos(_frontID) + "_" + Lib::itos(_sessionID) + "_" +
-                  time;
+    string data = "traded_" + string(rsp->OrderRef) + "_" + Lib::itos(_frontID) + "_" + Lib::itos(_sessionID) + "_" +
+                  string(rsp->TradeDate) + "_" + string(rsp->TradeTime) + "_" + time;
     _store->push("ORDER_LOGS", data);
 }
 
@@ -184,49 +203,61 @@ void TradeSrv::onOrderRtn(CThostFtdcOrderField * const rsp)
 {
     if (!rsp) return;
     if (rsp->SessionID != _sessionID) return;
-    int orderID = _getOrderIDByRef(atoi(rsp->OrderRef));
+
+    int orderID = _getOrderID(atoi(rsp->OrderRef));
+    if (orderID <= 0) return;
+
     _setOrderInfo(orderID, rsp);
+
+    // save data
+    string time = Lib::getDate("%Y/%m/%d-%H:%M:%S", true);
+    string data = "orderRtn_" + string(rsp->OrderRef) + "_" + Lib::itos(_frontID) + "_" + Lib::itos(_sessionID) + "_" +
+                  string(rsp->InsertDate) + "_" + string(rsp->InsertTime) + "_" + time;
+    _store->push("ORDER_LOGS", data);
+
     if (rsp->OrderStatus != THOST_FTDC_OST_Canceled) return;
     // 撤单情况
     MSG_TO_TRADE_STRATEGY msg = {0};
     msg.msgType = MSG_TRADE_BACK_CANCELED;
     msg.kIndex = orderID;
     _tradeStrategySrvClient->send((void *)&msg);
-    //
-    // save data
-    string time = Lib::getDate("%Y/%m/%d-%H:%M:%S", true);
-    string data = "orderRtn_" + Lib::itos(orderID) + "_" + Lib::itos(_frontID) + "_" + Lib::itos(_sessionID) + "_" +
-                  time;
-    _store->push("ORDER_LOGS", data);
 }
 
 void TradeSrv::cancel(int orderID)
 {
     CThostFtdcInputOrderActionField req = {0};
 
-    CThostFtdcOrderField orderInfo = _getOrderInfo(orderID);
+    CThostFtdcOrderField orderInfo;
 
-    ///经纪公司代码
-    strncpy(req.BrokerID, orderInfo.BrokerID,sizeof(TThostFtdcBrokerIDType));
-    ///投资者代码
-    strncpy(req.InvestorID, orderInfo.InvestorID,sizeof(TThostFtdcInvestorIDType));
-    ///报单引用
-    strncpy(req.OrderRef, orderInfo.OrderRef,sizeof(TThostFtdcOrderRefType));
-    ///前置编号
-    req.FrontID = orderInfo.FrontID;
-    ///会话编号
-    req.SessionID = orderInfo.SessionID;
-    ///交易所代码
-    strncpy(req.ExchangeID, orderInfo.ExchangeID, sizeof(TThostFtdcExchangeIDType));
-    ///报单编号
-    strncpy(req.OrderSysID, orderInfo.OrderSysID, sizeof(TThostFtdcOrderSysIDType));
-    ///操作标志
-    req.ActionFlag = THOST_FTDC_AF_Delete;
-    ///合约代码
-    strncpy(req.InstrumentID, orderInfo.InstrumentID, sizeof(TThostFtdcInstrumentIDType));
+    map<int, CThostFtdcOrderField>::iterator it;
+    for(it = _orderMap[orderID].begin(); it != _orderMap[orderID].end(); ++it) {
 
-    int res = _tradeApi->ReqOrderAction(&req, 0);
-    Lib::sysReqLog(_logPath, "TradeSrv[cancel]", res);
+        orderInfo = it->second;
+
+        ///经纪公司代码
+        strncpy(req.BrokerID, orderInfo.BrokerID,sizeof(TThostFtdcBrokerIDType));
+        ///投资者代码
+        strncpy(req.InvestorID, orderInfo.InvestorID,sizeof(TThostFtdcInvestorIDType));
+        ///报单引用
+        strncpy(req.OrderRef, orderInfo.OrderRef,sizeof(TThostFtdcOrderRefType));
+        ///前置编号
+        req.FrontID = orderInfo.FrontID;
+        ///会话编号
+        req.SessionID = orderInfo.SessionID;
+        ///交易所代码
+        strncpy(req.ExchangeID, orderInfo.ExchangeID, sizeof(TThostFtdcExchangeIDType));
+        ///报单编号
+        strncpy(req.OrderSysID, orderInfo.OrderSysID, sizeof(TThostFtdcOrderSysIDType));
+        ///操作标志
+        req.ActionFlag = THOST_FTDC_AF_Delete;
+        ///合约代码
+        strncpy(req.InstrumentID, orderInfo.InstrumentID, sizeof(TThostFtdcInstrumentIDType));
+
+        int res = _tradeApi->ReqOrderAction(&req, 0);
+        Lib::sysReqLog(_logPath, "TradeSrv[cancel]", res);
+
+    }
+
 }
 
 void TradeSrv::onCancel(CThostFtdcInputOrderActionField * const rsp)
@@ -241,38 +272,20 @@ void TradeSrv::onCancel(CThostFtdcInputOrderActionField * const rsp)
 
 void TradeSrv::_setOrderInfo(int orderID, CThostFtdcOrderField * const pOrderInfo)
 {
-    _orderInfoMap[orderID] = *pOrderInfo;
+    _orderMap[orderID][atoi(pOrderInfo->OrderRef)] = *pOrderInfo;
 }
 
-CThostFtdcOrderField TradeSrv::_getOrderInfo(int orderID)
+CThostFtdcOrderField TradeSrv::_getOrderInfo(int orderID, int orderRef)
 {
-    return _orderInfoMap[orderID];
+    return _orderMap[orderID][orderRef];
 }
 
-void TradeSrv::_initOrderRefAndID(int orderID)
+int TradeSrv::_getOrderID(int orderRef)
 {
-    _maxOrderRef++;
-    string key0 = "ORDER_ID_" + Lib::itos(orderID);
-    _store->set(key0, Lib::itos(_maxOrderRef));
-    string key1 = "ORDER_REF_" + Lib::itos(_maxOrderRef);
-    _store->set(key1, Lib::itos(orderID));
+    return _orderRefMap[orderRef];
 }
 
-int TradeSrv::_getOrderRefByID(int orderID)
-{
-    string key = "ORDER_ID_" + Lib::itos(orderID);
-    string res = _store->get(key);
-    return Lib::stoi(res);
-}
-
-int TradeSrv::_getOrderIDByRef(int orderRef)
-{
-    string key = "ORDER_REF_" + Lib::itos(orderRef);
-    string res = _store->get(key);
-    return Lib::stoi(res);
-}
-
-CThostFtdcInputOrderField TradeSrv::_createOrder(int orderID, bool isBuy, int total, double price,
+CThostFtdcInputOrderField TradeSrv::_createOrder(bool isBuy, int total, double price,
     // double stopPrice,
     TThostFtdcOffsetFlagEnType offsetFlag, // 开平标志
     TThostFtdcHedgeFlagEnType hedgeFlag, // 投机套保标志
@@ -375,12 +388,11 @@ CThostFtdcInputOrderField TradeSrv::_createOrder(int orderID, bool isBuy, int to
     order.ContingentCondition = contingentCondition;
 
     ///报单引用
-    _initOrderRefAndID(orderID);
-    sprintf(order.OrderRef, "%d", _getOrderRefByID(orderID));
+    sprintf(order.OrderRef, "%d", _maxOrderRef);
 
     ///请求编号
     // _reqID++;
-    order.RequestID = orderID;
+    // order.RequestID = orderID;
 
     // order.GTDDate = ;///GTD日期
     // order.BusinessUnit = ;///业务单元

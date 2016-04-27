@@ -23,35 +23,39 @@ class Order
                     $kIndex = $data[1];
                     $frontID = $data[2];
                     $sessionID = $data[3];
-                    $price = $data[4];
-                    $isBuy = $data[5];
-                    $isOpen = $data[6];
-                    $time = str_replace('-', ' ', $data[7]);
+                    $orderRef = $data[4];
+                    $price = $data[5];
+                    $isBuy = $data[6];
+                    $isOpen = $data[7];
+                    $time = str_replace('-', ' ', $data[8]);
                     list($date, $usec) = explode('.', $time);
-                    $sql = "INSERT INTO `order` (`k_index`, `front_id`, `session_id`, `price`, `is_buy`, `is_open`, `start_time`, `start_usec`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-                    $params = array($kIndex, $frontID, $sessionID, $price, $isBuy, $isOpen, $date, $usec);
+                    $sql = "INSERT INTO `order` (`k_index`, `front_id`, `session_id`, `order_ref`, `price`, `is_buy`, `is_open`, `start_time`, `start_usec`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    $params = array($kIndex, $frontID, $sessionID, $orderRef, $price, $isBuy, $isOpen, $date, $usec);
                     $this->consumer->insertDB($sql, $params);
                 }
                 if ($type == "traded") {
-                    $kIndex = $data[1];
+                    $orderRef = $data[1];
                     $frontID = $data[2];
                     $sessionID = $data[3];
-                    $time = str_replace('-', ' ', $data[4]);
+                    $srvTime = $data[4] ? strtotime($data[4] . " " . $data[5]) : time();
+                    $time = str_replace('-', ' ', $data[6]);
                     list($date, $usec) = explode('.', $time);
-                    $sql = "UPDATE `order` SET `end_time` = ?, `end_usec` = ?, `status` = 1 WHERE `k_index` = ? AND `front_id` = ? AND `session_id` = ?";
-                    $params = array($date, $usec, $kIndex, $frontID, $sessionID);
+                    $sql = "UPDATE `order` SET `end_time` = ?, `end_usec` = ?, `srv_traded_time` = ?, `status` = 1 WHERE `order_ref` = ? AND `front_id` = ? AND `session_id` = ?";
+                    $params = array($date, $usec, $srvTime, $orderRef, $frontID, $sessionID);
                     $this->consumer->updateDB($sql, $params);
                 }
                 if ($type == "orderRtn") {
-                    $kIndex = $data[1];
+                    $orderRef = $data[1];
                     $frontID = $data[2];
                     $sessionID = $data[3];
-                    $time = str_replace('-', ' ', $data[4]);
+                    $srvTime = $data[4] ? strtotime($data[4] . " " . $data[5]) : time();
+                    $time = str_replace('-', ' ', $data[6]);
                     list($date, $usec) = explode('.', $time);
-                    $sql = "UPDATE `order` SET `end_time` = ?, `end_usec` = ? WHERE `k_index` = ? AND `front_id` = ? AND `session_id` = ?";
-                    $params = array($date, $usec, $kIndex, $frontID, $sessionID);
+                    $sql = "UPDATE `order` SET `end_time` = ?, `end_usec` = ?, `srv_insert_time` = ? WHERE `order_ref` = ? AND `front_id` = ? AND `session_id` = ?";
+                    $params = array($date, $usec, $srvTime, $orderRef, $frontID, $sessionID);
                     $this->consumer->updateDB($sql, $params);
-                    $sql = "UPDATE `order` SET `first_time` = ?, `first_usec` = ? WHERE `k_index` = ? AND `front_id` = ? AND `session_id` = ? AND `first_time` = 0";
+                    $sql = "UPDATE `order` SET `first_time` = ?, `first_usec` = ? WHERE `order_ref` = ? AND `front_id` = ? AND `session_id` = ? AND `first_time` = 0";
+                    $params = array($date, $usec, $orderRef, $frontID, $sessionID);
                     $this->consumer->updateDB($sql, $params);
                 }
                 echo ".";
