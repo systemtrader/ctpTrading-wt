@@ -49,7 +49,7 @@ void TradeStrategy::tradeAction(int action, double price, int total, int kIndex)
 {
     int status = _getStatus();
     _currentOrderID = kIndex;
-    _isSelfCancel = false;
+    // _isSelfCancel = false;
     _isCancelOver = false;
     switch (action) {
 
@@ -60,8 +60,8 @@ void TradeStrategy::tradeAction(int action, double price, int total, int kIndex)
                 case TRADE_STATUS_BUYOPENING:
                     _cancelAction(_doingOrderID);
                 case TRADE_STATUS_NOTHING:
-                    _setStatus(TRADE_STATUS_BUYOPENING);
                     _doingOrderID = _currentOrderID;
+                    _setStatus(TRADE_STATUS_BUYOPENING);
                     _sendMsg(price, total, true, true);
                     break;
                 default:
@@ -76,8 +76,8 @@ void TradeStrategy::tradeAction(int action, double price, int total, int kIndex)
                 case TRADE_STATUS_SELLOPENING:
                     _cancelAction(_doingOrderID);
                 case TRADE_STATUS_NOTHING:
-                    _setStatus(TRADE_STATUS_SELLOPENING);
                     _doingOrderID = _currentOrderID;
+                    _setStatus(TRADE_STATUS_SELLOPENING);
                     _sendMsg(price, total, false, true);
                     break;
                 default:
@@ -86,14 +86,14 @@ void TradeStrategy::tradeAction(int action, double price, int total, int kIndex)
             break;
 
         case TRADE_ACTION_BUYCLOSE:
-            _setStatus(TRADE_STATUS_BUYCLOSING);
             _doingOrderID = _currentOrderID;
+            _setStatus(TRADE_STATUS_BUYCLOSING);
             _sendMsg(price, total, true, false);
             break;
 
         case TRADE_ACTION_SELLCLOSE:
-            _setStatus(TRADE_STATUS_SELLCLOSING);
             _doingOrderID = _currentOrderID;
+            _setStatus(TRADE_STATUS_SELLCLOSING);
             _sendMsg(price, total, false, false);
             break;
         default:
@@ -172,7 +172,7 @@ void TradeStrategy::_cancelBack(int orderID)
         }
         return;
     }
-    if (_isSelfCancel) return;
+    // if (_isSelfCancel) return;
     if (orderID == _currentOrderID) {
         _zhuijia();
     }
@@ -195,15 +195,15 @@ void TradeStrategy::timeout(int orderID)
         info.close();
         _cancelAction(orderID);
 
-        if (orderID == _currentOrderID) {
-            _zhuijia();
-        }
+        // if (orderID == _currentOrderID) {
+        //     _zhuijia();
+        // }
     }
 }
 
 void TradeStrategy::_cancelAction(int orderID)
 {
-    _isSelfCancel = true;
+    // _isSelfCancel = true;
     MSG_TO_TRADE msg = {0};
     msg.msgType = MSG_ORDER_CANCEL;
     msg.orderID = orderID;
