@@ -44,15 +44,15 @@ int main(int argc, char const *argv[])
 
 bool action(long int msgType, const void * data)
 {
-    cout << "MSG|" << msgType;
+    // cout << "MSG|" << msgType;
     if (msgType == MSG_SHUTDOWN) {
         if (service) delete service;
-        cout << endl;
+        // cout << endl;
         return false;
     }
 
     MSG_TO_TRADE msg = *((MSG_TO_TRADE*)data);
-    cout << "|PRICE|" << msg.price << "|ISBUY|" << msg.isBuy << "|ISOPEN|" << msg.isOpen << "|TOTAL|" << msg.total << "|KINDEX|" << msg.orderID << endl;
+    // cout << "|PRICE|" << msg.price << "|ISBUY|" << msg.isBuy << "|ISOPEN|" << msg.isOpen << "|TOTAL|" << msg.total << "|KINDEX|" << msg.orderID << endl;
     if (msgType == MSG_ORDER) {
         service->trade(msg.price, msg.total, msg.isBuy, msg.isOpen, msg.orderID);
     }

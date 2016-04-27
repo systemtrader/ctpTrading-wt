@@ -226,7 +226,7 @@ void TradeSrv::cancel(int orderID)
     strncpy(req.InstrumentID, orderInfo.InstrumentID, sizeof(TThostFtdcInstrumentIDType));
 
     int res = _tradeApi->ReqOrderAction(&req, 0);
-    Lib::sysReqLog(_logPath, "TradeSrv[getPosition]", res);
+    Lib::sysReqLog(_logPath, "TradeSrv[cancel]", res);
 }
 
 void TradeSrv::onCancel(CThostFtdcInputOrderActionField * const rsp)

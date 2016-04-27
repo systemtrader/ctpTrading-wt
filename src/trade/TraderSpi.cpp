@@ -72,32 +72,32 @@ void TraderSpi::OnRspQryInvestorPositionDetail(CThostFtdcInvestorPositionDetailF
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeSrv[onPosition]";
     if (pInvestorPositionDetail) {
-info << "|InstrumentID|" << pInvestorPositionDetail->InstrumentID;
-info << "|BrokerID|" << pInvestorPositionDetail->BrokerID;
-info << "|InvestorID|" << pInvestorPositionDetail->InvestorID;
-info << "|HedgeFlag|" << pInvestorPositionDetail->HedgeFlag;
-info << "|Direction|" << pInvestorPositionDetail->Direction;
-info << "|OpenDate|" << pInvestorPositionDetail->OpenDate;
-info << "|TradeID|" << pInvestorPositionDetail->TradeID;
-info << "|Volume|" << pInvestorPositionDetail->Volume;
-info << "|OpenPrice|" << pInvestorPositionDetail->OpenPrice;
-info << "|TradingDay|" << pInvestorPositionDetail->TradingDay;
-info << "|SettlementID|" << pInvestorPositionDetail->SettlementID;
-info << "|TradeType|" << pInvestorPositionDetail->TradeType;
-info << "|CombInstrumentID|" << pInvestorPositionDetail->CombInstrumentID;
-info << "|ExchangeID|" << pInvestorPositionDetail->ExchangeID;
-info << "|CloseProfitByDate|" << pInvestorPositionDetail->CloseProfitByDate;
-info << "|CloseProfitByTrade|" << pInvestorPositionDetail->CloseProfitByTrade;
-info << "|PositionProfitByDate|" << pInvestorPositionDetail->PositionProfitByDate;
-info << "|PositionProfitByTrade|" << pInvestorPositionDetail->PositionProfitByTrade;
-info << "|Margin|" << pInvestorPositionDetail->Margin;
-info << "|ExchMargin|" << pInvestorPositionDetail->ExchMargin;
-info << "|MarginRateByMoney|" << pInvestorPositionDetail->MarginRateByMoney;
-info << "|MarginRateByVolume|" << pInvestorPositionDetail->MarginRateByVolume;
-info << "|LastSettlementPrice|" << pInvestorPositionDetail->LastSettlementPrice;
-info << "|SettlementPrice|" << pInvestorPositionDetail->SettlementPrice;
-info << "|CloseVolume|" << pInvestorPositionDetail->CloseVolume;
-info << "|CloseAmount|" << pInvestorPositionDetail->CloseAmount;
+        info << "|InstrumentID|" << pInvestorPositionDetail->InstrumentID;
+        info << "|BrokerID|" << pInvestorPositionDetail->BrokerID;
+        info << "|InvestorID|" << pInvestorPositionDetail->InvestorID;
+        info << "|HedgeFlag|" << pInvestorPositionDetail->HedgeFlag;
+        info << "|Direction|" << pInvestorPositionDetail->Direction;
+        info << "|OpenDate|" << pInvestorPositionDetail->OpenDate;
+        info << "|TradeID|" << pInvestorPositionDetail->TradeID;
+        info << "|Volume|" << pInvestorPositionDetail->Volume;
+        info << "|OpenPrice|" << pInvestorPositionDetail->OpenPrice;
+        info << "|TradingDay|" << pInvestorPositionDetail->TradingDay;
+        info << "|SettlementID|" << pInvestorPositionDetail->SettlementID;
+        info << "|TradeType|" << pInvestorPositionDetail->TradeType;
+        info << "|CombInstrumentID|" << pInvestorPositionDetail->CombInstrumentID;
+        info << "|ExchangeID|" << pInvestorPositionDetail->ExchangeID;
+        info << "|CloseProfitByDate|" << pInvestorPositionDetail->CloseProfitByDate;
+        info << "|CloseProfitByTrade|" << pInvestorPositionDetail->CloseProfitByTrade;
+        info << "|PositionProfitByDate|" << pInvestorPositionDetail->PositionProfitByDate;
+        info << "|PositionProfitByTrade|" << pInvestorPositionDetail->PositionProfitByTrade;
+        info << "|Margin|" << pInvestorPositionDetail->Margin;
+        info << "|ExchMargin|" << pInvestorPositionDetail->ExchMargin;
+        info << "|MarginRateByMoney|" << pInvestorPositionDetail->MarginRateByMoney;
+        info << "|MarginRateByVolume|" << pInvestorPositionDetail->MarginRateByVolume;
+        info << "|LastSettlementPrice|" << pInvestorPositionDetail->LastSettlementPrice;
+        info << "|SettlementPrice|" << pInvestorPositionDetail->SettlementPrice;
+        info << "|CloseVolume|" << pInvestorPositionDetail->CloseVolume;
+        info << "|CloseAmount|" << pInvestorPositionDetail->CloseAmount;
     }
     info << endl;
     info.close();
@@ -136,7 +136,11 @@ void TraderSpi::OnRtnTrade(CThostFtdcTradeField *pTrade)
     if (pTrade) {
         info << "|OrderRef|" << pTrade->OrderRef;
         info << "|TradeID|" << pTrade->TradeID;
+        info << "|OrderSysID|" << pTrade->OrderSysID;
         info << "|OrderLocalID|" << pTrade->OrderLocalID;
+        info << "|TradeDate|" << pTrade->TradeDate;
+        info << "|TradeTime|" << pTrade->TradeTime;
+        info << "|TradingDay|" << pTrade->TradingDay;
     }
     info << endl;
     info.close();
@@ -156,6 +160,7 @@ void TraderSpi::OnRspOrderAction(CThostFtdcInputOrderActionField *pInputOrderAct
         info << "|OrderRef|" << pInputOrderAction->OrderRef;
         info << "|OrderActionRef|" << pInputOrderAction->OrderActionRef;
         info << "|SessionID|" << pInputOrderAction->SessionID;
+        info << "|OrderSysID|" << pInputOrderAction->OrderSysID;
     }
     info << endl;
     info.close();

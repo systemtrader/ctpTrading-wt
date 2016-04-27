@@ -45,7 +45,7 @@ int main(int argc, char const *argv[])
 
 bool action(long int msgType, const void * data)
 {
-    cout << "MSG:" << msgType << endl;
+    // cout << "MSG:" << msgType << endl;
     if (msgType == MSG_SHUTDOWN) {
         if (service) delete service;
         return false;

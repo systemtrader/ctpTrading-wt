@@ -79,7 +79,7 @@ int main(int argc, char const *argv[])
     if (cmd == 1) {
 
         // php 相关模块启动，负责初始化redis，队列消费者请手动启动
-        system("php ./readHistoryKLine.php");
+        system("php /root/source/ctpTrading/src/store/readHistoryKLine.php");
         sleep(1);
 
         // 启动各服务模块
