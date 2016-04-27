@@ -55,7 +55,7 @@ bool action(long int msgType, const void * data)
     }
     if (msgType == MSG_KLINE_CLOSE) {
         KLineBlock block = KLineBlock::makeViaData(((MSG_TO_TRADE_LOGIC*)data)->block);
-        block.show();
+        // block.show();
         service->onKLineClose(block);
     }
     return true;

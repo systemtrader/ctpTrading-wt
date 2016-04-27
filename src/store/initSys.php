@@ -33,15 +33,18 @@ class InitSys
         $rds->connect('127.0.0.1', 6379);
         $rds->select($this->rdsdb);
 
-        $last = null;
         foreach ($res as $line) {
-            if (empty($last)) $last = $line;
             unset($line['id']);
             $dataStr = implode('_', $line);
             $res = $rds->lPush("HISTORY_KLINE", $dataStr);
         }
 
         // 读取本地交易记录
+        $sql = "SELECT * FROM `order` ORDER BY `id` DESC LIMIT 1";
+        $st = $mysql->prepare($sql);
+        $st->execute(array());
+        $res = $st->fetchAll(PDO::FETCH_ASSOC);
+        $last = $res[0];
         $rds->set("TRADE_STATUS", 0);
         if ($last && $last['is_open'] == 1) { // 交易未关闭
             if ($last['is_buy'] == 1) {
