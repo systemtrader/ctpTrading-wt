@@ -30,18 +30,15 @@ private:
     int _maxOrderRef;
 
     bool _ydPostion; // 昨仓
-    int _closeYdReqID; // 平昨仓的reqID
 
     CThostFtdcTraderApi * _tradeApi;
     TraderSpi * _traderSpi;
     QClient * _tradeStrategySrvClient;
 
-    void _initOrderRef(int);
-
-    // map<int, CThostFtdcOrderField> _orderInfoMap;
     map<int, map<int, CThostFtdcOrderField> > _orderMap;
     map<int, int> _orderRefMap;
 
+    void _initOrderRef(int);
     void _setOrderInfo(int, CThostFtdcOrderField * const);
     CThostFtdcOrderField _getOrderInfo(int, int);
     int _getOrderID(int);

@@ -11,7 +11,6 @@ TradeSrv::TradeSrv(string brokerID, string userID, string password,
     _instrumnetID = instrumnetID;
     _flowPath = flowPath;
     _logPath = logPath;
-    _closeYdReqID = 0;
 
     _store = new Redis("127.0.0.1", 6379, db);
     _tradeStrategySrvClient = new QClient(serviceID, sizeof(MSG_TO_TRADE_STRATEGY));
@@ -135,15 +134,6 @@ void TradeSrv::onPositionDetailRtn(CThostFtdcInvestorPositionDetailField * const
     }
 }
 
-void TradeSrv::_initOrderRef(int orderID)
-{
-    _maxOrderRef++;
-    _orderRefMap[_maxOrderRef] = orderID;
-    CThostFtdcOrderField info = {0};
-    _orderMap[orderID][_maxOrderRef] = info;
-
-}
-
 void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int orderID)
 {
     _initOrderRef(orderID);
@@ -160,6 +150,7 @@ void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int order
 
     int res = _tradeApi->ReqOrderInsert(&order, orderID);
     Lib::sysReqLog(_logPath, "TradeSrv[trade]", res);
+
     // save data
     string time = Lib::getDate("%Y/%m/%d-%H:%M:%S", true);
     string data = "trade_" + Lib::itos(orderID) + "_" +
@@ -186,7 +177,7 @@ void TradeSrv::onTraded(CThostFtdcTradeField * const rsp)
     msg.kIndex = orderID;
     _tradeStrategySrvClient->send((void *)&msg);
 
-    // 记录完成状态
+    // 将完成的order删除
     map<int, CThostFtdcOrderField>::iterator iter = _orderMap[orderID].find(atoi(rsp->OrderRef));
     if(iter != _orderMap[orderID].end()) {
         _orderMap[orderID].erase(iter);//列表移除
@@ -226,7 +217,6 @@ void TradeSrv::onOrderRtn(CThostFtdcOrderField * const rsp)
 void TradeSrv::cancel(int orderID)
 {
     CThostFtdcInputOrderActionField req = {0};
-
     CThostFtdcOrderField orderInfo;
 
     map<int, CThostFtdcOrderField>::iterator it;
@@ -263,11 +253,15 @@ void TradeSrv::cancel(int orderID)
 void TradeSrv::onCancel(CThostFtdcInputOrderActionField * const rsp)
 {
     if (!rsp) return;
-    // int orderID = _getOrderIDByRef(atoi(rsp->OrderRef));
-    // MSG_TO_TRADE_STRATEGY msg = {0};
-    // msg.msgType = MSG_TRADE_BACK_CANCELED;
-    // msg.kIndex = orderID;
-    // _tradeStrategySrvClient->send((void *)&msg);
+    // nothing to do
+}
+
+void TradeSrv::_initOrderRef(int orderID)
+{
+    _maxOrderRef++;
+    _orderRefMap[_maxOrderRef] = orderID;
+    CThostFtdcOrderField info = {0};
+    _orderMap[orderID][_maxOrderRef] = info;
 }
 
 void TradeSrv::_setOrderInfo(int orderID, CThostFtdcOrderField * const pOrderInfo)
