@@ -3,7 +3,7 @@
 /**
 * 读取历史K线
 */
-class ReadHistory
+class InitSys
 {
 
     function __construct()
@@ -16,12 +16,15 @@ class ReadHistory
             $this->mysqldb = $res['mysql_db_online'];
             $this->rdsdb = $res['rds_db_online'];
         }
+        $this->knum = $res['open_max_k_count'];
     }
 
     public function run()
     {
         $mysql = new PDO("mysql:dbname={$this->mysqldb};host=127.0.0.1", "root", "Abc518131!");
-        $sql = "SELECT * FROM `kline` ORDER BY `id` DESC";
+
+        // 获取历史K线数据
+        $sql = "SELECT * FROM `kline` ORDER BY `id` DESC LIMIT {$this->knum}";
         $st = $mysql->prepare($sql);
         $st->execute(array());
         $res = $st->fetchAll(PDO::FETCH_ASSOC);
@@ -30,13 +33,25 @@ class ReadHistory
         $rds->connect('127.0.0.1', 6379);
         $rds->select($this->rdsdb);
 
+        $last = null;
         foreach ($res as $line) {
+            if (empty($last)) $last = $line;
             unset($line['id']);
             $dataStr = implode('_', $line);
             $res = $rds->lPush("HISTORY_KLINE", $dataStr);
         }
+
+        // 读取本地交易记录
+        $rds->set("TRADE_STATUS", 0);
+        if ($last && $last['is_open'] == 1) { // 交易未关闭
+            if ($last['is_buy'] == 1) {
+                $rds->set("TRADE_STATUS", 1);
+            } else {
+                $rds->set("TRADE_STATUS", 2);
+            }
+        }
     }
 }
 
-$h = new ReadHistory();
+$h = new InitSys();
 $h->run();

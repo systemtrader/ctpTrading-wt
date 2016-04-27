@@ -23,7 +23,7 @@ void TraderSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
 {
     Lib::sysErrLog(_logPath, "TradeSrv[onLogin]", pRspInfo, nRequestID, bIsLast);
     _service->onLogin(pRspUserLogin);
-    _service->getPosition();
+    // _service->getPosition();
 
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
@@ -43,7 +43,7 @@ void TraderSpi::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInves
 {
     Lib::sysErrLog(_logPath, "TradeSrv[onPosition]", pRspInfo, nRequestID, bIsLast);
     _service->onPositionRtn(pInvestorPosition);
-    _service->getPositionDetail();
+    // _service->getPositionDetail();
 
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);

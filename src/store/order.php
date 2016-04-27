@@ -38,6 +38,7 @@ class Order
                     $frontID = $data[2];
                     $sessionID = $data[3];
                     $srvTime = $data[4] ? strtotime($data[4] . " " . $data[5]) : time();
+                    $srvTime = date("Y/m/d H:i:s", $srvTime);
                     $time = str_replace('-', ' ', $data[6]);
                     list($date, $usec) = explode('.', $time);
                     $sql = "UPDATE `order` SET `end_time` = ?, `end_usec` = ?, `srv_traded_time` = ?, `status` = 1 WHERE `order_ref` = ? AND `front_id` = ? AND `session_id` = ?";
@@ -49,6 +50,7 @@ class Order
                     $frontID = $data[2];
                     $sessionID = $data[3];
                     $srvTime = $data[4] ? strtotime($data[4] . " " . $data[5]) : time();
+                    $srvTime = date("Y/m/d H:i:s", $srvTime);
                     $time = str_replace('-', ' ', $data[6]);
                     list($date, $usec) = explode('.', $time);
                     $sql = "UPDATE `order` SET `end_time` = ?, `end_usec` = ?, `srv_insert_time` = ? WHERE `order_ref` = ? AND `front_id` = ? AND `session_id` = ?";

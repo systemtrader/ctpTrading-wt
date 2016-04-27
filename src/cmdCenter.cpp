@@ -79,7 +79,7 @@ int main(int argc, char const *argv[])
     if (cmd == 1) {
 
         // php 相关模块启动，负责初始化redis，队列消费者请手动启动
-        system("php /root/source/ctpTrading/src/store/readHistoryKLine.php");
+        system("php /root/source/ctpTrading/src/store/initSys.php");
         sleep(1);
 
         // 启动各服务模块
@@ -113,7 +113,7 @@ int main(int argc, char const *argv[])
 
     } else if (cmd == 5) {
 
-        system("php /root/source/ctpTrading/src/store/readHistoryKLine.php");
+        system("php /root/source/ctpTrading/src/store/initSys.php");
         sleep(1);
         // 需要手动启动tradeStrategyAfter 1 以及消费者
         system("./tradeStrategySrv &");

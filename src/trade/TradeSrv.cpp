@@ -89,8 +89,7 @@ void TradeSrv::onPositionRtn(CThostFtdcInvestorPositionField * const rsp)
     if (!rsp) return;
     setStatus(TRADE_STATUS_NOTHING);
     _ydPostion = rsp->Position - rsp->TodayPosition;
-    if (_ydPostion > 0) {
-        // TODO 根据哪个字段判断具体仓位
+    if (rsp->Position > 0) {
         if (rsp->PosiDirection == THOST_FTDC_PD_Long) {
             setStatus(TRADE_STATUS_BUYOPENED);
         }
@@ -148,7 +147,7 @@ void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int order
     CThostFtdcInputOrderField order = _createOrder(isBuy, total, price, flag,
             THOST_FTDC_HFEN_Speculation, THOST_FTDC_OPT_LimitPrice, THOST_FTDC_TC_GFD, THOST_FTDC_VC_AV);
 
-    int res = _tradeApi->ReqOrderInsert(&order, orderID);
+    int res = _tradeApi->ReqOrderInsert(&order, _maxOrderRef);
     Lib::sysReqLog(_logPath, "TradeSrv[trade]", res);
 
     // save data
@@ -243,7 +242,7 @@ void TradeSrv::cancel(int orderID)
         ///合约代码
         strncpy(req.InstrumentID, orderInfo.InstrumentID, sizeof(TThostFtdcInstrumentIDType));
 
-        int res = _tradeApi->ReqOrderAction(&req, 0);
+        int res = _tradeApi->ReqOrderAction(&req, Lib::stoi(orderInfo.OrderRef));
         Lib::sysReqLog(_logPath, "TradeSrv[cancel]", res);
 
     }
@@ -386,7 +385,7 @@ CThostFtdcInputOrderField TradeSrv::_createOrder(bool isBuy, int total, double p
 
     ///请求编号
     // _reqID++;
-    // order.RequestID = orderID;
+    order.RequestID = _maxOrderRef;
 
     // order.GTDDate = ;///GTD日期
     // order.BusinessUnit = ;///业务单元
