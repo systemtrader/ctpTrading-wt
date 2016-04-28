@@ -53,7 +53,6 @@ class Order
                     $srvTime = date("Y/m/d H:i:s", $srvTime);
                     $time = str_replace('-', ' ', $data[6]);
                     $status = $data[7] == 5 ? 2 : 0;
-                    var_dump($status, $data[7]);
                     list($date, $usec) = explode('.', $time);
                     $sql = "UPDATE `order` SET `end_time` = ?, `end_usec` = ?, `srv_insert_time` = ?, `status` = ? WHERE `order_ref` = ? AND `front_id` = ? AND `session_id` = ?";
                     $params = array($date, $usec, $srvTime, $status, $orderRef, $frontID, $sessionID);
