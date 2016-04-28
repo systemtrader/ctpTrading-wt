@@ -23,7 +23,7 @@ void TraderSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
 {
     Lib::sysErrLog(_logPath, "TradeSrv[onLogin]", pRspInfo, nRequestID, bIsLast);
     _service->onLogin(pRspUserLogin);
-    // _service->getPosition();
+    _service->getPosition();
 
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
@@ -122,6 +122,7 @@ void TraderSpi::OnRtnOrder(CThostFtdcOrderField *pOrder)
         info << "|OrderSysID|" << pOrder->OrderSysID;
         info << "|OrderSubmitStatus|" << pOrder->OrderSubmitStatus;
         info << "|OrderStatus|" << pOrder->OrderStatus;
+        info << "|TradingDay|" << pOrder->TradingDay;
     }
     info << endl;
     info.close();

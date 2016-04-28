@@ -87,16 +87,7 @@ void TradeSrv::getPosition()
 void TradeSrv::onPositionRtn(CThostFtdcInvestorPositionField * const rsp)
 {
     if (!rsp) return;
-    setStatus(TRADE_STATUS_NOTHING);
     _ydPostion = rsp->Position - rsp->TodayPosition;
-    if (rsp->Position > 0) {
-        if (rsp->PosiDirection == THOST_FTDC_PD_Long) {
-            setStatus(TRADE_STATUS_BUYOPENED);
-        }
-        if (rsp->PosiDirection == THOST_FTDC_PD_Short) {
-            setStatus(TRADE_STATUS_SELLOPENED);
-        }
-    }
 }
 
 void TradeSrv::getPositionDetail()
@@ -218,7 +209,7 @@ void TradeSrv::onOrderRtn(CThostFtdcOrderField * const rsp)
     string time = Lib::getDate("%Y/%m/%d-%H:%M:%S", true);
     string data = "orderRtn_" + string(rsp->OrderRef) + "_" + Lib::itos(_frontID) + "_" + Lib::itos(_sessionID) + "_" +
                   string(rsp->InsertDate) + "_" + string(rsp->InsertTime) + "_" + time + "_" +
-                  str;
+                  str + "_" + string(rsp->TradingDay);
     _store->push("ORDER_LOGS", data);
 
     if (rsp->OrderStatus != THOST_FTDC_OST_Canceled) return;

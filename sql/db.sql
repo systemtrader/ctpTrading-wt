@@ -38,6 +38,7 @@ CREATE TABLE `order` (
   `price` decimal(10,2) NOT NULL DEFAULT '0',
   `is_buy` int(1) NOT NULL DEFAULT 0,
   `is_open` int(11) NOT NULL DEFAULT '0',
+  `trading_date` char(8) NOT NULL DEFAULT '',
   `srv_insert_time` datetime NOT NULL COMMENT '服务器返回的insert时间',
   `srv_traded_time` datetime NOT NULL COMMENT '服务器返回的成交',
   `start_time` datetime NOT NULL COMMENT '发出交易指令时间',
