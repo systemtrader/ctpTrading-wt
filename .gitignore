@@ -17,3 +17,4 @@ config.*
 a.out
 ni_*
 test.sh
+pid

@@ -150,6 +150,15 @@ void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int order
     int res = _tradeApi->ReqOrderInsert(&order, _maxOrderRef);
     Lib::sysReqLog(_logPath, "TradeSrv[trade]", res);
 
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info);
+    info << "TradeSrv[trade]";
+    info << "|price|" << price;
+    info << "|orderID|" << orderID;
+    info << "|orderRef|" << _maxOrderRef;
+    info << endl;
+    info.close();
+
     // save data
     string time = Lib::getDate("%Y/%m/%d-%H:%M:%S", true);
     string data = "trade_" + Lib::itos(orderID) + "_" +
@@ -200,9 +209,16 @@ void TradeSrv::onOrderRtn(CThostFtdcOrderField * const rsp)
     _setOrderInfo(orderID, rsp);
 
     // save data
+    char c;
+    string str;
+    stringstream stream;
+    stream << rsp->OrderStatus;
+    str = stream.str();
+
     string time = Lib::getDate("%Y/%m/%d-%H:%M:%S", true);
     string data = "orderRtn_" + string(rsp->OrderRef) + "_" + Lib::itos(_frontID) + "_" + Lib::itos(_sessionID) + "_" +
-                  string(rsp->InsertDate) + "_" + string(rsp->InsertTime) + "_" + time;
+                  string(rsp->InsertDate) + "_" + string(rsp->InsertTime) + "_" + time + "_" +
+                  str;
     _store->push("ORDER_LOGS", data);
 
     if (rsp->OrderStatus != THOST_FTDC_OST_Canceled) return;
@@ -222,6 +238,7 @@ void TradeSrv::cancel(int orderID)
     for(it = _orderMap[orderID].begin(); it != _orderMap[orderID].end(); ++it) {
 
         orderInfo = it->second;
+        if (!orderInfo.OrderRef) continue;
 
         ///经纪公司代码
         strncpy(req.BrokerID, orderInfo.BrokerID,sizeof(TThostFtdcBrokerIDType));
@@ -244,6 +261,15 @@ void TradeSrv::cancel(int orderID)
 
         int res = _tradeApi->ReqOrderAction(&req, Lib::stoi(orderInfo.OrderRef));
         Lib::sysReqLog(_logPath, "TradeSrv[cancel]", res);
+
+        ofstream info;
+        Lib::initInfoLogHandle(_logPath, info);
+        info << "TradeSrv[cancel]";
+        info << "|orderID|" << orderID;
+        info << "|orderRef|" << orderInfo.OrderRef;
+        info << "|OrderSysID|" << orderInfo.OrderSysID;
+        info << endl;
+        info.close();
 
     }
 

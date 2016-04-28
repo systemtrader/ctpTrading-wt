@@ -40,19 +40,32 @@ class InitSys
         }
 
         // 读取本地交易记录
-        $sql = "SELECT * FROM `order` ORDER BY `id` DESC LIMIT 1";
+        $sql = "SELECT * FROM `order` WHERE `status` <> 2 ORDER BY `id` DESC LIMIT 1";
         $st = $mysql->prepare($sql);
         $st->execute(array());
         $res = $st->fetchAll(PDO::FETCH_ASSOC);
         $last = $res[0];
         $rds->set("TRADE_STATUS", 0);
-        if ($last && $last['is_open'] == 1) { // 交易未关闭
-            if ($last['is_buy'] == 1) {
-                $rds->set("TRADE_STATUS", 1);
+        if (!$last) return;
+
+        if ($last['status'] == 1) {
+            if ($last['is_open'] == 1) { // 交易未关闭
+                if ($last['is_buy'] == 1) {
+                    $rds->set("TRADE_STATUS", 1);
+                } else {
+                    $rds->set("TRADE_STATUS", 2);
+                }
+            }
+        } else {
+            if ($last['is_open'] == 1) {
+                if ($last['is_buy'] == 1) $rds->set("TRADE_STATUS", 3);
+                else $rds->set("TRADE_STATUS", 4);
             } else {
-                $rds->set("TRADE_STATUS", 2);
+                if ($last['is_buy'] == 1) $rds->set("TRADE_STATUS", 6);
+                else $rds->set("TRADE_STATUS", 5);
             }
         }
+
     }
 }
 

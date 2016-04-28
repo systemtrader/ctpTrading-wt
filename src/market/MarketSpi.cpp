@@ -47,7 +47,7 @@ void MarketSpi::OnFrontConnected()
 void MarketSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
     CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
-    Lib::sysErrLog(_logPath, "M_OnRspUserLogin", pRspInfo, nRequestID, bIsLast);
+    Lib::sysErrLog(_logPath, "MarketSrv[OnRspUserLogin]", pRspInfo, nRequestID, bIsLast);
 
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
@@ -62,7 +62,7 @@ void MarketSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
 
     char * Instrumnet[]={Lib::stoc(_instrumnetID)};
     int res = _mdApi->SubscribeMarketData (Instrumnet, 1);
-    Lib::sysReqLog(_logPath, "M_SubscribeMarketData", res);
+    Lib::sysReqLog(_logPath, "MarketSrv[SubscribeMarketData]", res);
 }
 
 void MarketSpi::OnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument,
