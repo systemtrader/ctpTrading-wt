@@ -122,7 +122,6 @@ void TraderSpi::OnRtnOrder(CThostFtdcOrderField *pOrder)
         info << "|OrderSysID|" << pOrder->OrderSysID;
         info << "|OrderSubmitStatus|" << pOrder->OrderSubmitStatus;
         info << "|OrderStatus|" << pOrder->OrderStatus;
-        info << "|TradingDay|" << pOrder->TradingDay;
     }
     info << endl;
     info.close();

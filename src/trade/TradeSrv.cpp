@@ -209,7 +209,7 @@ void TradeSrv::onOrderRtn(CThostFtdcOrderField * const rsp)
     string time = Lib::getDate("%Y/%m/%d-%H:%M:%S", true);
     string data = "orderRtn_" + string(rsp->OrderRef) + "_" + Lib::itos(_frontID) + "_" + Lib::itos(_sessionID) + "_" +
                   string(rsp->InsertDate) + "_" + string(rsp->InsertTime) + "_" + time + "_" +
-                  str + "_" + string(rsp->TradingDay);
+                  str;
     _store->push("ORDER_LOGS", data);
 
     if (rsp->OrderStatus != THOST_FTDC_OST_Canceled) return;

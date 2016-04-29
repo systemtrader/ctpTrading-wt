@@ -75,10 +75,8 @@ class InitSys
 
     public function checkKlineStatus($rds, $mysql, $last)
     {
-        $res = $rds->get("CURRENT_BLOCK_STORE");
-        if (!$last) return;
-        if (strlen($res) > 0) return;
         $rds->set("CURRENT_BLOCK_STORE", "");
+        if (!$last) return;
 
         $tickTime = $last['close_time'];
         $tickMsec = $last['close_msec'];
