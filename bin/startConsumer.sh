@@ -1,5 +1,5 @@
 #!/bin/bash
 
-nohup php /root/source/ctpTrading/src/store/tick.php &
-nohup php /root/source/ctpTrading/src/store/order.php &
-nohup php /root/source/ctpTrading/src/store/kLine.php &
+nohup php /home/dev/source/ctpTrading/src/store/tick.php &
+nohup php /home/dev/source/ctpTrading/src/store/order.php &
+nohup php /home/dev/source/ctpTrading/src/store/kLine.php &

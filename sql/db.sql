@@ -51,3 +51,15 @@ CREATE TABLE `order` (
   PRIMARY KEY (`id`),
   KEY `idx_front_session_ref` (`front_id`, `session_id`, `order_ref`)
 ) ENGINE=InnoDB CHARSET=utf8;
+
+
+CREATE TABLE `user` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uid` varchar(20) NOT NULL DEFAULT '' COMMENT '用户ID',
+  `password` varchar(32) NOT NULL DEFAULT '',
+  `type` int(1) NOT NULL DEFAULT 0 COMMENT '0:admin, 1:实盘, 2:仿真',
+  `mtime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB CHARSET=utf8;
+
+
