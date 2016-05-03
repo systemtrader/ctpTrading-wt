@@ -29,7 +29,7 @@ private:
     TThostFtdcSessionIDType _sessionID;
     int _maxOrderRef;
 
-    bool _ydPostion; // 昨仓
+    int _ydPostion; // 昨仓
 
     CThostFtdcTraderApi * _tradeApi;
     TraderSpi * _traderSpi;

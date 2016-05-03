@@ -132,6 +132,7 @@ void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int order
         flag = THOST_FTDC_OFEN_CloseToday;
         if (_ydPostion > 0) {
             flag = THOST_FTDC_OFEN_Close;
+            _ydPostion--;
             // _closeYdReqID = orderID;
         }
     }
