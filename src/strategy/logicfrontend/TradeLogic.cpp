@@ -47,6 +47,11 @@ void TradeLogic::init()
     }
 }
 
+void TradeLogic::onTick(TickData tick)
+{
+    
+}
+
 void TradeLogic::onKLineOpen()
 {
     if ((int)_bList.size() == 0) return;
