@@ -62,6 +62,7 @@ public:
 
     void onKLineOpen();
     void onKLineClose(KLineBlock block);
+    void onTick(TickData);
 };
 
 #endif

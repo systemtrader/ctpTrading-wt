@@ -24,6 +24,7 @@ private:
     void _initBlock(TickData);
     void _updateBlock(TickData);
     void _closeBlock(TickData);
+    void _transTick(TickData);
 
 public:
     KLineSrv(int, int, string, int);

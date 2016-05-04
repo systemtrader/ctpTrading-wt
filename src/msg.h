@@ -22,6 +22,7 @@ typedef struct msg_k_line
 {
     long int msgType;
     KLineBlockData block;
+    TickData tick;
 
 } MSG_TO_TRADE_LOGIC;
 
