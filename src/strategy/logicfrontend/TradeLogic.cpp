@@ -104,9 +104,9 @@ void TradeLogic::onKLineClose(KLineBlock block)
         case TRADE_STATUS_BUYOPENING: // 状态为正在买开仓，说明从上一个K线关闭一直没买成功，则放弃重新买
         case TRADE_STATUS_SELLOPENING: // 同上
             if (_max > 0 && block.getClosePrice() > _max) {
-                _sendMsg(MSG_TRADE_BUYOPEN, block.getClosePrice() - 10);
+                _sendMsg(MSG_TRADE_BUYOPEN, block.getClosePrice());
             } else if (_min > 0 && block.getClosePrice() < _min) {
-                _sendMsg(MSG_TRADE_SELLOPEN, block.getClosePrice() + 10);
+                _sendMsg(MSG_TRADE_SELLOPEN, block.getClosePrice());
             } else { // 不符合开仓条件
                 if (status == TRADE_STATUS_BUYOPENING || status == TRADE_STATUS_SELLOPENING)
                     _sendMsg(MSG_TRADE_CANCEL);
