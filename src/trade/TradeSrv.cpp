@@ -51,6 +51,20 @@ void TradeSrv::init()
     _tradeApi->Init();
 }
 
+void TradeSrv::confirm()
+{
+    CThostFtdcSettlementInfoConfirmField req = {0};
+    strcpy(req.BrokerID, Lib::stoc(_brokerID));
+    strcpy(req.InvestorID, Lib::stoc(_userID));
+    string date = Lib::getDate("%Y%m%d");
+    strcpy(req.ConfirmDate, date.c_str());
+    string time = Lib::getDate("%H:%M:%S");
+    strcpy(req.ConfirmTime, time.c_str());
+
+    int res = _tradeApi->ReqSettlementInfoConfirm(&req, 0);
+    Lib::sysReqLog(_logPath, "TradeSrv[auth]", res);
+}
+
 void TradeSrv::login()
 {
     CThostFtdcReqUserLoginField req = {0};

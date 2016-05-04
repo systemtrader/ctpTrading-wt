@@ -18,12 +18,29 @@ void TraderSpi::OnFrontConnected()
     _service->login();
 }
 
+void TraderSpi::OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm, 
+    CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+    Lib::sysErrLog(_logPath, "TradeSrv[OnRspSettlementInfoConfirm]", pRspInfo, nRequestID, bIsLast);
+    _service->getPosition();
+
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info);
+    info << "TradeSrv[OnRspSettlementInfoConfirm]";
+    if (pSettlementInfoConfirm) {
+        info << "|ConfirmDate|" << pSettlementInfoConfirm->ConfirmDate;
+        info << "|ConfirmTime|" << pSettlementInfoConfirm->ConfirmTime;
+    }
+    info << endl;
+    info.close();
+}
+
 void TraderSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
     CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
     Lib::sysErrLog(_logPath, "TradeSrv[onLogin]", pRspInfo, nRequestID, bIsLast);
     _service->onLogin(pRspUserLogin);
-    _service->getPosition();
+    _service->confirm();
 
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);

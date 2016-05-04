@@ -19,6 +19,8 @@ public:
     ~TraderSpi();
 
     void OnFrontConnected();
+    void OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm, 
+        CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
     void OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
         CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
     void OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder,

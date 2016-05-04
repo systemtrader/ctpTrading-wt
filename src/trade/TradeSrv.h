@@ -61,6 +61,7 @@ public:
 
     void init();
 
+    void confirm();
     void login();
     void onLogin(CThostFtdcRspUserLoginField * const);
 
