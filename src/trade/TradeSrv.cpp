@@ -146,7 +146,6 @@ void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int order
         flag = THOST_FTDC_OFEN_CloseToday;
         if (_ydPostion > 0) {
             flag = THOST_FTDC_OFEN_Close;
-            _ydPostion--;
             // _closeYdReqID = orderID;
         }
     }
@@ -177,6 +176,7 @@ void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int order
 void TradeSrv::onTraded(CThostFtdcTradeField * const rsp)
 {
     if (!rsp) return;
+    if (_ydPostion > 0) _ydPostion--;
 
     int orderID = _getOrderID(atoi(rsp->OrderRef));
     if (orderID <= 0) return;
