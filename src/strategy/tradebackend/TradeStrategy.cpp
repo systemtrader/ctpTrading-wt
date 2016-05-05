@@ -114,6 +114,15 @@ void TradeStrategy::onTradeMsgBack(bool isSuccess, int orderID)
     }
 }
 
+bool TradeStrategy::_isOrdering(int orderID)
+{
+    list<int>::iterator i;
+    for (i = _doingOrderIDList.begin(); i != _doingOrderIDList.end(); i++) {
+        if (orderID == *i) return true;
+    }
+    return false;
+}
+
 void TradeStrategy::_successBack(int orderID)
 {
     int status = _getStatus();

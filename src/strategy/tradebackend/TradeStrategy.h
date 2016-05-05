@@ -16,6 +16,7 @@ private:
     QClient * _tradeSrvClient;
     string _logPath;
 
+    list<int> _doingOrderIDList;
     bool _isSelfCancel;
     bool _isCancelOver;
 
@@ -29,8 +30,8 @@ private:
     // 追价
     void _zhuijia();
 
+    bool _isOrdering(int);
     TickData _getTick();
-
     int _getStatus();
     void _setStatus(int);
 
