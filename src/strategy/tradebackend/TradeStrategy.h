@@ -7,6 +7,7 @@
 #include <sys/time.h>
 #include <signal.h>
 #include <cstring>
+#include <list>
 
 class TradeStrategy
 {
@@ -16,25 +17,22 @@ private:
     QClient * _tradeSrvClient;
     string _logPath;
 
-    bool _isSelfCancel;
-    bool _isCancelOver;
-
-    int _currentOrderID;
-    int _doingOrderID;
+    list<int> _tradingOrderID;
 
     void _cancelBack(int);
     void _successBack(int);
-    void _cancelAction(int);
 
-    // 追价
-    void _zhuijia();
+    void _clearTrade(); // 清空未完成的交易
+    void _zhuijia(int); // 追价
+    void _cancelAction(int); // 撤销
 
-    TickData _getTick();
+    bool _isInOrderIDList(list<int>, int);
+    list<int> _removeList(list<int>, int);
 
     int _getStatus();
     void _setStatus(int);
-
-    void _sendMsg(double, int, bool, bool);
+    TickData _getTick();
+    void _sendMsg(double, int, bool, bool, int);
 
 public:
     TradeStrategy(int, string, int);
