@@ -167,14 +167,14 @@ void TradeStrategy::_cancelBack(int orderID)
 
 void TradeStrategy::timeout(int orderID)
 {
-    ofstream info;
-    Lib::initInfoLogHandle(_logPath, info);
-    info << "TradeStrategySrv[timeout]";
-    info << "|kIndex|" << orderID;
-    info << endl;
-    info.close();
 
     if (_isInOrderIDList(_tradingOrderID, orderID)) {
+        ofstream info;
+        Lib::initInfoLogHandle(_logPath, info);
+        info << "TradeStrategySrv[timeout]";
+        info << "|kIndex|" << orderID;
+        info << endl;
+        info.close();
         _cancelAction(orderID);
     }
 
