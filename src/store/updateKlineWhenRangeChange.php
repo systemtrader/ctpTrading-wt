@@ -4,7 +4,7 @@ class kLine
 {
     function __construct()
     {
-        $res = parse_ini_file('/home/dev/source/ctpTrading/etc/config.ini');
+        $res = parse_ini_file(dirname(__FILE__) . '/../../etc/config.ini');
         if ($res['is_dev']) {
             $this->mysqldb = $res['mysql_db_dev'];
             $this->rdsdb = $res['rds_db_dev'];

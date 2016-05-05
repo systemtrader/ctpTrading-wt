@@ -74,12 +74,14 @@ int main(int argc, char const *argv[])
     tradeLogicSrvID    = getOptionToInt("trade_logic_service_id");
     tradeStrategySrvID = getOptionToInt("trade_strategy_service_id");
     tradeSrvID         = getOptionToInt("trade_service_id");
+    string rootPath    = getOptionToString("root_path");
 
+    string phpCmd = "php " + rootPath + "bin/tools/initSys.php";
     int cmd = atoi(argv[1]);
     if (cmd == 1) {
 
         // php 相关模块启动，负责初始化redis，队列消费者请手动启动
-        system("php /home/dev/source/ctpTrading/src/store/initSys.php");
+        system(phpCmd.c_str());
         sleep(1);
 
         // 启动各服务模块
@@ -113,7 +115,7 @@ int main(int argc, char const *argv[])
 
     } else if (cmd == 5) {
 
-        system("php /home/dev/source/ctpTrading/src/store/initSys.php");
+        system(phpCmd.c_str());
         sleep(1);
         // 需要手动启动tradeStrategyAfter 1 以及消费者
         system("./tradeStrategySrv &");
