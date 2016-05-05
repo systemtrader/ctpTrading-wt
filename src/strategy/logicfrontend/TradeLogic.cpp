@@ -10,6 +10,8 @@ TradeLogic::TradeLogic(int peroid, double threshold,
     _logPath = logPath;
     _isHistoryBack = isHistoryBack;
 
+    _pUp2Up = _pUp2Down = _pDown2Up = _pDown2Down = 0;
+
     _store = new Redis("127.0.0.1", 6379, db);
     _tradeStrategySrvClient = new QClient(serviceID, sizeof(MSG_TO_TRADE_STRATEGY));
 
@@ -25,13 +27,14 @@ TradeLogic::~TradeLogic()
 void TradeLogic::init()
 {
 
+
 }
 
 void TradeLogic::_tick(TickData tick)
 {
     // 如果相邻tick没变化，则忽略
     if (_tickGroup.size() > 0) {
-        TickData last = *(_tickGroup.begin());
+        TickData last = _tickGroup.front();
         if (last.price == tick.price) return;
     }
 
@@ -68,7 +71,7 @@ void TradeLogic::_tick(TickData tick)
     }
     // 检查转换列表是否够用，够用删除响应的记录
     while (_transTypeList.size() > _peroid) {
-        int type = *(_transTypeList.end());
+        int type = _transTypeList.back();
         _transTypeList.pop_back();
         switch (type) {
             case TRANS_TYPE_DOWN2DOWN:
@@ -87,7 +90,6 @@ void TradeLogic::_tick(TickData tick)
                 break;
         }
     }
-
 }
 
 void TradeLogic::onTick(TickData tick)
@@ -97,8 +99,12 @@ void TradeLogic::onTick(TickData tick)
 
 void TradeLogic::_calculateUp()
 {
-    _pUp2Up = _countUp2Up / (_countUp2Up + _countDown2Up);
-    _pUp2Down = _countUp2Down / (_countUp2Down + _countDown2Down);
+    if (_countDown2Up + _countUp2Up > 0) {
+        _pUp2Up = (double)_countUp2Up / ((double)_countUp2Up + (double)_countDown2Up);
+    }
+    if (_countUp2Down + _countDown2Down > 0) {
+        _pUp2Down = (double)_countUp2Down / ((double)_countUp2Down + (double)_countDown2Down);
+    }
     //log
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
@@ -111,15 +117,20 @@ void TradeLogic::_calculateUp()
 
 void TradeLogic::_calculateDown()
 {
-    _pDown2Up = _countDown2Up / (_countDown2Up + _countUp2Up);
-    _pDown2Down = _countDown2Down / (_countDown2Down + _countUp2Down);
+    if (_countDown2Up + _countUp2Up) {
+        _pDown2Up = (double)_countDown2Up / ((double)_countDown2Up + (double)_countUp2Up);
+    }
+    if (_countDown2Down + _countUp2Down) {
+        _pDown2Down = (double)_countDown2Down / ((double)_countDown2Down + (double)_countUp2Down);
+    }
     //log
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeLogicSrv[calculateDown]";
     info << "|pDown2Up|" << _pDown2Up;
     info << "|pDown2Down|" << _pDown2Down;
-    info << "|kIndex|" << _kIndex << endl;
+    info << "|kIndex|" << _kIndex;
+    info << endl;
     info.close();
 }
 
@@ -127,7 +138,7 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
 {
     if (_transTypeList.size() < _peroid) return; // 计算转义概率条件不足，不做操作
     _kIndex = block.getIndex();
-    TickData last = *(_tickGroup.begin());
+    TickData last = _tickGroup.front();
     bool isUp = true;
     if (last.price > tick.price) isUp = false;
 
@@ -138,14 +149,17 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
     }
 
     int status = _getStatus();
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info);
+    info << "TradeLogicSrv[onKLineClose]";
+    info << "|status|" << status;
+    info << endl;
+    info.close();
     switch (status) {
 
         case TRADE_STATUS_NOTHING: // 空仓，判断是否开仓
         case TRADE_STATUS_BUYOPENING: // 状态为正在买开仓，说明从上一个K线关闭一直没买成功，则放弃重新买
         case TRADE_STATUS_SELLOPENING: // 同上
-
-            if (status == TRADE_STATUS_BUYOPENING || status == TRADE_STATUS_SELLOPENING) // 操作中，先取消
-                _sendMsg(MSG_TRADE_CANCEL);
 
             if (isUp) {
                 if (_pUp2Up > _threshold) { // 买开
@@ -171,9 +185,6 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
         case TRADE_STATUS_BUYOPENED:
         case TRADE_STATUS_SELLCLOSING:
 
-            if (status == TRADE_STATUS_SELLCLOSING) //
-                _sendMsg(MSG_TRADE_CANCEL);
-
             if (isUp) {
                 if (_pUp2Up <= _threshold) { // 不满足买开，平
                     _sendMsg(MSG_TRADE_SELLCLOSE, tick.bidPrice1);
@@ -190,9 +201,6 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
 
         case TRADE_STATUS_SELLOPENED:
         case TRADE_STATUS_BUYCLOSING:
-
-            if (status == TRADE_STATUS_BUYCLOSING)
-                _sendMsg(MSG_TRADE_CANCEL);
 
             if (isUp) {
                 if (_pUp2Down <= _threshold) { // 卖开
@@ -226,8 +234,6 @@ void TradeLogic::_sendMsg(int msgType, double price)
     msg.msgType = msgType;
     msg.price = price;
     msg.kIndex = _kIndex;
-    if (msgType == MSG_TRADE_CANCEL)
-        msg.kIndex--;
     _tradeStrategySrvClient->send((void *)&msg);
 
     //log
@@ -236,6 +242,6 @@ void TradeLogic::_sendMsg(int msgType, double price)
     info << "TradeLogicSrv[sendMsg]";
     info << "|action|" << msgType;
     info << "|price|" << price;
-    info << "|kIndex|" << msg.kIndex << endl;
+    info << "|kIndex|" << _kIndex << endl;
     info.close();
 }
