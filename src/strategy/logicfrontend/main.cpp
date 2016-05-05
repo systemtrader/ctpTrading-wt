@@ -8,12 +8,8 @@ int main(int argc, char const *argv[])
 {
     // 初始化参数
     parseIniFile("../etc/config.ini");
-    int openMaxKCount        = getOptionToInt("open_max_k_count");
-    int openMinKCount        = getOptionToInt("open_min_k_count");
-    int openMeanKCount       = getOptionToInt("open_mean_k_count");
-    int kRang                = getOptionToInt("k_range");
-    int closeSellKRangeCount = getOptionToInt("close_sell_k_range_count");
-    int closeBuyKRangeCount  = getOptionToInt("close_buy_k_range_count");
+    int    peroid    = getOptionToInt("peroid");
+    string threshold = getOptionToString("threshold");
 
     int tradeLogicSrvID    = getOptionToInt("trade_logic_service_id");
     int tradeStrategySrvID = getOptionToInt("trade_strategy_service_id");
@@ -30,8 +26,7 @@ int main(int argc, char const *argv[])
         db = getOptionToInt("rds_db_online");
     }
 
-    service = new TradeLogic(openMaxKCount, openMinKCount, openMeanKCount, kRang,
-        closeSellKRangeCount, closeBuyKRangeCount, tradeStrategySrvID, logPath, isHistoryBack, db);
+    service = new TradeLogic(peroid, Lib::stod(threshold), tradeStrategySrvID, logPath, isHistoryBack, db);
     service->init();
 
     // 服务化
@@ -50,12 +45,10 @@ bool action(long int msgType, const void * data)
         if (service) delete service;
         return false;
     }
-    if (msgType == MSG_KLINE_OPEN) {
-        service->onKLineOpen();
-    }
+
     if (msgType == MSG_KLINE_CLOSE) {
         KLineBlock block = KLineBlock::makeViaData(((MSG_TO_TRADE_LOGIC*)data)->block);
-        service->onKLineClose(block);
+        service->onKLineClose(block, ((MSG_TO_TRADE_LOGIC*)data)->tick);
     }
 
     if (msgType == MSG_TICK) {

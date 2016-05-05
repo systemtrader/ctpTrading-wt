@@ -67,11 +67,11 @@ void KLineSrv::_initBlock(TickData tick)
     _currentBlock = new KLineBlock();
     _currentBlock->init(_index, tick);
 
-    // 发送消息
-    MSG_TO_TRADE_LOGIC msg = {0};
-    msg.msgType = MSG_KLINE_OPEN;
-    msg.block = _currentBlock->exportData();
-    _tradeLogicSrvClient->send((void *)&msg);
+    // // 发送消息
+    // MSG_TO_TRADE_LOGIC msg = {0};
+    // msg.msgType = MSG_KLINE_OPEN;
+    // msg.block = _currentBlock->exportData();
+    // _tradeLogicSrvClient->send((void *)&msg);
 
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
@@ -95,7 +95,7 @@ void KLineSrv::_updateBlock(TickData tick)
     _currentBlock->update(tick);
 }
 
-void KLineSrv::_closeBlock(Tick tick)
+void KLineSrv::_closeBlock(TickData tick)
 {
     _currentBlock->close();
     string keyQ = "K_LINE_Q";
@@ -108,6 +108,7 @@ void KLineSrv::_closeBlock(Tick tick)
     MSG_TO_TRADE_LOGIC msg = {0};
     msg.msgType = MSG_KLINE_CLOSE;
     msg.block = blockData;
+    msg.tick = tick;
     _tradeLogicSrvClient->send((void *)&msg);
 
     // 储存消息
