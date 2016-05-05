@@ -13,7 +13,7 @@ tradeStrategyAfter
 tradeSrvBefore
 readKLineDataAndSend
 *Test
-config.*
+config.ini
 a.out
 ni_*
 test.sh
