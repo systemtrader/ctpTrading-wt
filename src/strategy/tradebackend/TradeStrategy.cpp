@@ -44,65 +44,48 @@ TradeStrategy::~TradeStrategy()
     cout << "~TradeStrategy" << endl;
 }
 
-
-void TradeStrategy::tradeAction(int action, double price, int total, int kIndex)
+void TradeStrategy::_clearTrade()
 {
+    if (_tradingOrderID.size() <= 0) return;
+    list<int>::iterator i;
+    for (i = _tradingOrderID.begin(); i != _tradingOrderID.end(); ++i) {
+        _cancelAction(*i);
+        _tradingOrderID.erase(i);
+    }
+}
+
+void TradeStrategy::tradeAction(int action, double price, int total, int orderID)
+{
+    _clearTrade();
     int status = _getStatus();
-    _currentOrderID = kIndex;
-    // _isSelfCancel = false;
-    _isCancelOver = false;
     switch (action) {
 
         case TRADE_ACTION_BUYOPEN:
             _setStatus(TRADE_STATUS_BUYOPENING);
-            switch (status) {
-                case TRADE_STATUS_SELLOPENING:
-                case TRADE_STATUS_BUYOPENING:
-                    _cancelAction(_doingOrderID);
-                case TRADE_STATUS_NOTHING:
-                    _doingOrderID = _currentOrderID;
-                    _setStatus(TRADE_STATUS_BUYOPENING);
-                    _sendMsg(price, total, true, true);
-                    break;
-                default:
-                    break;
-            }
+            _sendMsg(price, total, true, true, orderID);
             break;
 
         case TRADE_ACTION_SELLOPEN:
             _setStatus(TRADE_STATUS_SELLOPENING);
-            switch (status) {
-                case TRADE_STATUS_BUYOPENING:
-                case TRADE_STATUS_SELLOPENING:
-                    _cancelAction(_doingOrderID);
-                case TRADE_STATUS_NOTHING:
-                    _doingOrderID = _currentOrderID;
-                    _setStatus(TRADE_STATUS_SELLOPENING);
-                    _sendMsg(price, total, false, true);
-                    break;
-                default:
-                    break;
-            }
+            _sendMsg(price, total, false, true, orderID);
             break;
 
         case TRADE_ACTION_BUYCLOSE:
-            _doingOrderID = _currentOrderID;
             _setStatus(TRADE_STATUS_BUYCLOSING);
-            _sendMsg(price, total, true, false);
+            _sendMsg(price, total, true, false, orderID);
             break;
 
         case TRADE_ACTION_SELLCLOSE:
-            _doingOrderID = _currentOrderID;
             _setStatus(TRADE_STATUS_SELLCLOSING);
-            _sendMsg(price, total, false, false);
+            _sendMsg(price, total, false, false, orderID);
             break;
+
         default:
-            _isCancelOver = true;
-            _cancelAction(_doingOrderID);
             break;
     }
+    _tradingOrderID.push_front(orderID);
     // 启动定时器
-    setTimer(_doingOrderID);
+    setTimer(orderID);
 }
 
 void TradeStrategy::onTradeMsgBack(bool isSuccess, int orderID)
@@ -114,8 +97,32 @@ void TradeStrategy::onTradeMsgBack(bool isSuccess, int orderID)
     }
 }
 
+bool TradeStrategy::_isInOrderIDList(list<int> l, int orderID)
+{
+    if (l.size() == 0) return false;
+    list<int>::iterator i;
+    for (i = l.begin(); i != l.end(); i++) {
+        if (orderID == *i) return true;
+    }
+    return false;
+}
+
+list<int> TradeStrategy::_removeList(list<int> l, int orderID)
+{
+    if (l.size() == 0) return l;
+    list<int>::iterator i;
+    for (i = l.begin(); i != l.end(); i++) {
+        if (orderID == *i) {
+            l.erase(i);
+            break;
+        }
+    }
+    return l;
+}
+
 void TradeStrategy::_successBack(int orderID)
 {
+    _tradingOrderID = _removeList(_tradingOrderID, orderID);
     int status = _getStatus();
     switch (status) {
         case TRADE_STATUS_BUYOPENING:
@@ -131,8 +138,6 @@ void TradeStrategy::_successBack(int orderID)
         default:
             break;
     }
-
-    // todo 记录交易
 
     // log
     ofstream info;
@@ -154,39 +159,15 @@ void TradeStrategy::_cancelBack(int orderID)
     info << endl;
     info.close();
 
-    if (_isCancelOver) {
-        int status = _getStatus();
-        switch (status) {
-            case TRADE_STATUS_BUYOPENING:
-            case TRADE_STATUS_SELLOPENING:
-                _setStatus(TRADE_STATUS_NOTHING);
-                break;
-            case TRADE_STATUS_SELLCLOSING:
-                _setStatus(TRADE_STATUS_BUYOPENED);
-                break;
-            case TRADE_STATUS_BUYCLOSING:
-                _setStatus(TRADE_STATUS_SELLOPENED);
-                break;
-            default:
-                break;
-        }
-        return;
+    if (_isInOrderIDList(_tradingOrderID, orderID)) {
+        _zhuijia(orderID);
     }
-    // if (_isSelfCancel) return;
-    if (orderID == _currentOrderID) {
-        _zhuijia();
-    }
+
 }
 
 void TradeStrategy::timeout(int orderID)
 {
-    int status = _getStatus();
-    if (status == TRADE_STATUS_SELLOPENING ||
-        status == TRADE_STATUS_BUYOPENING ||
-        status == TRADE_STATUS_SELLCLOSING ||
-        status == TRADE_STATUS_BUYCLOSING)
-    {
-        // log
+    if (_isInOrderIDList(_tradingOrderID, orderID)) {
         ofstream info;
         Lib::initInfoLogHandle(_logPath, info);
         info << "TradeStrategySrv[timeout]";
@@ -194,16 +175,12 @@ void TradeStrategy::timeout(int orderID)
         info << endl;
         info.close();
         _cancelAction(orderID);
-
-        // if (orderID == _currentOrderID) {
-        //     _zhuijia();
-        // }
     }
+
 }
 
 void TradeStrategy::_cancelAction(int orderID)
 {
-    // _isSelfCancel = true;
     MSG_TO_TRADE msg = {0};
     msg.msgType = MSG_ORDER_CANCEL;
     msg.orderID = orderID;
@@ -217,13 +194,13 @@ void TradeStrategy::_cancelAction(int orderID)
     info.close();
 }
 
-void TradeStrategy::_zhuijia()
+void TradeStrategy::_zhuijia(int orderID)
 {
     // log
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeStrategySrv[zhuijia]";
-    info << "|kIndex|" << _doingOrderID;
+    info << "|kIndex|" << orderID;
     info << endl;
     info.close();
 
@@ -233,28 +210,28 @@ void TradeStrategy::_zhuijia()
     switch (status) {
         case TRADE_STATUS_SELLOPENING:
             price = tick.price;
-            _sendMsg(price, 1, false, true);
+            _sendMsg(price, 1, false, true, orderID);
             break;
         case TRADE_STATUS_BUYOPENING:
             price = tick.price;
-            _sendMsg(price, 1, true, true);
+            _sendMsg(price, 1, true, true, orderID);
             break;
         case TRADE_STATUS_SELLCLOSING:
-            price = tick.price - 30;
-            _sendMsg(price, 1, false, false);
+            price = tick.price - 10;
+            _sendMsg(price, 1, false, false, orderID);
             break;
         case TRADE_STATUS_BUYCLOSING:
-            price = tick.price + 30;
-            _sendMsg(price, 1, true, false);
+            price = tick.price + 10;
+            _sendMsg(price, 1, true, false, orderID);
             break;
         default:
             break;
     }
     // 启动定时器
-    setTimer(_doingOrderID);
+    setTimer(orderID);
 }
 
-void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen)
+void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen, int orderID)
 {
     MSG_TO_TRADE msg = {0};
     msg.msgType = MSG_ORDER;
@@ -262,7 +239,7 @@ void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen)
     msg.isBuy = isBuy;
     msg.total = total;
     msg.isOpen = isOpen;
-    msg.orderID = _doingOrderID;
+    msg.orderID = orderID;
     _tradeSrvClient->send((void *)&msg);
 
     ofstream info;
@@ -272,7 +249,7 @@ void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen)
     info << "|total|" << total;
     info << "|isBuy|" << isBuy;
     info << "|isOpen|" << isOpen;
-    info << "|kIndex|" << _doingOrderID;
+    info << "|kIndex|" << orderID;
     info << endl;
     info.close();
 }
