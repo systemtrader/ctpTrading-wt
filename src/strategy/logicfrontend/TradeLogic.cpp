@@ -156,47 +156,38 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
     switch (status) {
 
         case TRADE_STATUS_NOTHING: // 空仓，判断是否开仓
-        case TRADE_STATUS_BUYOPENING: // 状态为正在买开仓，说明从上一个K线关闭一直没买成功，则放弃重新买
-        case TRADE_STATUS_SELLOPENING: // 同上
 
             if (isUp) {
                 if (_pUp2Up > _threshold) { // 买开
                     _sendMsg(MSG_TRADE_BUYOPEN, tick.price);
-                    _setStatus(TRADE_STATUS_BUYOPENING);
                     break;
                 }
                 if (_pUp2Down > _threshold) { // 卖开
                     _sendMsg(MSG_TRADE_SELLOPEN, tick.price);
-                    _setStatus(TRADE_STATUS_SELLOPENING);
                     break;
                 }
             } else {
                 if (_pDown2Down > _threshold) { // 卖开
                     _sendMsg(MSG_TRADE_SELLOPEN, tick.price);
-                    _setStatus(TRADE_STATUS_SELLOPENING);
                     break;
                 }
                 if (_pDown2Up > _threshold) { // 买开
                     _sendMsg(MSG_TRADE_BUYOPEN, tick.price);
-                    _setStatus(TRADE_STATUS_BUYOPENING);
                     break;
                 }
             }
             break;
 
         case TRADE_STATUS_BUYOPENED:
-        case TRADE_STATUS_SELLCLOSING:
 
             if (isUp) {
                 if (_pUp2Up <= _threshold) { // 不满足买开，平
                     _sendMsg(MSG_TRADE_SELLCLOSE, tick.bidPrice1);
-                    _setStatus(TRADE_STATUS_SELLCLOSING);
                     break;
                 }
             } else {
                 if (_pDown2Up <= _threshold) { // 不满足买开，平
                     _sendMsg(MSG_TRADE_SELLCLOSE, tick.bidPrice1);
-                    _setStatus(TRADE_STATUS_SELLCLOSING);
                     break;
                 }
             }
@@ -204,24 +195,26 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
             break;
 
         case TRADE_STATUS_SELLOPENED:
-        case TRADE_STATUS_BUYCLOSING:
 
             if (isUp) {
                 if (_pUp2Down <= _threshold) { // 卖开
                     _sendMsg(MSG_TRADE_BUYCLOSE, tick.askPrice1);
-                    _setStatus(TRADE_STATUS_BUYCLOSING);
                     break;
                 }
             } else {
                 if (_pDown2Down <= _threshold) { // 卖开
                     _sendMsg(MSG_TRADE_BUYCLOSE, tick.askPrice1);
-                    _setStatus(TRADE_STATUS_BUYCLOSING);
                     break;
                 }
             }
 
             break;
 
+        // 简化模型非稳定状态放弃处理
+        case TRADE_STATUS_BUYOPENING:
+        case TRADE_STATUS_SELLOPENING:
+        case TRADE_STATUS_SELLCLOSING:
+        case TRADE_STATUS_BUYCLOSING:
         default:
             break;
     }
@@ -250,10 +243,5 @@ void TradeLogic::_sendMsg(int msgType, double price)
     info << "|price|" << price;
     info << "|kIndex|" << _kIndex << endl;
     info.close();
-}
-
-void TradeLogic::_setStatus(int status)
-{
-    _store->set("TRADE_STATUS", Lib::itos(status));
 }
 

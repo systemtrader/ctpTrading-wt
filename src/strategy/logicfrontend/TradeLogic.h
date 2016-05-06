@@ -46,7 +46,6 @@ private:
 
     // 判断仓位状态
     int _getStatus();
-    void _setStatus(int);
     void _sendMsg(int, double = 0);
 
 public:

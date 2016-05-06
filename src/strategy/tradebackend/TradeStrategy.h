@@ -7,7 +7,17 @@
 #include <sys/time.h>
 #include <signal.h>
 #include <cstring>
+#include <map>
 #include <list>
+
+typedef struct waiting_data
+{
+    int action;
+    double price;
+    int total;
+    int orderID;
+
+} WAITING_DATA;
 
 class TradeStrategy
 {
@@ -17,17 +27,17 @@ private:
     QClient * _tradeSrvClient;
     string _logPath;
 
-    list<int> _tradingOrderID;
+    map<int, int> _tradingOrders;
+    list<int> _waitingOrders;
+    map<int, WAITING_DATA> _waitingOrdersInfo;
 
     void _cancelBack(int);
     void _successBack(int);
 
-    void _clearTrade(); // 清空未完成的交易
     void _zhuijia(int); // 追价
-    void _cancelAction(int); // 撤销
+    void _cancel(int); // 撤销
 
-    bool _isInOrderIDList(list<int>, int);
-    list<int> _removeList(list<int>, int);
+    void _clearTradingOrder(int);
 
     int _getStatus();
     void _setStatus(int);

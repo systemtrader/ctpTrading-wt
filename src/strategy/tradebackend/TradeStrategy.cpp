@@ -44,46 +44,47 @@ TradeStrategy::~TradeStrategy()
     cout << "~TradeStrategy" << endl;
 }
 
-void TradeStrategy::_clearTrade()
-{
-    if (_tradingOrderID.size() <= 0) return;
-    list<int>::iterator i;
-    for (i = _tradingOrderID.begin(); i != _tradingOrderID.end(); ++i) {
-        _cancelAction(*i);
-        _tradingOrderID.erase(i);
-    }
-}
-
 void TradeStrategy::tradeAction(int action, double price, int total, int orderID)
 {
-    _clearTrade();
+    // 有订单在处理，进入等待队列
+    if (_tradingOrderID.size() > 0) {
+        _waitingOrders.push_front(orderID);
+        WAITING_DATA info = {0};
+        info.action = action;
+        info.price = price;
+        info.orderID = orderID;
+        info.total = total;
+        _waitingOrdersInfo[orderID] = info;
+        return;
+    }
+
     int status = _getStatus();
     switch (action) {
 
         case TRADE_ACTION_BUYOPEN:
-            // _setStatus(TRADE_STATUS_BUYOPENING);
+            _setStatus(TRADE_STATUS_BUYOPENING);
             _sendMsg(price, total, true, true, orderID);
             break;
 
         case TRADE_ACTION_SELLOPEN:
-            // _setStatus(TRADE_STATUS_SELLOPENING);
+            _setStatus(TRADE_STATUS_SELLOPENING);
             _sendMsg(price, total, false, true, orderID);
             break;
 
         case TRADE_ACTION_BUYCLOSE:
-            // _setStatus(TRADE_STATUS_BUYCLOSING);
+            _setStatus(TRADE_STATUS_BUYCLOSING);
             _sendMsg(price, total, true, false, orderID);
             break;
 
         case TRADE_ACTION_SELLCLOSE:
-            // _setStatus(TRADE_STATUS_SELLCLOSING);
+            _setStatus(TRADE_STATUS_SELLCLOSING);
             _sendMsg(price, total, false, false, orderID);
             break;
 
         default:
             break;
     }
-    _tradingOrderID.push_front(orderID);
+    _tradingOrders[orderID] = 5; // 撤销+追价共重试n次
     // 启动定时器
     setTimer(orderID);
 }
@@ -97,32 +98,13 @@ void TradeStrategy::onTradeMsgBack(bool isSuccess, int orderID)
     }
 }
 
-bool TradeStrategy::_isInOrderIDList(list<int> l, int orderID)
-{
-    if (l.size() == 0) return false;
-    list<int>::iterator i;
-    for (i = l.begin(); i != l.end(); i++) {
-        if (orderID == *i) return true;
-    }
-    return false;
-}
-
-list<int> TradeStrategy::_removeList(list<int> l, int orderID)
-{
-    if (l.size() == 0) return l;
-    list<int>::iterator i;
-    for (i = l.begin(); i != l.end(); i++) {
-        if (orderID == *i) {
-            l.erase(i);
-            break;
-        }
-    }
-    return l;
-}
-
 void TradeStrategy::_successBack(int orderID)
 {
-    _tradingOrderID = _removeList(_tradingOrderID, orderID);
+    map<int, int>::iterator i;
+    i = _tradingOrderID.find(orderID);
+    if(i != _tradingOrderID.end())
+        _tradingOrderID.erase(i);
+
     int status = _getStatus();
     switch (status) {
         case TRADE_STATUS_BUYOPENING:
@@ -147,6 +129,31 @@ void TradeStrategy::_successBack(int orderID)
     info << "|status|" << _getStatus();
     info << endl;
     info.close();
+
+    // 继续执行
+    if (_waitingOrders.size() > 0) {
+        // 获取等待orderID，并清空
+        int waitingOrderID = _waitingOrders.back();
+        _waitingOrders.pop_back();
+
+        // 获取数据，清空并发送订单
+        map<int ,WAITING_DATA>::iterator i;
+        i = _waitingOrdersInfo.find(waitingOrderID);
+        if(i != maplive.end()) {
+            WAITING_DATA info = *i;
+            _waitingOrdersInfo.erase(i);
+            this->tradeAction(info.action, info.price, info.total, info.orderID);
+        }
+    }
+}
+
+void TradeStrategy::_clearTradingOrder(int orderID)
+{
+    map<int ,WAITING_DATA>::iterator i;
+    i = _waitingOrdersInfo.find(waitingOrderID);
+    if(i != maplive.end()) {
+        _waitingOrdersInfo.erase(i);
+    }
 }
 
 void TradeStrategy::_cancelBack(int orderID)
@@ -159,16 +166,18 @@ void TradeStrategy::_cancelBack(int orderID)
     info << endl;
     info.close();
 
-    if (_isInOrderIDList(_tradingOrderID, orderID)) {
+    if (_tradingOrderID[orderID] > 0) {
+        _tradingOrderID[orderID]--;
         _zhuijia(orderID);
+    } else {
+        _clearTradingOrder(orderID);
     }
 
 }
 
 void TradeStrategy::timeout(int orderID)
 {
-
-    if (_isInOrderIDList(_tradingOrderID, orderID)) {
+    if (_tradingOrderID[orderID] > 0) {
         ofstream info;
         Lib::initInfoLogHandle(_logPath, info);
         info << "TradeStrategySrv[timeout]";
@@ -182,6 +191,8 @@ void TradeStrategy::timeout(int orderID)
 
 void TradeStrategy::_cancelAction(int orderID)
 {
+    _tradingOrderID[orderID]++; // 自己撤单不计
+
     MSG_TO_TRADE msg = {0};
     msg.msgType = MSG_ORDER_CANCEL;
     msg.orderID = orderID;
