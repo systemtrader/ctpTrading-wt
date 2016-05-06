@@ -117,6 +117,9 @@ void KLineSrv::_closeBlock(TickData tick)
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "KLineSrv[close]";
-    info << "|index|" << blockData.index << endl;
+    info << "|index|" << blockData.index;
+    info << "|open|" << blockData.open;
+    info << "|close|" << blockData.close;
+    info << endl;
     info.close();
 }

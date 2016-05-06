@@ -71,24 +71,24 @@ void TradeLogic::_tick(TickData tick)
     }
     // 检查转换列表是否够用，够用删除响应的记录
     while (_transTypeList.size() > _peroid) {
-        int type = _transTypeList.back();
+        // int type = _transTypeList.back();
         _transTypeList.pop_back();
-        switch (type) {
-            case TRANS_TYPE_DOWN2DOWN:
-                _countDown2Down--;
-                break;
-            case TRANS_TYPE_UP2DOWN:
-                _countUp2Down--;
-                break;
-            case TRANS_TYPE_DOWN2UP:
-                _countDown2Up--;
-                break;
-            case TRANS_TYPE_UP2UP:
-                _countUp2Up--;
-                break;
-            default:
-                break;
-        }
+        // switch (type) {
+        //     case TRANS_TYPE_DOWN2DOWN:
+        //         _countDown2Down--;
+        //         break;
+        //     case TRANS_TYPE_UP2DOWN:
+        //         _countUp2Down--;
+        //         break;
+        //     case TRANS_TYPE_DOWN2UP:
+        //         _countDown2Up--;
+        //         break;
+        //     case TRANS_TYPE_UP2UP:
+        //         _countUp2Up--;
+        //         break;
+        //     default:
+        //         break;
+        // }
     }
 }
 
@@ -164,19 +164,23 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
             if (isUp) {
                 if (_pUp2Up > _threshold) { // 买开
                     _sendMsg(MSG_TRADE_BUYOPEN, tick.price);
+                    _setStatus(TRADE_STATUS_BUYOPENING);
                     break;
                 }
                 if (_pUp2Down > _threshold) { // 卖开
                     _sendMsg(MSG_TRADE_SELLOPEN, tick.price);
+                    _setStatus(TRADE_STATUS_SELLOPENING);
                     break;
                 }
             } else {
                 if (_pDown2Down > _threshold) { // 卖开
                     _sendMsg(MSG_TRADE_SELLOPEN, tick.price);
+                    _setStatus(TRADE_STATUS_SELLOPENING);
                     break;
                 }
                 if (_pDown2Up > _threshold) { // 买开
                     _sendMsg(MSG_TRADE_BUYOPEN, tick.price);
+                    _setStatus(TRADE_STATUS_BUYOPENING);
                     break;
                 }
             }
@@ -188,11 +192,13 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
             if (isUp) {
                 if (_pUp2Up <= _threshold) { // 不满足买开，平
                     _sendMsg(MSG_TRADE_SELLCLOSE, tick.bidPrice1);
+                    _setStatus(TRADE_STATUS_SELLCLOSING);
                     break;
                 }
             } else {
                 if (_pDown2Up <= _threshold) { // 不满足买开，平
                     _sendMsg(MSG_TRADE_SELLCLOSE, tick.bidPrice1);
+                    _setStatus(TRADE_STATUS_SELLCLOSING);
                     break;
                 }
             }
@@ -205,11 +211,13 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
             if (isUp) {
                 if (_pUp2Down <= _threshold) { // 卖开
                     _sendMsg(MSG_TRADE_BUYCLOSE, tick.askPrice1);
+                    _setStatus(TRADE_STATUS_BUYCLOSING);
                     break;
                 }
             } else {
                 if (_pDown2Down <= _threshold) { // 卖开
                     _sendMsg(MSG_TRADE_BUYCLOSE, tick.askPrice1);
+                    _setStatus(TRADE_STATUS_BUYCLOSING);
                     break;
                 }
             }
@@ -245,3 +253,9 @@ void TradeLogic::_sendMsg(int msgType, double price)
     info << "|kIndex|" << _kIndex << endl;
     info.close();
 }
+
+void TradeLogic::_setStatus(int status)
+{
+    _store->set("TRADE_STATUS", Lib::itos(status));
+}
+

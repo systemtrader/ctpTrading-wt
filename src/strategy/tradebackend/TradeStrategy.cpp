@@ -61,22 +61,22 @@ void TradeStrategy::tradeAction(int action, double price, int total, int orderID
     switch (action) {
 
         case TRADE_ACTION_BUYOPEN:
-            _setStatus(TRADE_STATUS_BUYOPENING);
+            // _setStatus(TRADE_STATUS_BUYOPENING);
             _sendMsg(price, total, true, true, orderID);
             break;
 
         case TRADE_ACTION_SELLOPEN:
-            _setStatus(TRADE_STATUS_SELLOPENING);
+            // _setStatus(TRADE_STATUS_SELLOPENING);
             _sendMsg(price, total, false, true, orderID);
             break;
 
         case TRADE_ACTION_BUYCLOSE:
-            _setStatus(TRADE_STATUS_BUYCLOSING);
+            // _setStatus(TRADE_STATUS_BUYCLOSING);
             _sendMsg(price, total, true, false, orderID);
             break;
 
         case TRADE_ACTION_SELLCLOSE:
-            _setStatus(TRADE_STATUS_SELLCLOSING);
+            // _setStatus(TRADE_STATUS_SELLCLOSING);
             _sendMsg(price, total, false, false, orderID);
             break;
 
