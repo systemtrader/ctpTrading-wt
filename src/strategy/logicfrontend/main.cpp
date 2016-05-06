@@ -51,9 +51,6 @@ bool action(long int msgType, const void * data)
         service->onKLineClose(block, ((MSG_TO_TRADE_LOGIC*)data)->tick);
     }
 
-    if (msgType == MSG_TICK) {
-        service->onTick(((MSG_TO_TRADE_LOGIC*)data)->tick);
-    }
     return true;
 }
 

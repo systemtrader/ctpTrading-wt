@@ -56,7 +56,6 @@ public:
     void init(); // 初始化历史K线
 
     void onKLineClose(KLineBlock, TickData);
-    void onTick(TickData);
 };
 
 #endif

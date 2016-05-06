@@ -71,30 +71,25 @@ void TradeLogic::_tick(TickData tick)
     }
     // 检查转换列表是否够用，够用删除响应的记录
     while (_transTypeList.size() > _peroid) {
-        // int type = _transTypeList.back();
+        int type = _transTypeList.back();
         _transTypeList.pop_back();
-        // switch (type) {
-        //     case TRANS_TYPE_DOWN2DOWN:
-        //         _countDown2Down--;
-        //         break;
-        //     case TRANS_TYPE_UP2DOWN:
-        //         _countUp2Down--;
-        //         break;
-        //     case TRANS_TYPE_DOWN2UP:
-        //         _countDown2Up--;
-        //         break;
-        //     case TRANS_TYPE_UP2UP:
-        //         _countUp2Up--;
-        //         break;
-        //     default:
-        //         break;
-        // }
+        switch (type) {
+            case TRANS_TYPE_DOWN2DOWN:
+                _countDown2Down--;
+                break;
+            case TRANS_TYPE_UP2DOWN:
+                _countUp2Down--;
+                break;
+            case TRANS_TYPE_DOWN2UP:
+                _countDown2Up--;
+                break;
+            case TRANS_TYPE_UP2UP:
+                _countUp2Up--;
+                break;
+            default:
+                break;
+        }
     }
-}
-
-void TradeLogic::onTick(TickData tick)
-{
-    _tick(tick);
 }
 
 void TradeLogic::_calculateUp()
@@ -136,7 +131,10 @@ void TradeLogic::_calculateDown()
 
 void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
 {
-    if (_transTypeList.size() < _peroid) return; // 计算转义概率条件不足，不做操作
+    if (_transTypeList.size() < _peroid) {
+        _tick(tick);
+        return; // 计算转义概率条件不足，不做操作
+    }
     _kIndex = block.getIndex();
     TickData last = _tickGroup.front();
     bool isUp = true;

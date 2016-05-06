@@ -39,21 +39,10 @@ void KLineSrv::onTickCome(TickData tick)
         _updateBlock(tick);
         if (_checkBlockClose(tick)) {
             _closeBlock(tick);
-        } else {
-            _transTick(tick);
         }
     } else {
         _initBlock(tick);
     }
-}
-
-void KLineSrv::_transTick(TickData tick)
-{
-    // 发送消息
-    MSG_TO_TRADE_LOGIC msg = {0};
-    msg.msgType = MSG_TICK;
-    msg.tick = tick;
-    _tradeLogicSrvClient->send((void *)&msg);
 }
 
 bool KLineSrv::_isBlockExist()
