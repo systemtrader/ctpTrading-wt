@@ -46,27 +46,28 @@ bool action(long int msgType, const void * data)
     // cout << "|PRICE|" << msg.price << "|KINDEX|"  << msg.kIndex << endl;
     // 下单操作
     if (msgType == MSG_TRADE_BUYOPEN) {
-        service->tradeAction(TRADE_ACTION_BUYOPEN, msg.price, 1, msg.kIndex);
+        service->tradeAction(TRADE_ACTION_BUYOPEN, msg.price, 1, msg.kIndex, msg.hasNext);
     }
     if (msgType == MSG_TRADE_SELLOPEN) {
-        service->tradeAction(TRADE_ACTION_SELLOPEN, msg.price, 1, msg.kIndex);
+        service->tradeAction(TRADE_ACTION_SELLOPEN, msg.price, 1, msg.kIndex, msg.hasNext);
     }
     if (msgType == MSG_TRADE_SELLCLOSE) {
-        service->tradeAction(TRADE_ACTION_SELLCLOSE, msg.price, 1, msg.kIndex);
+        service->tradeAction(TRADE_ACTION_SELLCLOSE, msg.price, 1, msg.kIndex, msg.hasNext);
     }
     if (msgType == MSG_TRADE_BUYCLOSE) {
-        service->tradeAction(TRADE_ACTION_BUYCLOSE, msg.price, 1, msg.kIndex);
+        service->tradeAction(TRADE_ACTION_BUYCLOSE, msg.price, 1, msg.kIndex, msg.hasNext);
     }
-    if (msgType == MSG_TRADE_CANCEL) {
-        service->tradeAction(TRADE_ACTION_CANCEL, msg.price, 1, msg.kIndex);
-    }
+
+    // if (msgType == MSG_TRADE_CANCEL) {
+    //     service->tradeAction(TRADE_ACTION_CANCEL, msg.price, 1, msg.kIndex);
+    // }
 
     // 下单回馈
     if (msgType == MSG_TRADE_BACK_TRADED) {
-        service->onTradeMsgBack(true, msg.kIndex);
+        service->onSuccess(msg.kIndex);
     }
     if (msgType == MSG_TRADE_BACK_CANCELED) {
-        service->onTradeMsgBack(false, msg.kIndex);
+        service->onCancel(msg.kIndex);
     }
     return true;
 }

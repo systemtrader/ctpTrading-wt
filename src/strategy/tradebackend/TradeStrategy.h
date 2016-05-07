@@ -10,14 +10,14 @@
 #include <map>
 #include <list>
 
-typedef struct waiting_data
+typedef struct trade_data
 {
     int action;
-    double price;
-    int total;
-    int orderID;
+    int hasNext;
+    int tryTimes;
+    int kIndex;
 
-} WAITING_DATA;
+} TRADE_DATA;
 
 class TradeStrategy
 {
@@ -26,18 +26,15 @@ private:
     Redis * _store;
     QClient * _tradeSrvClient;
     string _logPath;
+    int _orderID;
 
-    map<int, int> _tradingOrders;
-    list<int> _waitingOrders;
-    map<int, WAITING_DATA> _waitingOrdersInfo;
+    std::map<int, TRADE_DATA> _tradingInfo;
+    void _removeTradeInfo(int);
+    bool _isTrading(int);
 
-    void _cancelBack(int);
-    void _successBack(int);
-
+    void _initTrade(int, int, int); // 初始化交易
     void _zhuijia(int); // 追价
     void _cancel(int); // 撤销
-
-    void _clearTradingOrder(int);
 
     int _getStatus();
     void _setStatus(int);
@@ -48,8 +45,9 @@ public:
     TradeStrategy(int, string, int);
     ~TradeStrategy();
 
-    void tradeAction(int, double, int, int);
-    void onTradeMsgBack(bool, int);
+    void tradeAction(int, double, int, int, int);
+    void onSuccess(int);
+    void onCancel(int);
     void timeout(int);
 
 };

@@ -6,7 +6,6 @@ TradeLogic::TradeLogic(int peroid, double threshold,
     _peroid = peroid;
     _threshold = threshold;
 
-
     _logPath = logPath;
     _isHistoryBack = isHistoryBack;
 
@@ -69,7 +68,7 @@ void TradeLogic::_tick(TickData tick)
             _transTypeList.push_front(TRANS_TYPE_UP2DOWN);
         }
     }
-    // 检查转换列表是否够用，够用删除响应的记录
+    // 检查转换列表是否够用，够用删除相应的记录
     while (_transTypeList.size() > _peroid) {
         int type = _transTypeList.back();
         _transTypeList.pop_back();
@@ -94,11 +93,9 @@ void TradeLogic::_tick(TickData tick)
 
 void TradeLogic::_calculateUp()
 {
-    if (_countDown2Up + _countUp2Up > 0) {
-        _pUp2Up = (double)_countUp2Up / ((double)_countUp2Up + (double)_countDown2Up);
-    }
-    if (_countUp2Down + _countDown2Down > 0) {
-        _pUp2Down = (double)_countUp2Down / ((double)_countUp2Down + (double)_countDown2Down);
+    if (_countUp2Down + _countUp2Up > 0) {
+        _pUp2Up = (double)_countUp2Up / ((double)_countUp2Up + (double)_countUp2Down);
+        _pUp2Down = (double)_countUp2Down / ((double)_countUp2Up + (double)_countUp2Down);
     }
     //log
     ofstream info;
@@ -112,11 +109,9 @@ void TradeLogic::_calculateUp()
 
 void TradeLogic::_calculateDown()
 {
-    if (_countDown2Up + _countUp2Up) {
-        _pDown2Up = (double)_countDown2Up / ((double)_countDown2Up + (double)_countUp2Up);
-    }
-    if (_countDown2Down + _countUp2Down) {
-        _pDown2Down = (double)_countDown2Down / ((double)_countDown2Down + (double)_countUp2Down);
+    if (_countDown2Up + _countDown2Down > 0) {
+        _pDown2Up = (double)_countDown2Up / ((double)_countDown2Up + (double)_countDown2Down);
+        _pDown2Down = (double)_countDown2Down / ((double)_countDown2Up + (double)_countDown2Down);
     }
     //log
     ofstream info;
@@ -153,6 +148,8 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
     info << "|status|" << status;
     info << endl;
     info.close();
+
+    bool singleAction = true;
     switch (status) {
 
         case TRADE_STATUS_NOTHING: // 空仓，判断是否开仓
@@ -160,20 +157,16 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
             if (isUp) {
                 if (_pUp2Up > _threshold) { // 买开
                     _sendMsg(MSG_TRADE_BUYOPEN, tick.price);
-                    break;
                 }
                 if (_pUp2Down > _threshold) { // 卖开
                     _sendMsg(MSG_TRADE_SELLOPEN, tick.price);
-                    break;
                 }
             } else {
                 if (_pDown2Down > _threshold) { // 卖开
                     _sendMsg(MSG_TRADE_SELLOPEN, tick.price);
-                    break;
                 }
                 if (_pDown2Up > _threshold) { // 买开
                     _sendMsg(MSG_TRADE_BUYOPEN, tick.price);
-                    break;
                 }
             }
             break;
@@ -181,15 +174,31 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
         case TRADE_STATUS_BUYOPENED:
 
             if (isUp) {
-                if (_pUp2Up <= _threshold) { // 不满足买开，平
-                    _sendMsg(MSG_TRADE_SELLCLOSE, tick.bidPrice1);
-                    break;
+                if (_pUp2Down > _threshold) {
+                    singleAction = false;
                 }
+                if (_pUp2Up <= _threshold ) { // 不满足买开，平仓
+                    if (singleAction) {
+                        _sendMsg(MSG_TRADE_SELLCLOSE, tick.bidPrice1);
+                    } else {
+                        _sendMsg(MSG_TRADE_SELLCLOSE, tick.bidPrice1, 1);
+                    }
+                }
+                if (!singleAction)
+                    _sendMsg(MSG_TRADE_SELLOPEN, tick.price);
             } else {
-                if (_pDown2Up <= _threshold) { // 不满足买开，平
-                    _sendMsg(MSG_TRADE_SELLCLOSE, tick.bidPrice1);
-                    break;
+                if (_pDown2Down > _threshold) {
+                    singleAction = false;
                 }
+                if (_pDown2Up <= _threshold) { // 不满足买开，平
+                    if (singleAction) {
+                        _sendMsg(MSG_TRADE_SELLCLOSE, tick.bidPrice1);
+                    } else {
+                        _sendMsg(MSG_TRADE_SELLCLOSE, tick.bidPrice1, 1);
+                    }
+                }
+                if (!singleAction)
+                    _sendMsg(MSG_TRADE_SELLOPEN, tick.price);
             }
 
             break;
@@ -197,17 +206,32 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
         case TRADE_STATUS_SELLOPENED:
 
             if (isUp) {
+                if (_pUp2Up > _threshold) {
+                    singleAction = false;
+                }
                 if (_pUp2Down <= _threshold) { // 卖开
-                    _sendMsg(MSG_TRADE_BUYCLOSE, tick.askPrice1);
-                    break;
+                    if (singleAction) {
+                        _sendMsg(MSG_TRADE_BUYCLOSE, tick.askPrice1);
+                    } else {
+                        _sendMsg(MSG_TRADE_BUYCLOSE, tick.askPrice1, 1);
+                    }
                 }
+                if (!singleAction)
+                    _sendMsg(MSG_TRADE_BUYOPEN, tick.price);
             } else {
-                if (_pDown2Down <= _threshold) { // 卖开
-                    _sendMsg(MSG_TRADE_BUYCLOSE, tick.askPrice1);
-                    break;
+                if (_pDown2Up > _threshold) {
+                    singleAction = false;
                 }
+                if (_pDown2Down <= _threshold) { // 卖开
+                    if (singleAction) {
+                        _sendMsg(MSG_TRADE_BUYCLOSE, tick.askPrice1);
+                    } else {
+                        _sendMsg(MSG_TRADE_BUYCLOSE, tick.askPrice1, 1);
+                    }
+                }
+                if (!singleAction)
+                    _sendMsg(MSG_TRADE_BUYOPEN, tick.price);
             }
-
             break;
 
         // 简化模型非稳定状态放弃处理
@@ -227,12 +251,13 @@ int TradeLogic::_getStatus()
     return Lib::stoi(status);
 }
 
-void TradeLogic::_sendMsg(int msgType, double price)
+void TradeLogic::_sendMsg(int msgType, double price, int hasNext)
 {
     MSG_TO_TRADE_STRATEGY msg = {0};
     msg.msgType = msgType;
     msg.price = price;
     msg.kIndex = _kIndex;
+    msg.hasNext = hasNext;
     _tradeStrategySrvClient->send((void *)&msg);
 
     //log

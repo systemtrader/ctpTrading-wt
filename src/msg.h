@@ -40,6 +40,7 @@ typedef struct msg_trade_data
     long int msgType;
     double price;
     int kIndex;
+    int hasNext;
 
 } MSG_TO_TRADE_STRATEGY;
 
