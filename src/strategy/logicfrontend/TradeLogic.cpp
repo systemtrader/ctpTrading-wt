@@ -1,7 +1,8 @@
 #include "TradeLogic.h"
 
 TradeLogic::TradeLogic(int peroid, double threshold,
-    int serviceID, string logPath, int isHistoryBack, int db)
+    int serviceID, string logPath, int isHistoryBack, int db,
+    string stopTradeTime)
 {
     _peroid = peroid;
     _threshold = threshold;
@@ -10,6 +11,19 @@ TradeLogic::TradeLogic(int peroid, double threshold,
     _isHistoryBack = isHistoryBack;
 
     _pUp2Up = _pUp2Down = _pDown2Up = _pDown2Down = 0;
+
+    std::vector<string> times = Lib::split(stopTradeTime, "/");
+    std::vector<string> hm;
+    int i;
+
+    for (i = 0; i < times.size(); ++i)
+    {
+        TRADE_HM tmp = {0};
+        hm = Lib::split(times[i], ":");
+        tmp.hour = Lib::stoi(hm[0]);
+        tmp.min = Lib::stoi(hm[1]);
+        _timeHM.push_back(tmp);
+    }
 
     _store = new Redis("127.0.0.1", 6379, db);
     _tradeStrategySrvClient = new QClient(serviceID, sizeof(MSG_TO_TRADE_STRATEGY));
@@ -253,6 +267,15 @@ int TradeLogic::_getStatus()
 
 void TradeLogic::_sendMsg(int msgType, double price, int hasNext)
 {
+    string now = Lib::getDate("%H:%M");
+    std::vector<string> nowHM = Lib::split(now, ":");
+    for (int i = 0; i < _timeHM; ++i)
+    {
+        if (_timeHM[i].hour == nowHM[0] && nowHM[1] > _timeHM[i].min) {
+            return;
+        }
+    }
+
     MSG_TO_TRADE_STRATEGY msg = {0};
     msg.msgType = msgType;
     msg.price = price;

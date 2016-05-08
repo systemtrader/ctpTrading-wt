@@ -20,7 +20,7 @@ class Order
             if (count($data) > 1) {
                 $type = $data[0];
                 if ($type == "trade") {
-                    $kIndex = $data[1];
+                    $orderID = $data[1];
                     $frontID = $data[2];
                     $sessionID = $data[3];
                     $orderRef = $data[4];
@@ -29,8 +29,8 @@ class Order
                     $isOpen = $data[7];
                     $time = str_replace('-', ' ', $data[8]);
                     list($date, $usec) = explode('.', $time);
-                    $sql = "INSERT INTO `order` (`k_index`, `front_id`, `session_id`, `order_ref`, `price`, `is_buy`, `is_open`, `start_time`, `start_usec`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                    $params = array($kIndex, $frontID, $sessionID, $orderRef, $price, $isBuy, $isOpen, $date, $usec);
+                    $sql = "INSERT INTO `order` (`order_id`, `front_id`, `session_id`, `order_ref`, `price`, `is_buy`, `is_open`, `start_time`, `start_usec`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    $params = array($orderID, $frontID, $sessionID, $orderRef, $price, $isBuy, $isOpen, $date, $usec);
                     $this->consumer->insertDB($sql, $params);
                 }
                 if ($type == "traded") {
@@ -60,6 +60,13 @@ class Order
                     $sql = "UPDATE `order` SET `first_time` = ?, `first_usec` = ? WHERE `order_ref` = ? AND `front_id` = ? AND `session_id` = ? AND `first_time` = 0";
                     $params = array($date, $usec, $orderRef, $frontID, $sessionID);
                     $this->consumer->updateDB($sql, $params);
+                }
+                if ($type == "klineorder") {
+                    $kIndex = $data[1];
+                    $orderID = $data[2];
+                    $sql = "INSERT INTO `markov_kline_order` (`order_id`, `kindex`) VALUES (?, ?)";
+                    $params = [$orderID, $kIndex];
+                    $this->consumer->insertDB($sql, $params);
                 }
                 echo ".";
             } else {

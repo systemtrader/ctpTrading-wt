@@ -18,6 +18,8 @@ int main(int argc, char const *argv[])
 
     string logPath = getOptionToString("log_path");
 
+    string stopTradeTime = getOptionToString("stop_trade_time");
+
     int isDev = getOptionToInt("is_dev");
     int db;
     if (isDev) {
@@ -26,7 +28,7 @@ int main(int argc, char const *argv[])
         db = getOptionToInt("rds_db_online");
     }
 
-    service = new TradeLogic(peroid, Lib::stod(threshold), tradeStrategySrvID, logPath, isHistoryBack, db);
+    service = new TradeLogic(peroid, Lib::stod(threshold), tradeStrategySrvID, logPath, isHistoryBack, db, stopTradeTime);
     service->init();
 
     // 服务化

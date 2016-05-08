@@ -12,6 +12,12 @@
 #define TRANS_TYPE_DOWN2UP   2
 #define TRANS_TYPE_DOWN2DOWN 3
 
+typedef struct trade_hm
+{
+    int hour;
+    int min;
+} TRADE_HM;
+
 class TradeLogic
 {
 private:
@@ -20,6 +26,9 @@ private:
     Redis * _store;
     QClient * _tradeStrategySrvClient;
     string _logPath;
+
+    std::vector<TRADE_HM> _timeHM;
+
 
     // 算法参数
     int _peroid; // 周期
@@ -49,7 +58,7 @@ private:
     void _sendMsg(int, double = 0, int = 0);
 
 public:
-    TradeLogic(int, double, int, string, int, int);
+    TradeLogic(int, double, int, string, int, int, string);
     ~TradeLogic();
 
     void init(); // 初始化历史K线

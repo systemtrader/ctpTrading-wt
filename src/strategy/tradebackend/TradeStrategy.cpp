@@ -63,6 +63,10 @@ void TradeStrategy::_initTrade(int action, int kIndex, int hasNext)
     info << "|orderID|" << _orderID;
     info << endl;
     info.close();
+
+    // save data
+    string data = "klineorder_" + Lib::itos(kIndex) + "_" + Lib::itos(_orderID);
+    _store->push("ORDER_LOGS", data);
 }
 
 void TradeStrategy::_removeTradeInfo(int orderID)

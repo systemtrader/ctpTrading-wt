@@ -15,6 +15,12 @@ CREATE TABLE `kline` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB CHARSET=utf8;
 
+CREATE TABLE `markov_kline_order` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `order_id` int(11) NOT NULL DEFAULT 0 COMMENT '下单模块生成的自增id',
+  `kindex` int(11) NOT NULL DEFAULT 0 COMMENT 'K线索引',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB CHARSET=utf8;
 
 CREATE TABLE `tick` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -31,7 +37,7 @@ CREATE TABLE `tick` (
 
 CREATE TABLE `order` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `k_index` int(11) NOT NULL DEFAULT 0,
+  `order_id` int(11) NOT NULL DEFAULT 0,
   `front_id` int(11) NOT NULL DEFAULT 0,
   `session_id` int(11) NOT NULL DEFAULT 0,
   `order_ref` int(11) NOT NULL DEFAULT 0,

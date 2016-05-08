@@ -59,8 +59,11 @@ void TraderSpi::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInves
         CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
     Lib::sysErrLog(_logPath, "TradeSrv[onPosition]", pRspInfo, nRequestID, bIsLast);
+
+    if (!pInvestorPosition) {
+        _service->getPosition();
+    }
     _service->onPositionRtn(pInvestorPosition);
-    // _service->getPositionDetail();
 
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
@@ -74,47 +77,6 @@ void TraderSpi::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInves
         info << "|OpenVolume|" << pInvestorPosition->OpenVolume;
         info << "|CloseVolume|" << pInvestorPosition->CloseVolume;
         info << "|TodayPosition|" << pInvestorPosition->TodayPosition;
-    }
-    info << endl;
-    info.close();
-}
-
-void TraderSpi::OnRspQryInvestorPositionDetail(CThostFtdcInvestorPositionDetailField *pInvestorPositionDetail,
-        CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
-{
-    Lib::sysErrLog(_logPath, "TradeSrv[onPositionDetail]", pRspInfo, nRequestID, bIsLast);
-    _service->onPositionDetailRtn(pInvestorPositionDetail);
-
-    ofstream info;
-    Lib::initInfoLogHandle(_logPath, info);
-    info << "TradeSrv[onPosition]";
-    if (pInvestorPositionDetail) {
-        info << "|InstrumentID|" << pInvestorPositionDetail->InstrumentID;
-        info << "|BrokerID|" << pInvestorPositionDetail->BrokerID;
-        info << "|InvestorID|" << pInvestorPositionDetail->InvestorID;
-        info << "|HedgeFlag|" << pInvestorPositionDetail->HedgeFlag;
-        info << "|Direction|" << pInvestorPositionDetail->Direction;
-        info << "|OpenDate|" << pInvestorPositionDetail->OpenDate;
-        info << "|TradeID|" << pInvestorPositionDetail->TradeID;
-        info << "|Volume|" << pInvestorPositionDetail->Volume;
-        info << "|OpenPrice|" << pInvestorPositionDetail->OpenPrice;
-        info << "|TradingDay|" << pInvestorPositionDetail->TradingDay;
-        info << "|SettlementID|" << pInvestorPositionDetail->SettlementID;
-        info << "|TradeType|" << pInvestorPositionDetail->TradeType;
-        info << "|CombInstrumentID|" << pInvestorPositionDetail->CombInstrumentID;
-        info << "|ExchangeID|" << pInvestorPositionDetail->ExchangeID;
-        info << "|CloseProfitByDate|" << pInvestorPositionDetail->CloseProfitByDate;
-        info << "|CloseProfitByTrade|" << pInvestorPositionDetail->CloseProfitByTrade;
-        info << "|PositionProfitByDate|" << pInvestorPositionDetail->PositionProfitByDate;
-        info << "|PositionProfitByTrade|" << pInvestorPositionDetail->PositionProfitByTrade;
-        info << "|Margin|" << pInvestorPositionDetail->Margin;
-        info << "|ExchMargin|" << pInvestorPositionDetail->ExchMargin;
-        info << "|MarginRateByMoney|" << pInvestorPositionDetail->MarginRateByMoney;
-        info << "|MarginRateByVolume|" << pInvestorPositionDetail->MarginRateByVolume;
-        info << "|LastSettlementPrice|" << pInvestorPositionDetail->LastSettlementPrice;
-        info << "|SettlementPrice|" << pInvestorPositionDetail->SettlementPrice;
-        info << "|CloseVolume|" << pInvestorPositionDetail->CloseVolume;
-        info << "|CloseAmount|" << pInvestorPositionDetail->CloseAmount;
     }
     info << endl;
     info.close();
