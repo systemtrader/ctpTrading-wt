@@ -269,9 +269,9 @@ void TradeLogic::_sendMsg(int msgType, double price, int hasNext)
 {
     string now = Lib::getDate("%H:%M");
     std::vector<string> nowHM = Lib::split(now, ":");
-    for (int i = 0; i < _timeHM; ++i)
+    for (int i = 0; i < _timeHM.size(); ++i)
     {
-        if (_timeHM[i].hour == nowHM[0] && nowHM[1] > _timeHM[i].min) {
+        if (_timeHM[i].hour == Lib::stoi(nowHM[0]) && Lib::stoi(nowHM[1]) > _timeHM[i].min) {
             return;
         }
     }
