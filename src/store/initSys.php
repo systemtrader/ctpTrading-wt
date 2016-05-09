@@ -17,6 +17,7 @@ class InitSys
             $this->rdsdb = $res['rds_db_online'];
         }
         $this->iIDs = explode('/', $res['instrumnet_id']);
+        $this->peroid = $res['peroid'];
     }
 
     public function run()
@@ -27,8 +28,9 @@ class InitSys
         $rds->select($this->rdsdb);
 
         foreach ($this->iIDs as $iID) {
-            $this->initKLine($iID, $rds, $db);
-            $this->initTradeStatus($iID, $rds);
+            // $this->initKLine($iID, $rds, $db);
+            // $this->initTradeStatus($iID, $rds);
+            $this->initKLineTick($iID, $rds, $db);
         }
     }
 
@@ -85,6 +87,24 @@ class InitSys
     private function initTradeStatus($iID, $rds)
     {
         $rds->set("TRADE_STATUS_" . $iID, 0);
+    }
+
+    private function initKLineTick($iID, $rds, $db)
+    {
+        $key = "MARKOV_HISTORY_KLINE_TICK_" . $iID;
+        var_dump($key);
+        $rds->set($key, "");
+        $cnt = $this->peroid + 1;
+        $sql = "SELECT `close_price` FROM `kline` WHERE `instrumnet_id` = '{$iID}' ORDER BY `id` DESC LIMIT {$cnt}";
+        $st = $db->prepare($sql);
+        $st->execute([]);
+        $res = $st->fetchAll(PDO::FETCH_ASSOC);
+        $tick = [];
+        foreach ($res as $value) {
+            array_unshift($tick, $value['close_price']);
+        }
+        $dataStr = implode("_", $tick);
+        echo $rds->set($key, $dataStr);
     }
 }
 

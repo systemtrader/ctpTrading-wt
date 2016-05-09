@@ -22,13 +22,12 @@ class TradeLogic
 {
 private:
 
-    int _isHistoryBack;
     Redis * _store;
     QClient * _tradeStrategySrvClient;
     string _logPath;
 
-    std::vector<TRADE_HM> _timeHM;
-
+    string _instrumnetID; // 合约代码
+    std::vector<TRADE_HM> _timeHM; // 停止交易时间
 
     // 算法参数
     int _peroid; // 周期
@@ -58,7 +57,7 @@ private:
     void _sendMsg(int, double = 0, int = 0);
 
 public:
-    TradeLogic(int, double, int, string, int, int, string);
+    TradeLogic(int, double, int, string, int, string, string);
     ~TradeLogic();
 
     void init(); // 初始化历史K线

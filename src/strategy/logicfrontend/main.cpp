@@ -1,6 +1,7 @@
 #include "TradeLogic.h"
+#include <map>
 
-TradeLogic * service;
+std::map<string, TradeLogic* > services;
 
 bool action(long int, const void *);
 
@@ -28,8 +29,16 @@ int main(int argc, char const *argv[])
         db = getOptionToInt("rds_db_online");
     }
 
-    service = new TradeLogic(peroid, Lib::stod(threshold), tradeStrategySrvID, logPath, isHistoryBack, db, stopTradeTime);
-    service->init();
+    string iIDs = getOptionToString("instrumnet_id");
+    std::vector<string> instrumnetIDs = Lib::split(iIDs, "/");
+
+    for (int i = 0; i < instrumnetIDs.size(); ++i)
+    {
+        TradeLogic * tmp = new TradeLogic(peroid, Lib::stod(threshold), tradeStrategySrvID, 
+            logPath, db, stopTradeTime, instrumnetIDs[i]);
+        tmp->init();
+        services[instrumnetIDs[i]] = tmp;
+    }
 
     // 服务化
     QService Qsrv(tradeLogicSrvID, sizeof(MSG_TO_TRADE_LOGIC));
@@ -44,13 +53,17 @@ bool action(long int msgType, const void * data)
 {
     // cout << "MSG:" << msgType << endl;
     if (msgType == MSG_SHUTDOWN) {
-        if (service) delete service;
+        map<string, TradeLogic*>::iterator it;
+        for(it = services.begin(); it != services.end(); ++it) {
+            delete it->second;
+        }
         return false;
     }
 
     if (msgType == MSG_KLINE_CLOSE) {
         KLineBlock block = KLineBlock::makeViaData(((MSG_TO_TRADE_LOGIC*)data)->block);
-        service->onKLineClose(block, ((MSG_TO_TRADE_LOGIC*)data)->tick);
+        TickData tick = ((MSG_TO_TRADE_LOGIC*)data)->tick;
+        services[string(tick.instrumnetID)]->onKLineClose(block, tick);
     }
 
     return true;

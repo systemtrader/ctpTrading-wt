@@ -1,22 +1,24 @@
 #include "TradeLogic.h"
 
 TradeLogic::TradeLogic(int peroid, double threshold,
-    int serviceID, string logPath, int isHistoryBack, int db,
-    string stopTradeTime)
+    int serviceID, string logPath, int db,
+    string stopTradeTime, string instrumnetID)
 {
+    _instrumnetID = instrumnetID;
+
     _peroid = peroid;
     _threshold = threshold;
 
     _logPath = logPath;
-    _isHistoryBack = isHistoryBack;
 
+    // 初始化模型参数
     _pUp2Up = _pUp2Down = _pDown2Up = _pDown2Down = 0;
     _countUp2Up = _countUp2Down = _countDown2Up = _countDown2Down = 0;
 
+    // 初始化停止交易时间
     std::vector<string> times = Lib::split(stopTradeTime, "/");
     std::vector<string> hm;
     int i;
-
     for (i = 0; i < times.size(); ++i)
     {
         TRADE_HM tmp = {0};
@@ -40,7 +42,14 @@ TradeLogic::~TradeLogic()
 
 void TradeLogic::init()
 {
-
+    string tickData = _store->get("MARKOV_HISTORY_KLINE_TICK_" + _instrumnetID);
+    std::vector<string> ticks = Lib::split(tickData, "_");
+    TickData tick = {0};
+    for (int i = 0; i < ticks.size(); ++i)
+    {
+        tick.price = Lib::stod(ticks[i]);
+        _tick(tick);
+    }
 }
 
 void TradeLogic::_tick(TickData tick)
@@ -115,6 +124,7 @@ void TradeLogic::_calculateUp()
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeLogicSrv[calculateUp]";
+    info << "|iID|" << _instrumnetID;
     info << "|pUp2Up|" << _pUp2Up;
     info << "|pUp2Down|" << _pUp2Down;
     info << "|kIndex|" << _kIndex << endl;
@@ -131,6 +141,7 @@ void TradeLogic::_calculateDown()
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeLogicSrv[calculateDown]";
+    info << "|iID|" << _instrumnetID;
     info << "|pDown2Up|" << _pDown2Up;
     info << "|pDown2Down|" << _pDown2Down;
     info << "|kIndex|" << _kIndex;
@@ -280,13 +291,16 @@ void TradeLogic::_sendMsg(int msgType, double price, int hasNext)
     msg.msgType = msgType;
     msg.price = price;
     msg.kIndex = _kIndex;
+    msg.total = 1;
     msg.hasNext = hasNext;
+    strcpy(msg.instrumnetID, Lib::stoc(_instrumnetID));
     _tradeStrategySrvClient->send((void *)&msg);
 
     //log
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeLogicSrv[sendMsg]";
+    info << "|iID|" << _instrumnetID;
     info << "|action|" << msgType;
     info << "|price|" << price;
     info << "|kIndex|" << _kIndex << endl;

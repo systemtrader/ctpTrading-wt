@@ -39,8 +39,10 @@ typedef struct msg_trade_data
 {
     long int msgType;
     double price;
+    int total;
     int kIndex;
     int hasNext;
+    char instrumnetID[7];
 
 } MSG_TO_TRADE_STRATEGY;
 
