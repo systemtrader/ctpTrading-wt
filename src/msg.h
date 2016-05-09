@@ -41,6 +41,7 @@ typedef struct msg_trade_data
     double price;
     int total;
     int kIndex;
+    int orderID;
     int hasNext;
     char instrumnetID[7];
 

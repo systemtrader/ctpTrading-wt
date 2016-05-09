@@ -92,7 +92,6 @@ class InitSys
     private function initKLineTick($iID, $rds, $db)
     {
         $key = "MARKOV_HISTORY_KLINE_TICK_" . $iID;
-        var_dump($key);
         $rds->set($key, "");
         $cnt = $this->peroid + 1;
         $sql = "SELECT `close_price` FROM `kline` WHERE `instrumnet_id` = '{$iID}' ORDER BY `id` DESC LIMIT {$cnt}";
@@ -104,7 +103,7 @@ class InitSys
             array_unshift($tick, $value['close_price']);
         }
         $dataStr = implode("_", $tick);
-        echo $rds->set($key, $dataStr);
+        $rds->set($key, $dataStr);
     }
 }
 

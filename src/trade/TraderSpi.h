@@ -37,8 +37,6 @@ public:
         CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
     void OnRspOrderAction(CThostFtdcInputOrderActionField *pInputOrderAction,
         CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
-    void OnRspQryInvestorPositionDetail(CThostFtdcInvestorPositionDetailField *pInvestorPositionDetail,
-        CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 
 };
 

@@ -45,7 +45,7 @@ TradeStrategy::~TradeStrategy()
     cout << "~TradeStrategy" << endl;
 }
 
-void TradeStrategy::_initTrade(int action, int kIndex, int hasNext)
+void TradeStrategy::_initTrade(int action, int kIndex, int hasNext, string instrumnetID)
 {
     _orderID++;
     TRADE_DATA order = {0};
@@ -53,19 +53,21 @@ void TradeStrategy::_initTrade(int action, int kIndex, int hasNext)
     order.hasNext = hasNext;
     order.tryTimes = 5;
     order.kIndex = kIndex;
+    order.instrumnetID = instrumnetID;
     _tradingInfo[_orderID] = order;
 
     // log
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeStrategySrv[initTrade]";
+    info << "|iID|" << instrumnetID;
     info << "|kIndex|" << kIndex;
     info << "|orderID|" << _orderID;
     info << endl;
     info.close();
 
     // save data
-    string data = "klineorder_" + Lib::itos(kIndex) + "_" + Lib::itos(_orderID);
+    string data = "klineorder_" + Lib::itos(kIndex) + "_" + Lib::itos(_orderID) + "_" + instrumnetID;
     _store->push("ORDER_LOGS", data);
 }
 
@@ -96,6 +98,7 @@ void TradeStrategy::_removeTradeInfo(int orderID)
         ofstream info;
         Lib::initInfoLogHandle(_logPath, info);
         info << "TradeStrategySrv[removeTrade]";
+        info << "|iID|" << order.instrumnetID;
         info << "|kIndex|" << order.kIndex;
         info << "|orderID|" << orderID;
         info << "|status|" << status;
@@ -111,9 +114,9 @@ bool TradeStrategy::_isTrading(int orderID)
     return i == _tradingInfo.end() ? false : true;
 }
 
-void TradeStrategy::tradeAction(int action, double price, int total, int kIndex, int hasNext)
+void TradeStrategy::tradeAction(int action, double price, int total, int kIndex, int hasNext, string instrumnetID)
 {
-    _initTrade(action, kIndex, hasNext);
+    _initTrade(action, kIndex, hasNext, instrumnetID);
     switch (action) {
 
         case TRADE_ACTION_BUYOPEN:
@@ -170,6 +173,7 @@ void TradeStrategy::onSuccess(int orderID)
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeStrategySrv[successBack]";
+    info << "|iID|" << order.instrumnetID;
     info << "|kIndex|" << order.kIndex;
     info << "|orderID|" << orderID;
     info << "|status|" << status;
@@ -185,6 +189,7 @@ void TradeStrategy::onCancel(int orderID)
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeStrategySrv[cancelBack]";
+    info << "|iID|" << order.instrumnetID;
     info << "|kIndex|" << order.kIndex;
     info << "|orderID|" << orderID;
     info << endl;
@@ -203,6 +208,7 @@ void TradeStrategy::timeout(int orderID)
         ofstream info;
         Lib::initInfoLogHandle(_logPath, info);
         info << "TradeStrategySrv[timeout]";
+        info << "|iID|" << order.instrumnetID;
         info << "|kIndex|" << order.kIndex;
         info << "|orderID|" << orderID;
         info << endl;
@@ -219,6 +225,7 @@ void TradeStrategy::_cancel(int orderID)
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeStrategySrv[cancel]";
+    info << "|iID|" << order.instrumnetID;
     info << "|kIndex|" << order.kIndex;
     info << "|orderID|" << orderID;
     info << endl;
@@ -246,6 +253,7 @@ void TradeStrategy::_zhuijia(int orderID)
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeStrategySrv[zhuijia]";
+    info << "|iID|" << order.instrumnetID;
     info << "|kIndex|" << order.kIndex;
     info << "|orderID|" << orderID;
     info << endl;
@@ -299,6 +307,7 @@ void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen, i
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeStrategySrv[sendOrder]";
+    info << "|iID|" << order.instrumnetID;
     info << "|price|" << price;
     info << "|total|" << total;
     info << "|isBuy|" << isBuy;

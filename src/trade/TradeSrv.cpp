@@ -154,7 +154,7 @@ void TradeSrv::onTraded(CThostFtdcTradeField * const rsp)
 
     MSG_TO_TRADE_STRATEGY msg = {0};
     msg.msgType = MSG_TRADE_BACK_TRADED;
-    msg.kIndex = orderID;
+    msg.orderID = orderID;
     _tradeStrategySrvClient->send((void *)&msg);
 
     // 将完成的order删除
@@ -197,7 +197,7 @@ void TradeSrv::onOrderRtn(CThostFtdcOrderField * const rsp)
     // 撤单情况
     MSG_TO_TRADE_STRATEGY msg = {0};
     msg.msgType = MSG_TRADE_BACK_CANCELED;
-    msg.kIndex = orderID;
+    msg.orderID = orderID;
     _tradeStrategySrvClient->send((void *)&msg);
 }
 

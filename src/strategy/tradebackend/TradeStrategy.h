@@ -16,6 +16,7 @@ typedef struct trade_data
     int hasNext;
     int tryTimes;
     int kIndex;
+    string instrumnetID;
 
 } TRADE_DATA;
 
@@ -32,7 +33,7 @@ private:
     void _removeTradeInfo(int);
     bool _isTrading(int);
 
-    void _initTrade(int, int, int); // 初始化交易
+    void _initTrade(int, int, int, string); // 初始化交易
     void _zhuijia(int); // 追价
     void _cancel(int); // 撤销
 
@@ -45,7 +46,7 @@ public:
     TradeStrategy(int, string, int);
     ~TradeStrategy();
 
-    void tradeAction(int, double, int, int, int);
+    void tradeAction(int, double, int, int, int, string);
     void onSuccess(int);
     void onCancel(int);
     void timeout(int);
