@@ -1,5 +1,6 @@
 CREATE TABLE `kline` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `instrumnet_id` varchar(50) NOT NULL DEFAULT '',
   `index` int(11) NOT NULL DEFAULT '0',
   `open_time` datetime NOT NULL,
   `open_msec` int(11) NOT NULL DEFAULT 0,
@@ -24,6 +25,7 @@ CREATE TABLE `markov_kline_order` (
 
 CREATE TABLE `tick` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `instrumnet_id` varchar(50) NOT NULL DEFAULT '',
   `time` datetime NOT NULL COMMENT '服务端返回时间',
   `msec` int(11) NOT NULL DEFAULT '0',
   `price` decimal(10,2) NOT NULL DEFAULT '0',
@@ -37,6 +39,7 @@ CREATE TABLE `tick` (
 
 CREATE TABLE `order` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `instrumnet_id` varchar(50) NOT NULL DEFAULT '',
   `order_id` int(11) NOT NULL DEFAULT 0,
   `front_id` int(11) NOT NULL DEFAULT 0,
   `session_id` int(11) NOT NULL DEFAULT 0,

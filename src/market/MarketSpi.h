@@ -19,7 +19,7 @@ private:
     string _brokerID;
     string _userID;
     string _password;
-    string _instrumnetID;
+    std::vector<string>  _instrumnetIDs;
 
     string _logPath;
 

@@ -28,49 +28,19 @@ class InitSys
 
 
         // 获取历史K线数据
-        $sql = "SELECT * FROM `kline` ORDER BY `id` DESC LIMIT {$this->knum}";
+        $sql = "SELECT * FROM `kline` ORDER BY `id` DESC LIMIT 1";
         $st = $mysql->prepare($sql);
         $st->execute(array());
         $res = $st->fetchAll(PDO::FETCH_ASSOC);
 
         $last = null;
-        foreach ($res as $line) {
-            if (empty($last)) $last = $line;
-            unset($line['id']);
-            $dataStr = implode('_', $line);
-            $res = $rds->lPush("HISTORY_KLINE", $dataStr);
-        }
+        if (count($res) > 0) $last = $res[0];
 
         // 判断K线计算状态
         $this->checkKlineStatus($rds, $mysql, $last);
 
         // 读取本地交易记录，设定交易状态
-        $sql = "SELECT * FROM `order` WHERE `status` <> 2 ORDER BY `id` DESC LIMIT 1";
-        $st = $mysql->prepare($sql);
-        $st->execute(array());
-        $res = $st->fetchAll(PDO::FETCH_ASSOC);
-        $last = $res[0];
         $rds->set("TRADE_STATUS", 0);
-        if (!$last) return;
-
-        if ($last['status'] == 1) {
-            if ($last['is_open'] == 1) { // 交易未关闭
-                if ($last['is_buy'] == 1) {
-                    $rds->set("TRADE_STATUS", 1);
-                } else {
-                    $rds->set("TRADE_STATUS", 2);
-                }
-            }
-        } else {
-            if ($last['is_open'] == 1) {
-                if ($last['is_buy'] == 1) $rds->set("TRADE_STATUS", 3);
-                else $rds->set("TRADE_STATUS", 4);
-            } else {
-                if ($last['is_buy'] == 1) $rds->set("TRADE_STATUS", 6);
-                else $rds->set("TRADE_STATUS", 5);
-            }
-        }
-
     }
 
     public function checkKlineStatus($rds, $mysql, $last)

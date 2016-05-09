@@ -10,6 +10,7 @@ typedef struct Tick
     char date[9];
     char time[9];
     int msec;
+    char instrumnetID[7];
 } TickData;
 
 typedef struct KLineBlockData

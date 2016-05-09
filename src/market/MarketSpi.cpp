@@ -4,7 +4,7 @@ using namespace std;
 
 MarketSpi::MarketSpi(CThostFtdcMdApi * mdApi, string logPath,
     int serviceID,
-    string brokerID, string userID, string password, string instrumnetID, int db)
+    string brokerID, string userID, string password, string instrumnetIDs, int db)
 {
     _mdApi = mdApi;
     _logPath = logPath;
@@ -12,7 +12,8 @@ MarketSpi::MarketSpi(CThostFtdcMdApi * mdApi, string logPath,
     _userID = userID;
     _password = password;
     _brokerID = brokerID;
-    _instrumnetID = instrumnetID;
+
+    _instrumnetIDs = Lib::split(instrumnetIDs, "/");
 
     _klineClient = new QClient(serviceID, sizeof(MSG_TO_KLINE));
     _store = new Redis("127.0.0.1", 6379, db);
@@ -60,9 +61,17 @@ void MarketSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
     info << endl;
     info.close();
 
-    char * Instrumnet[]={Lib::stoc(_instrumnetID)};
-    int res = _mdApi->SubscribeMarketData (Instrumnet, 1);
+    int cnt = _instrumnetIDs.size();
+    char ** Instrumnet;
+    Instrumnet = (char**)malloc((sizeof(char*)) * cnt);
+    for (int i = 0; i < cnt; i++) {
+        char * tmp = Lib::stoc(_instrumnetIDs[i]);
+        Instrumnet[i] = tmp;
+    }
+
+    int res = _mdApi->SubscribeMarketData (Instrumnet, cnt);
     Lib::sysReqLog(_logPath, "MarketSrv[SubscribeMarketData]", res);
+    free(Instrumnet);
 }
 
 void MarketSpi::OnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument,
@@ -99,6 +108,7 @@ void MarketSpi::_saveMarketData(CThostFtdcDepthMarketDataField *data)
     msg.tick.askPrice1 = data->AskPrice1;
     strcpy(msg.tick.date, data->TradingDay);
     strcpy(msg.tick.time, data->UpdateTime);
+    strcpy(msg.tick.instrumnetID, data->InstrumentID);
     msg.tick.msec = data->UpdateMillisec;
     _klineClient->send((void *)&msg);
 
@@ -116,46 +126,12 @@ void MarketSpi::_saveMarketData(CThostFtdcDepthMarketDataField *data)
     Lib::initMarketLogHandle(_logPath, marketData);
     marketData << data->TradingDay << "|";
     marketData << data->InstrumentID << "|";
-    marketData << data->ExchangeID << "|";
-    marketData << data->ExchangeInstID << "|";
     marketData << data->LastPrice << "|";
-    marketData << data->PreSettlementPrice << "|";
-    marketData << data->PreClosePrice << "|";
-    marketData << data->PreOpenInterest << "|";
-    marketData << data->OpenPrice << "|";
-    marketData << data->HighestPrice << "|";
-    marketData << data->LowestPrice << "|";
     marketData << data->Volume << "|";
-    marketData << data->Turnover << "|";
-    marketData << data->OpenInterest << "|";
-    marketData << data->ClosePrice << "|";
-    marketData << data->SettlementPrice << "|";
-    marketData << data->UpperLimitPrice << "|";
-    marketData << data->LowerLimitPrice << "|";
-    marketData << data->PreDelta << "|";
-    marketData << data->CurrDelta << "|";
-    marketData << data->UpdateTime << "|";
-    marketData << data->UpdateMillisec << "|";
     marketData << data->BidPrice1 << "|";
     marketData << data->BidVolume1 << "|";
     marketData << data->AskPrice1 << "|";
     marketData << data->AskVolume1 << "|";
-    marketData << data->BidPrice2 << "|";
-    marketData << data->BidVolume2 << "|";
-    marketData << data->AskPrice2 << "|";
-    marketData << data->AskVolume2 << "|";
-    marketData << data->BidPrice3 << "|";
-    marketData << data->BidVolume3 << "|";
-    marketData << data->AskPrice3 << "|";
-    marketData << data->AskVolume3 << "|";
-    marketData << data->BidPrice4 << "|";
-    marketData << data->BidVolume4 << "|";
-    marketData << data->AskPrice4 << "|";
-    marketData << data->AskVolume4 << "|";
-    marketData << data->BidPrice5 << "|";
-    marketData << data->BidVolume5 << "|";
-    marketData << data->AskPrice5 << "|";
-    marketData << data->AskVolume5 << "|";
     marketData << data->AveragePrice << "|";
     marketData << data->ActionDay << endl;
     marketData.close();

@@ -11,6 +11,7 @@ TradeLogic::TradeLogic(int peroid, double threshold,
     _isHistoryBack = isHistoryBack;
 
     _pUp2Up = _pUp2Down = _pDown2Up = _pDown2Down = 0;
+    _countUp2Up = _countUp2Down = _countDown2Up = _countDown2Down = 0;
 
     std::vector<string> times = Lib::split(stopTradeTime, "/");
     std::vector<string> hm;
@@ -39,7 +40,6 @@ TradeLogic::~TradeLogic()
 
 void TradeLogic::init()
 {
-
 
 }
 

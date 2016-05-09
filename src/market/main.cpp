@@ -24,7 +24,7 @@ int main(int argc, char const *argv[])
     string password = getOptionToString("market_password");
     string mURL     = getOptionToString("market_front");
 
-    string instrumnetID = getOptionToString("instrumnet_id");
+    string instrumnetIDs = getOptionToString("instrumnet_id");
 
     int kLineSrvID  = getOptionToInt("k_line_service_id");
     pidPath  = getOptionToString("pid_path");
@@ -45,7 +45,7 @@ int main(int argc, char const *argv[])
 
     // 初始化交易接口
     mApi = CThostFtdcMdApi::CreateFtdcMdApi(flowPath.c_str());
-    MarketSpi mSpi(mApi, logPath, kLineSrvID, bid, userID, password, instrumnetID, db); // 初始化回调实例
+    MarketSpi mSpi(mApi, logPath, kLineSrvID, bid, userID, password, instrumnetIDs, db); // 初始化回调实例
     mApi->RegisterSpi(&mSpi);
     mApi->RegisterFront(Lib::stoc(mURL));
     mApi->Init();
