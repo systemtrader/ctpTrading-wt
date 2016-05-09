@@ -14,6 +14,8 @@ private:
     KLineBlock * _currentBlock;
     Redis * _store;
 
+
+    string _instrumnetID;
     int _index;
     int _kRange;
 
@@ -26,7 +28,7 @@ private:
     void _closeBlock(TickData);
 
 public:
-    KLineSrv(int, int, string, int);
+    KLineSrv(int, int, string, int, string);
     ~KLineSrv();
 
     void onTickCome(TickData);

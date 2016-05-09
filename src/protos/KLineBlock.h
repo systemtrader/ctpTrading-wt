@@ -17,6 +17,8 @@ class KLineBlock
 {
 private:
 
+    string _instrumnetID;
+
     int _index;
     int _type;
 
@@ -57,6 +59,7 @@ public:
     int getType();
     int getIndex();
     int getVolume();
+    string getInstrumnetID();
     void setVal(string);
     string getVal();
 

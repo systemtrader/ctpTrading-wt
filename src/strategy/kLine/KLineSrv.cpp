@@ -1,35 +1,29 @@
 #include "KLineSrv.h"
 
-KLineSrv::KLineSrv(int kRange, int serviceID, string logPath, int db)
+KLineSrv::KLineSrv(int kRange, int serviceID, string logPath, int db, string instrumnetID)
 {
     _index = 0;
     _kRange = kRange;
     _logPath = logPath;
     _currentBlock = NULL;
+    _instrumnetID = instrumnetID;
 
     _store = new Redis("127.0.0.1", 6379, db);
     _tradeLogicSrvClient = new QClient(serviceID, sizeof(MSG_TO_TRADE_LOGIC));
 
     // 初始化数据
-    string currentStr = _store->get("CURRENT_BLOCK_STORE");
+    string currentStr = _store->get("CURRENT_BLOCK_STORE_" + instrumnetID);
     if (currentStr.length() > 0) { // 上次K线未关闭，初始化数据
         _currentBlock = new KLineBlock();
         _currentBlock->setVal(currentStr);
-        _store->set("CURRENT_BLOCK_STORE", ""); // 清空记录
+        _store->set("CURRENT_BLOCK_STORE_" + instrumnetID, ""); // 清空记录
         _index = _currentBlock->getIndex() + 1;
     }
 }
 
 
-
 KLineSrv::~KLineSrv()
 {
-    // delete _store;
-    // delete _tradeLogicSrvClient;
-    if (_currentBlock->getType() == KLINE_TYPE_UNKOWN) {// k线未封闭则保存K线状态
-        string currentStr = _currentBlock->getVal();
-        _store->set("CURRENT_BLOCK_STORE", currentStr);
-    }
     cout << "~KLineSrv" << endl;
 }
 
@@ -65,6 +59,7 @@ void KLineSrv::_initBlock(TickData tick)
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "KLineSrv[open]";
+    info << "|iID|" << _instrumnetID;
     info << "|index|" << _index << endl;
     info.close();
 
@@ -106,6 +101,7 @@ void KLineSrv::_closeBlock(TickData tick)
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "KLineSrv[close]";
+    info << "|iID|" << _instrumnetID;
     info << "|index|" << blockData.index;
     info << "|open|" << blockData.open;
     info << "|close|" << blockData.close;

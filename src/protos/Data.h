@@ -20,6 +20,7 @@ typedef struct KLineBlockData
     double max;
     double min;
     double close;
+    char instrumnetID[7];
 
 } KLineBlockData;
 

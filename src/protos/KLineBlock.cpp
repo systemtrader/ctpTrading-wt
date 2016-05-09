@@ -45,6 +45,8 @@ void KLineBlock::init(int index, TickData tick)
     _maxPrice = _minPrice = _openPrice = _closePrice = tick.price;
     _volume = tick.volume;
 
+    _instrumnetID = string(tick.instrumnetID);
+
     _type = KLINE_TYPE_UNKOWN;
 }
 
@@ -75,6 +77,7 @@ KLineBlockData KLineBlock::exportData()
     block.max = _maxPrice;
     block.min = _minPrice;
     block.close = _closePrice;
+    strcpy(block.instrumnetID, Lib::stoc(_instrumnetID));
     return block;
 }
 
@@ -92,7 +95,8 @@ string KLineBlock::exportString()
                  Lib::itos(_volume) + "_" +
                  _closeDate + "_" +
                  _closeTime + "_" +
-                 Lib::itos(_closeMsec);
+                 Lib::itos(_closeMsec) + "_" +
+                 _instrumnetID;
     return str;
 }
 
@@ -156,6 +160,11 @@ int KLineBlock::getOpenMsec()
     return _openMsec;
 }
 
+string KLineBlock::getInstrumnetID()
+{
+    return _instrumnetID;
+}
+
 KLineBlock KLineBlock::makeViaData(KLineBlockData blockData)
 {
     KLineBlock block;
@@ -164,6 +173,7 @@ KLineBlock KLineBlock::makeViaData(KLineBlockData blockData)
     block._maxPrice   = blockData.max;
     block._minPrice   = blockData.min;
     block._closePrice = blockData.close;
+    block._instrumnetID = string(blockData.instrumnetID);
     return block;
 }
 

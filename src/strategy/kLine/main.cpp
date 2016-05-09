@@ -1,6 +1,7 @@
 #include "KLineSrv.h"
+#include <map>
 
-KLineSrv * service;
+std::map<string, KLineSrv* > services;
 
 bool action(long int, const void *);
 
@@ -21,7 +22,14 @@ int main(int argc, char const *argv[])
         db = getOptionToInt("rds_db_online");
     }
 
-    service = new KLineSrv(kRange, tradeLogicSrvID, logPath, db);
+    string iIDs = getOptionToString("instrumnet_id");
+    std::vector<string> instrumnetIDs = Lib::split(iIDs, "/");
+
+    for (int i = 0; i < instrumnetIDs.size(); ++i)
+    {
+        KLineSrv * tmp = new KLineSrv(kRange, tradeLogicSrvID, logPath, db, instrumnetIDs[i]);
+        services[instrumnetIDs[i]] = tmp;
+    }
 
     // 服务化
     QService Qsrv(kLineSrvID, sizeof(MSG_TO_KLINE));
@@ -37,11 +45,15 @@ bool action(long int msgType, const void * data)
 {
     // cout << "MSG:" << msgType << endl;
     if (msgType == MSG_SHUTDOWN) {
-        if (service) delete service;
+        map<string, KLineSrv*>::iterator it;
+        for(it = services.begin(); it != services.end(); ++it) {
+            delete it->second;
+        }
         return false;
     }
     if (msgType == MSG_TICK) {
-        service->onTickCome(((MSG_TO_KLINE*)data)->tick);
+        TickData tick = ((MSG_TO_KLINE*)data)->tick;
+        services[string(tick.instrumnetID)]->onTickCome(tick);
     }
     return true;
 }
