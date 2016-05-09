@@ -16,7 +16,6 @@ class InitSys
             $this->mysqldb = $res['mysql_db_online'];
             $this->rdsdb = $res['rds_db_online'];
         }
-        $this->knum = $res['open_max_k_count'];
         $this->iIDs = explode('/', $res['instrumnet_id']);
     }
 
@@ -35,8 +34,8 @@ class InitSys
 
     private function initKLine($iID, $rds, $db)
     {
-        $rds->set($key, "");
         $key = "CURRENT_BLOCK_STORE_" . $iID;
+        $rds->set($key, "");
 
         // 获取最新K线
         $sql = "SELECT * FROM `kline` WHERE `instrumnet_id` = '{$iID}' ORDER BY `id` DESC LIMIT 1";
