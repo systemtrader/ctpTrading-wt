@@ -2,15 +2,20 @@
 #include "TraderSpi.h"
 
 TradeSrv::TradeSrv(string brokerID, string userID, string password,
-    string tradeFront, string instrumnetID, string flowPath, string logPath, int serviceID, int db)
+    string tradeFront, string instrumnetIDs, string flowPath, string logPath, int serviceID, int db)
 {
     _brokerID = brokerID;
     _userID = userID;
     _password = password;
     _tradeFront = tradeFront;
-    _instrumnetID = instrumnetID;
     _flowPath = flowPath;
     _logPath = logPath;
+
+    std::vector<string> iIDs = Lib::split(instrumnetIDs, "/");
+    for (int i = 0; i < iIDs.size(); ++i)
+    {
+        _ydPostion[iIDs[i]] = 0;
+    }
 
     _store = new Redis("127.0.0.1", 6379, db);
     _tradeStrategySrvClient = new QClient(serviceID, sizeof(MSG_TO_TRADE_STRATEGY));
@@ -83,39 +88,43 @@ void TradeSrv::onLogin(CThostFtdcRspUserLoginField * const rsp)
     _frontID = rsp->FrontID;
     _sessionID = rsp->SessionID;
     _maxOrderRef = atoi(rsp->MaxOrderRef);
-    _tradingDay = string(rsp->TradingDay);
 }
 
 void TradeSrv::getPosition()
 {
-    CThostFtdcQryInvestorPositionField req = {0};
+    std::map<string, int>::iterator i;
+    for (i = _ydPostion.begin(); i != _ydPostion.end(); ++i)
+    {
+        CThostFtdcQryInvestorPositionField req = {0};
 
-    strcpy(req.BrokerID, Lib::stoc(_brokerID));
-    strcpy(req.InvestorID, Lib::stoc(_userID));
-    strcpy(req.InstrumentID, Lib::stoc(_instrumnetID));
+        strcpy(req.BrokerID, Lib::stoc(_brokerID));
+        strcpy(req.InvestorID, Lib::stoc(_userID));
+        strcpy(req.InstrumentID, Lib::stoc(i->first));
 
-    int res = _tradeApi->ReqQryInvestorPosition(&req, 0);
-    Lib::sysReqLog(_logPath, "TradeSrv[getPosition]", res);
+        int res = _tradeApi->ReqQryInvestorPosition(&req, 0);
+        Lib::sysReqLog(_logPath, "TradeSrv[getPosition]", res);
+    }
 }
 
 void TradeSrv::onPositionRtn(CThostFtdcInvestorPositionField * const rsp)
 {
     if (!rsp) return;
-    _ydPostion = rsp->Position - rsp->TodayPosition;
+    string iID = string(rsp->InstrumentID);
+    _ydPostion[iID] = rsp->Position - rsp->TodayPosition;
 }
 
-void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int orderID)
+void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int orderID, string instrumnetID)
 {
     _initOrderRef(orderID);
     TThostFtdcOffsetFlagEnType flag = THOST_FTDC_OFEN_Open;
     if (!isOpen) {
         flag = THOST_FTDC_OFEN_CloseToday;
-        if (_ydPostion > 0) {
+        if (_ydPostion[instrumnetID] > 0) {
             flag = THOST_FTDC_OFEN_Close;
             // _closeYdReqID = orderID;
         }
     }
-    CThostFtdcInputOrderField order = _createOrder(isBuy, total, price, flag,
+    CThostFtdcInputOrderField order = _createOrder(instrumnetID, isBuy, total, price, flag,
             THOST_FTDC_HFEN_Speculation, THOST_FTDC_OPT_LimitPrice, THOST_FTDC_TC_GFD, THOST_FTDC_VC_AV);
 
     int res = _tradeApi->ReqOrderInsert(&order, _maxOrderRef);
@@ -142,7 +151,8 @@ void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int order
 void TradeSrv::onTraded(CThostFtdcTradeField * const rsp)
 {
     if (!rsp) return;
-    if (_ydPostion > 0) _ydPostion--;
+    string iID = string(rsp->InstrumentID);
+    if (_ydPostion[iID] > 0) _ydPostion[iID]--;
 
     int orderID = _getOrderID(atoi(rsp->OrderRef));
     if (orderID <= 0) return;
@@ -276,7 +286,7 @@ int TradeSrv::_getOrderID(int orderRef)
     return _orderRefMap[orderRef];
 }
 
-CThostFtdcInputOrderField TradeSrv::_createOrder(bool isBuy, int total, double price,
+CThostFtdcInputOrderField TradeSrv::_createOrder(string instrumnetID, bool isBuy, int total, double price,
     // double stopPrice,
     TThostFtdcOffsetFlagEnType offsetFlag, // 开平标志
     TThostFtdcHedgeFlagEnType hedgeFlag, // 投机套保标志
@@ -290,7 +300,7 @@ CThostFtdcInputOrderField TradeSrv::_createOrder(bool isBuy, int total, double p
 
     strcpy(order.BrokerID, _brokerID.c_str()); ///经纪公司代码
     strcpy(order.InvestorID, _userID.c_str()); ///投资者代码
-    strcpy(order.InstrumentID, _instrumnetID.c_str()); ///合约代码
+    strcpy(order.InstrumentID, instrumnetID.c_str()); ///合约代码
     strcpy(order.UserID, _userID.c_str()); ///用户代码
     // strcpy(order.ExchangeID, "SHFE"); ///交易所代码
 

@@ -58,6 +58,7 @@ typedef struct msg_trade
     int total;
     bool isOpen;
     int orderID;
+    char instrumnetID[7];
 
 } MSG_TO_TRADE;
 

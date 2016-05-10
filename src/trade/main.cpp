@@ -15,7 +15,7 @@ int main(int argc, char const *argv[])
     string password = getOptionToString("trade_password");
     string tURL     = getOptionToString("trade_front");
 
-    string instrumnetID = getOptionToString("instrumnet_id");
+    string instrumnetIDs = getOptionToString("instrumnet_id");
 
     int tradeSrvID         = getOptionToInt("trade_service_id");
     int tradeStrategySrvID = getOptionToInt("trade_strategy_service_id");
@@ -28,7 +28,7 @@ int main(int argc, char const *argv[])
         db = getOptionToInt("rds_db_online");
     }
 
-    service = new TradeSrv(bid, userID, password, tURL, instrumnetID,
+    service = new TradeSrv(bid, userID, password, tURL, instrumnetIDs,
         flowPath, logPath, tradeStrategySrvID, db);
     service->init();
 
@@ -54,7 +54,7 @@ bool action(long int msgType, const void * data)
     MSG_TO_TRADE msg = *((MSG_TO_TRADE*)data);
     // cout << "|PRICE|" << msg.price << "|ISBUY|" << msg.isBuy << "|ISOPEN|" << msg.isOpen << "|TOTAL|" << msg.total << "|KINDEX|" << msg.orderID << endl;
     if (msgType == MSG_ORDER) {
-        service->trade(msg.price, msg.total, msg.isBuy, msg.isOpen, msg.orderID);
+        service->trade(msg.price, msg.total, msg.isBuy, msg.isOpen, msg.orderID, string(msg.instrumnetID));
     }
     if (msgType == MSG_ORDER_CANCEL) {
         service->cancel(msg.orderID);

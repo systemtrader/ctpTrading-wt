@@ -294,6 +294,8 @@ void TradeStrategy::_zhuijia(int orderID)
 
 void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen, int orderID)
 {
+    TRADE_DATA order = _tradingInfo[orderID];
+
     MSG_TO_TRADE msg = {0};
     msg.msgType = MSG_ORDER;
     msg.price = price;
@@ -301,9 +303,9 @@ void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen, i
     msg.total = total;
     msg.isOpen = isOpen;
     msg.orderID = orderID;
+    strcpy(msg.instrumnetID, Lib::stoc(order.instrumnetID));
     _tradeSrvClient->send((void *)&msg);
 
-    TRADE_DATA order = _tradingInfo[orderID];
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeStrategySrv[sendOrder]";

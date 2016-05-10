@@ -20,16 +20,15 @@ private:
     string _brokerID;
     string _userID;
     string _password;
-    string _instrumnetID;
     string _tradeFront;
     string _flowPath;
 
-    string _tradingDay;
+
     TThostFtdcFrontIDType _frontID;
     TThostFtdcSessionIDType _sessionID;
     int _maxOrderRef;
 
-    int _ydPostion; // 昨仓
+    std::map<string, int> _ydPostion; // 昨仓
 
     CThostFtdcTraderApi * _tradeApi;
     TraderSpi * _traderSpi;
@@ -43,7 +42,7 @@ private:
     CThostFtdcOrderField _getOrderInfo(int, int);
     int _getOrderID(int);
 
-    CThostFtdcInputOrderField _createOrder(bool, int, double,
+    CThostFtdcInputOrderField _createOrder(string, bool, int, double,
         TThostFtdcOffsetFlagEnType, // 开平标志
         TThostFtdcHedgeFlagEnType = THOST_FTDC_HFEN_Speculation, // 投机套保标志
         TThostFtdcOrderPriceTypeType = THOST_FTDC_OPT_LimitPrice, // 报单价格条件
@@ -68,7 +67,7 @@ public:
     void getPosition();
     void onPositionRtn(CThostFtdcInvestorPositionField * const);
 
-    void trade(double, int, bool, bool, int);
+    void trade(double, int, bool, bool, int, string);
     void onTraded(CThostFtdcTradeField * const);
     void onOrderRtn(CThostFtdcOrderField * const);
 
