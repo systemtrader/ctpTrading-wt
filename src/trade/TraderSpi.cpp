@@ -18,11 +18,11 @@ void TraderSpi::OnFrontConnected()
     _service->login();
 }
 
-void TraderSpi::OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm, 
+void TraderSpi::OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm,
     CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
     Lib::sysErrLog(_logPath, "TradeSrv[OnRspSettlementInfoConfirm]", pRspInfo, nRequestID, bIsLast);
-    _service->getPosition();
+    // _service->getPosition();
 
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
@@ -70,6 +70,7 @@ void TraderSpi::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInves
     info << "TradeSrv[onPosition]";
     if (pInvestorPosition) {
         info << "|bIsLast|" << bIsLast;
+        info << "|iID|" << pInvestorPosition->InstrumentID;
         info << "|PosiDirection|" << pInvestorPosition->PosiDirection;
         info << "|PositionDate|" << pInvestorPosition->PositionDate;
         info << "|YdPosition|" << pInvestorPosition->YdPosition;
@@ -95,6 +96,7 @@ void TraderSpi::OnRtnOrder(CThostFtdcOrderField *pOrder)
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeSrv[onOrder]";
     if (pOrder) {
+        info << "|iID|" << pOrder->InstrumentID;
         info << "|FrontID|" << pOrder->FrontID;
         info << "|SessionID|" << pOrder->SessionID;
         info << "|OrderRef|" << pOrder->OrderRef;
@@ -113,6 +115,7 @@ void TraderSpi::OnRtnTrade(CThostFtdcTradeField *pTrade)
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeSrv[onTrade]";
     if (pTrade) {
+        info << "|iID|" << pTrade->InstrumentID;
         info << "|OrderRef|" << pTrade->OrderRef;
         info << "|TradeID|" << pTrade->TradeID;
         info << "|OrderSysID|" << pTrade->OrderSysID;

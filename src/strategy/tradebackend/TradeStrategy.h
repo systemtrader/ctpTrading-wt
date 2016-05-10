@@ -37,7 +37,7 @@ private:
     void _zhuijia(int); // 追价
     void _cancel(int); // 撤销
 
-    int _getStatus();
+    int _getStatus(string);
     void _setStatus(int);
     TickData _getTick();
     void _sendMsg(double, int, bool, bool, int);

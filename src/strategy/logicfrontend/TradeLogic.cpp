@@ -272,7 +272,7 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
 
 int TradeLogic::_getStatus()
 {
-    string status = _store->get("TRADE_STATUS");
+    string status = _store->get("TRADE_STATUS_" + _instrumnetID);
     return Lib::stoi(status);
 }
 

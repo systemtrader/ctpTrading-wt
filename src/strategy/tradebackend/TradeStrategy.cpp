@@ -94,7 +94,7 @@ void TradeStrategy::_removeTradeInfo(int orderID)
         }
         _tradingInfo.erase(i);
         // log
-        int status = _getStatus();
+        int status = _getStatus(order.instrumnetID);
         ofstream info;
         Lib::initInfoLogHandle(_logPath, info);
         info << "TradeStrategySrv[removeTrade]";
@@ -169,7 +169,7 @@ void TradeStrategy::onSuccess(int orderID)
     }
 
     // log
-    int status = _getStatus();
+    int status = _getStatus(order.instrumnetID);
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeStrategySrv[successBack]";
@@ -326,9 +326,9 @@ TickData TradeStrategy::_getTick()
     return Lib::string2TickData(tickStr);
 }
 
-int TradeStrategy::_getStatus()
+int TradeStrategy::_getStatus(string instrumnetID)
 {
-    string status = _store->get("TRADE_STATUS");
+    string status = _store->get("TRADE_STATUS_" + instrumnetID);
     return Lib::stoi(status);
 }
 

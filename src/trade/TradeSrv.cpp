@@ -121,7 +121,6 @@ void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int order
         flag = THOST_FTDC_OFEN_CloseToday;
         if (_ydPostion[instrumnetID] > 0) {
             flag = THOST_FTDC_OFEN_Close;
-            // _closeYdReqID = orderID;
         }
     }
     CThostFtdcInputOrderField order = _createOrder(instrumnetID, isBuy, total, price, flag,
