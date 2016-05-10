@@ -1,6 +1,11 @@
-0 9 * * 1-5 /home/dev/source/ctpTrading/bin/cmdCenter 1
-30 11 * * 1-5 /home/dev/source/ctpTrading/bin/cmdCenter 2
-30 13 * * 1-5 /home/dev/source/ctpTrading/bin/cmdCenter 1
-0 15 * * 1-5 /home/dev/source/ctpTrading/bin/cmdCenter 2
-0 21 * * 1-5 /home/dev/source/ctpTrading/bin/cmdCenter 1
-30 2 * * 1-5 /home/dev/source/ctpTrading/bin/cmdCenter 2
+0 9 * * 1-5 cd /home/dev/source/ctpDev/bin/ && ./cmdCenter 1
+25 11 * * 1-5 cd /home/dev/source/ctpDev/bin/ && ./cmdCenter 2
+26 11 * * 1-5 cd /home/dev/source/ctpDev/bin/ && ./closeAll
+
+30 13 * * 1-5 cd /home/dev/source/ctpDev/bin/ && ./cmdCenter 1
+55 14 * * 1-5 cd /home/dev/source/ctpDev/bin/ && ./cmdCenter 2
+56 14 * * 1-5 cd /home/dev/source/ctpDev/bin/ && ./closeAll
+
+0 21 * * 1-5 cd /home/dev/source/ctpDev/bin/ && ./cmdCenter 1
+55 0 * * 1-5 cd /home/dev/source/ctpDev/bin/ && ./cmdCenter 2
+56 0 * * 1-5 cd /home/dev/source/ctpDev/bin/ && ./closeAll
