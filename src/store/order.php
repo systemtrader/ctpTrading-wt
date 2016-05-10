@@ -29,8 +29,9 @@ class Order
                     $isOpen = $data[7];
                     $time = str_replace('-', ' ', $data[8]);
                     list($date, $usec) = explode('.', $time);
-                    $sql = "INSERT INTO `order` (`order_id`, `front_id`, `session_id`, `order_ref`, `price`, `is_buy`, `is_open`, `start_time`, `start_usec`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                    $params = array($orderID, $frontID, $sessionID, $orderRef, $price, $isBuy, $isOpen, $date, $usec);
+                    $iID = $data[9];
+                    $sql = "INSERT INTO `order` (`order_id`, `front_id`, `session_id`, `order_ref`, `price`, `is_buy`, `is_open`, `start_time`, `start_usec`, `instrumnet_id`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    $params = array($orderID, $frontID, $sessionID, $orderRef, $price, $isBuy, $isOpen, $date, $usec, $iID);
                     $this->consumer->insertDB($sql, $params);
                 }
                 if ($type == "traded") {
@@ -64,8 +65,9 @@ class Order
                 if ($type == "klineorder") {
                     $kIndex = $data[1];
                     $orderID = $data[2];
-                    $sql = "INSERT INTO `markov_kline_order` (`order_id`, `kindex`) VALUES (?, ?)";
-                    $params = [$orderID, $kIndex];
+                    $iID = $data[3];
+                    $sql = "INSERT INTO `markov_kline_order` (`order_id`, `kindex`, `instrumnet_id`) VALUES (?, ?, ?)";
+                    $params = [$orderID, $kIndex, $iID];
                     $this->consumer->insertDB($sql, $params);
                 }
                 echo ".";

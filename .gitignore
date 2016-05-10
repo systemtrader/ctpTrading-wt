@@ -12,6 +12,7 @@ tradeStrategyBefore
 tradeStrategyAfter
 tradeSrvBefore
 readKLineDataAndSend
+bin/closeAll
 *Test
 config.ini
 a.out

@@ -143,7 +143,7 @@ void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int order
     string data = "trade_" + Lib::itos(orderID) + "_" +
                   Lib::itos(_frontID) + "_" + Lib::itos(_sessionID) + "_" + Lib::itos(_maxOrderRef) + "_" +
                   Lib::dtos(price) + "_" + Lib::itos((int)isBuy) + "_" + Lib::itos((int)isOpen) + "_" +
-                  time;
+                  time + "_" + instrumnetID;
     _store->push("ORDER_LOGS", data);
 }
 
