@@ -15,8 +15,7 @@ KLineSrv::KLineSrv(int kRange, int serviceID, string logPath, int db, string ins
     string currentStr = _store->get("CURRENT_BLOCK_STORE_" + instrumnetID);
     if (currentStr.length() > 0) { // 上次K线未关闭，初始化数据
         _currentBlock = new KLineBlock();
-        _currentBlock->setVal(currentStr);
-        _store->set("CURRENT_BLOCK_STORE_" + instrumnetID, ""); // 清空记录
+        _currentBlock->setVal(currentStr, instrumnetID);
         _index = _currentBlock->getIndex() + 1;
     }
 }

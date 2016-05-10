@@ -56,7 +56,7 @@ public:
     TradeSrv(string, string, string, string, string, string, string, int, int);
     ~TradeSrv();
 
-    void setStatus(int);
+    // void setStatus(int);
 
     void init();
 

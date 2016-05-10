@@ -36,10 +36,10 @@ TradeSrv::~TradeSrv()
     cout << "~TradeSrv" << endl;
 }
 
-void TradeSrv::setStatus(int status)
-{
-    _store->set("TRADE_STATUS", Lib::itos(status));
-}
+// void TradeSrv::setStatus(int status)
+// {
+//     _store->set("TRADE_STATUS", Lib::itos(status));
+// }
 
 void TradeSrv::init()
 {

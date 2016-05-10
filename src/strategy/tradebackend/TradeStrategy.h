@@ -38,7 +38,7 @@ private:
     void _cancel(int); // 撤销
 
     int _getStatus(string);
-    void _setStatus(int);
+    void _setStatus(int, string);
     TickData _getTick();
     void _sendMsg(double, int, bool, bool, int);
 

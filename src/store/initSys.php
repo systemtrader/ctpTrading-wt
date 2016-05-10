@@ -28,8 +28,8 @@ class InitSys
         $rds->select($this->rdsdb);
 
         foreach ($this->iIDs as $iID) {
-            // $this->initKLine($iID, $rds, $db);
-            // $this->initTradeStatus($iID, $rds);
+            $this->initKLine($iID, $rds, $db);
+            $this->initTradeStatus($iID, $rds);
             $this->initKLineTick($iID, $rds, $db);
         }
     }

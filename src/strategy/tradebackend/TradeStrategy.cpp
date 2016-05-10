@@ -81,12 +81,12 @@ void TradeStrategy::_removeTradeInfo(int orderID)
             switch (order.action) {
                 case TRADE_ACTION_BUYOPEN:
                 case TRADE_ACTION_SELLOPEN:
-                    _setStatus(TRADE_STATUS_NOTHING);
+                    _setStatus(TRADE_STATUS_NOTHING, order.instrumnetID);
                     break;
                 case TRADE_ACTION_BUYCLOSE:
-                    _setStatus(TRADE_STATUS_BUYOPENED);
+                    _setStatus(TRADE_STATUS_BUYOPENED, order.instrumnetID);
                 case TRADE_ACTION_SELLCLOSE:
-                    _setStatus(TRADE_STATUS_SELLOPENED);
+                    _setStatus(TRADE_STATUS_SELLOPENED, order.instrumnetID);
                     break;
                 default:
                     break;
@@ -120,22 +120,22 @@ void TradeStrategy::tradeAction(int action, double price, int total, int kIndex,
     switch (action) {
 
         case TRADE_ACTION_BUYOPEN:
-            _setStatus(TRADE_STATUS_BUYOPENING);
+            _setStatus(TRADE_STATUS_BUYOPENING, instrumnetID);
             _sendMsg(price, total, true, true, _orderID);
             break;
 
         case TRADE_ACTION_SELLOPEN:
-            _setStatus(TRADE_STATUS_SELLOPENING);
+            _setStatus(TRADE_STATUS_SELLOPENING, instrumnetID);
             _sendMsg(price, total, false, true, _orderID);
             break;
 
         case TRADE_ACTION_BUYCLOSE:
-            _setStatus(TRADE_STATUS_BUYCLOSING);
+            _setStatus(TRADE_STATUS_BUYCLOSING, instrumnetID);
             _sendMsg(price, total, true, false, _orderID);
             break;
 
         case TRADE_ACTION_SELLCLOSE:
-            _setStatus(TRADE_STATUS_SELLCLOSING);
+            _setStatus(TRADE_STATUS_SELLCLOSING, instrumnetID);
             _sendMsg(price, total, false, false, _orderID);
             break;
 
@@ -154,14 +154,14 @@ void TradeStrategy::onSuccess(int orderID)
     if (!order.hasNext) {
         switch (order.action) {
             case TRADE_ACTION_BUYOPEN:
-                _setStatus(TRADE_STATUS_BUYOPENED);
+                _setStatus(TRADE_STATUS_BUYOPENED, order.instrumnetID);
                 break;
             case TRADE_ACTION_SELLOPEN:
-                _setStatus(TRADE_STATUS_SELLOPENED);
+                _setStatus(TRADE_STATUS_SELLOPENED, order.instrumnetID);
                 break;
             case TRADE_ACTION_BUYCLOSE:
             case TRADE_ACTION_SELLCLOSE:
-                _setStatus(TRADE_STATUS_NOTHING);
+                _setStatus(TRADE_STATUS_NOTHING, order.instrumnetID);
                 break;
             default:
                 break;
@@ -332,7 +332,7 @@ int TradeStrategy::_getStatus(string instrumnetID)
     return Lib::stoi(status);
 }
 
-void TradeStrategy::_setStatus(int status)
+void TradeStrategy::_setStatus(int status, string instrumnetID)
 {
-    _store->set("TRADE_STATUS", Lib::itos(status));
+    _store->set("TRADE_STATUS_" + instrumnetID, Lib::itos(status));
 }

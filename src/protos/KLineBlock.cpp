@@ -10,7 +10,7 @@ KLineBlock::~KLineBlock()
 
 }
 
-void KLineBlock::setVal(string str)
+void KLineBlock::setVal(string str, string instrumnetID)
 {
     std::vector<string> params = Lib::split(str, "_");
     _index = Lib::stoi(params[0]);
@@ -21,6 +21,7 @@ void KLineBlock::setVal(string str)
     _maxPrice = Lib::stod(params[5]);
     _minPrice = Lib::stod(params[6]);
     _type = KLINE_TYPE_UNKOWN;
+    _instrumnetID = instrumnetID;
 }
 
 string KLineBlock::getVal()

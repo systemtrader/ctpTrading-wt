@@ -60,7 +60,7 @@ public:
     int getIndex();
     int getVolume();
     string getInstrumnetID();
-    void setVal(string);
+    void setVal(string, string);
     string getVal();
 
     static KLineBlock makeViaData(KLineBlockData);
