@@ -32,6 +32,7 @@ int main(int argc, char const *argv[])
         msg.tick.volume = Lib::stoi(params[4]);
         msg.tick.bidPrice1 = Lib::stoi(params[12]);
         msg.tick.askPrice1 = Lib::stoi(params[13]);
+        strcpy(msg.tick.instrumnetID, Lib::stoc(params[1]));
 
         tickStr = Lib::tickData2String(msg.tick);
         rds->set("CURRENT_TICK", tickStr); // tick数据，供全局使用

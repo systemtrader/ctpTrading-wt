@@ -40,14 +40,14 @@ bool action(long int msgType, const void * data)
 
     if (msgType == MSG_ORDER_CANCEL) {
         back.msgType = MSG_TRADE_BACK_CANCELED;
-        back.kIndex = msg.orderID;
+        back.orderID = msg.orderID;
         clt->send((void *)&back);
     }
 
     if (msgType == MSG_ORDER) {
         if (type == 1) { // 立刻返回成功
             back.msgType = MSG_TRADE_BACK_TRADED;
-            back.kIndex = msg.orderID;
+            back.orderID = msg.orderID;
             clt->send((void *)&back);
         }
         if (type == 2) { // 等待5s再返回
@@ -55,14 +55,14 @@ bool action(long int msgType, const void * data)
                 sleep(5);
             } else {
                 back.msgType = MSG_TRADE_BACK_TRADED;
-                back.kIndex = msg.orderID;
+                back.orderID = msg.orderID;
                 clt->send((void *)&back);
             }
         }
         if (type == 3) { // 等第二个kclose时再响应
             if (k > 0 && k != msg.orderID) {
                 back.msgType = MSG_TRADE_BACK_TRADED;
-                back.kIndex = msg.orderID;
+                back.orderID = msg.orderID;
                 clt->send((void *)&back);
             }
         }
