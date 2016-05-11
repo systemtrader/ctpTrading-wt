@@ -175,7 +175,7 @@ void TradeSrv::onTraded(CThostFtdcTradeField * const rsp)
     // save data
     string time = Lib::getDate("%Y/%m/%d-%H:%M:%S", true);
     string data = "traded_" + string(rsp->OrderRef) + "_" + Lib::itos(_frontID) + "_" + Lib::itos(_sessionID) + "_" +
-                  string(rsp->TradeDate) + "_" + string(rsp->TradeTime) + "_" + time;
+                  string(rsp->TradeDate) + "_" + string(rsp->TradeTime) + "_" + time + "_" + Lib::dtos(rsp->Price);
     _store->push("ORDER_LOGS", data);
 }
 

@@ -42,8 +42,9 @@ class Order
                     $srvTime = date("Y/m/d H:i:s", $srvTime);
                     $time = str_replace('-', ' ', $data[6]);
                     list($date, $usec) = explode('.', $time);
-                    $sql = "UPDATE `order` SET `end_time` = ?, `end_usec` = ?, `srv_traded_time` = ?, `status` = 1 WHERE `order_ref` = ? AND `front_id` = ? AND `session_id` = ?";
-                    $params = array($date, $usec, $srvTime, $orderRef, $frontID, $sessionID);
+                    $realPrice = $data[7];
+                    $sql = "UPDATE `order` SET `end_time` = ?, `end_usec` = ?, `srv_traded_time` = ?, `status` = 1, `real_price` = ? WHERE `order_ref` = ? AND `front_id` = ? AND `session_id` = ?";
+                    $params = array($date, $usec, $srvTime, $realPrice, $orderRef, $frontID, $sessionID);
                     $this->consumer->updateDB($sql, $params);
                 }
                 if ($type == "orderRtn") {
