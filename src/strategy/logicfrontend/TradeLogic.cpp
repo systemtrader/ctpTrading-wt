@@ -127,6 +127,7 @@ void TradeLogic::_calculateUp()
     info << "|iID|" << _instrumnetID;
     info << "|pUp2Up|" << _pUp2Up;
     info << "|pUp2Down|" << _pUp2Down;
+    info << "|UU_UD_DU_DD|" << _countUp2Up << "," << _countUp2Down << "," << _countDown2Up << "," << _countDown2Down;
     info << "|kIndex|" << _kIndex << endl;
     info.close();
 }
@@ -144,6 +145,7 @@ void TradeLogic::_calculateDown()
     info << "|iID|" << _instrumnetID;
     info << "|pDown2Up|" << _pDown2Up;
     info << "|pDown2Down|" << _pDown2Down;
+    info << "|UU_UD_DU_DD|" << _countUp2Up << "," << _countUp2Down << "," << _countDown2Up << "," << _countDown2Down;
     info << "|kIndex|" << _kIndex;
     info << endl;
     info.close();
