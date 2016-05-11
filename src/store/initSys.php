@@ -56,9 +56,9 @@ class InitSys
         $st = $db->prepare($sql);
         $st->execute(array());
         $res = $st->fetchAll(PDO::FETCH_ASSOC);
-        $id = $res[0]['id'] + 1;
+        $id = $res[0]['id'];
 
-        $sql = "SELECT * FROM `tick` WHERE `id` = {$id}";
+        $sql = "SELECT * FROM `tick` WHERE `id` > {$id} AND `instrumnet_id` = '{$iID}' ORDER BY `id` LIMIT 1";
         $st = $db->prepare($sql);
         $st->execute(array());
         $res = $st->fetchAll(PDO::FETCH_ASSOC);
