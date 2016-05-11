@@ -32,6 +32,7 @@ void KLineSrv::onTickCome(TickData tick)
         _updateBlock(tick);
         if (_checkBlockClose(tick)) {
             _closeBlock(tick);
+            _initBlock(tick);// 两根K线的开闭共享一个tick
         }
     } else {
         _initBlock(tick);
