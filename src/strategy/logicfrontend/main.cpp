@@ -9,8 +9,6 @@ int main(int argc, char const *argv[])
 {
     // 初始化参数
     parseIniFile("../etc/config.ini");
-    int    peroid    = getOptionToInt("peroid");
-    string threshold = getOptionToString("threshold");
 
     int tradeLogicSrvID    = getOptionToInt("trade_logic_service_id");
     int tradeStrategySrvID = getOptionToInt("trade_strategy_service_id");
@@ -29,12 +27,16 @@ int main(int argc, char const *argv[])
         db = getOptionToInt("rds_db_online");
     }
 
+    string peroidStr = getOptionToString("peroid");
+    string thresholdStr = getOptionToString("threshold");
     string iIDs = getOptionToString("instrumnet_id");
     std::vector<string> instrumnetIDs = Lib::split(iIDs, "/");
+    std::vector<string> peroids = Lib::split(peroidStr, "/");
+    std::vector<string> thresholds = Lib::split(thresholdStr, "/");
 
     for (int i = 0; i < instrumnetIDs.size(); ++i)
     {
-        TradeLogic * tmp = new TradeLogic(peroid, Lib::stod(threshold), tradeStrategySrvID, 
+        TradeLogic * tmp = new TradeLogic(Lib::stoi(peroids[i]), Lib::stod(thresholds[i]), tradeStrategySrvID,
             logPath, db, stopTradeTime, instrumnetIDs[i]);
         tmp->init();
         services[instrumnetIDs[i]] = tmp;

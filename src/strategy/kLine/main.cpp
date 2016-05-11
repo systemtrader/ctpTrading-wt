@@ -9,7 +9,6 @@ int main(int argc, char const *argv[])
 {
     // 初始化参数
     parseIniFile("../etc/config.ini");
-    int kRange          = getOptionToInt("k_range");
     int kLineSrvID      = getOptionToInt("k_line_service_id");
     int tradeLogicSrvID = getOptionToInt("trade_logic_service_id");
     string logPath      = getOptionToString("log_path");
@@ -22,12 +21,14 @@ int main(int argc, char const *argv[])
         db = getOptionToInt("rds_db_online");
     }
 
+    string krs = getOptionToString("k_range");
     string iIDs = getOptionToString("instrumnet_id");
+    std::vector<string> kRanges = Lib::split(krs, "/");
     std::vector<string> instrumnetIDs = Lib::split(iIDs, "/");
 
     for (int i = 0; i < instrumnetIDs.size(); ++i)
     {
-        KLineSrv * tmp = new KLineSrv(kRange, tradeLogicSrvID, logPath, db, instrumnetIDs[i]);
+        KLineSrv * tmp = new KLineSrv(Lib::stoi(kRanges[i]), tradeLogicSrvID, logPath, db, instrumnetIDs[i]);
         services[instrumnetIDs[i]] = tmp;
     }
 
