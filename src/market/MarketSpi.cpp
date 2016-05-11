@@ -120,21 +120,6 @@ void MarketSpi::_saveMarketData(CThostFtdcDepthMarketDataField *data)
     _store->set(keyD, tickStr); // tick数据，供全局使用
     _store->push(keyQ, tickStr);
 
-
-    // 日志记录
-    ofstream marketData;
-    Lib::initMarketLogHandle(_logPath, marketData);
-    marketData << data->TradingDay << "|";
-    marketData << data->InstrumentID << "|";
-    marketData << data->LastPrice << "|";
-    marketData << data->Volume << "|";
-    marketData << data->BidPrice1 << "|";
-    marketData << data->BidVolume1 << "|";
-    marketData << data->AskPrice1 << "|";
-    marketData << data->AskVolume1 << "|";
-    marketData << data->AveragePrice << "|";
-    marketData << data->ActionDay << endl;
-    marketData.close();
 }
 
 

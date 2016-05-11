@@ -46,16 +46,14 @@ bool check(string iID)
             sendMsg(MSG_TRADE_BUYCLOSE, tick.askPrice1, iID);
 
         case TRADE_STATUS_NOTHING:
-            return true;
-
         case TRADE_STATUS_BUYOPENING:
         case TRADE_STATUS_SELLOPENING:
         case TRADE_STATUS_SELLCLOSING:
         case TRADE_STATUS_BUYCLOSING:
         default:
-            return false;
+            break;
     }
-    return false;
+    return true;
 }
 
 int main(int argc, char const *argv[])
@@ -80,11 +78,9 @@ int main(int argc, char const *argv[])
     logPath = getOptionToString("log_path");
 
     bool flg = false;
-    while (!flg) {
-        for (int i = 0; i < iIDs.size(); ++i)
-        {
-            flg = true && check(iIDs[i]);
-        }
+    for (int i = 0; i < iIDs.size(); ++i)
+    {
+        check(iIDs[i]);
     }
 }
 
