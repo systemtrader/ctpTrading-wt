@@ -39,7 +39,7 @@ private:
 
     int _getStatus(string);
     void _setStatus(int, string);
-    TickData _getTick();
+    TickData _getTick(string);
     void _sendMsg(double, int, bool, bool, int);
 
 public:

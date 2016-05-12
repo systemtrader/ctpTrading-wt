@@ -260,7 +260,7 @@ void TradeStrategy::_zhuijia(int orderID)
     info.close();
 
     double price;
-    TickData tick = _getTick();
+    TickData tick = _getTick(order.instrumnetID);
     switch (order.action) {
         case TRADE_ACTION_SELLOPEN:
             price = tick.price;
@@ -320,9 +320,9 @@ void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen, i
     info.close();
 }
 
-TickData TradeStrategy::_getTick()
+TickData TradeStrategy::_getTick(string iID)
 {
-    string tickStr = _store->get("CURRENT_TICK");
+    string tickStr = _store->get("CURRENT_TICK_" + iID);
     return Lib::string2TickData(tickStr);
 }
 
