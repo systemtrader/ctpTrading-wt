@@ -40,10 +40,12 @@ bool check(string iID)
         case TRADE_STATUS_BUYOPENED:
 
             sendMsg(MSG_TRADE_SELLCLOSE, tick.bidPrice1, iID);
+            break;
 
         case TRADE_STATUS_SELLOPENED:
 
             sendMsg(MSG_TRADE_BUYCLOSE, tick.askPrice1, iID);
+            break;
 
         case TRADE_STATUS_NOTHING:
         case TRADE_STATUS_BUYOPENING:
