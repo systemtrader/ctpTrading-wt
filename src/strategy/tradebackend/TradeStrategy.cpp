@@ -196,7 +196,11 @@ void TradeStrategy::onCancel(int orderID)
     info.close();
 
     if (_isTrading(orderID)) {
-        _zhuijia(orderID);
+        if (order.action == TRADE_ACTION_SELLCLOSE || order.action == TRADE_ACTION_BUYCLOSE) {
+            _zhuijia(orderID);
+        } else {
+            _removeTradeInfo(orderID);
+        }
     }
 }
 
