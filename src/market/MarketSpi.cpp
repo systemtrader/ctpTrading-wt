@@ -116,7 +116,7 @@ void MarketSpi::_saveMarketData(CThostFtdcDepthMarketDataField *data)
     // 将数据放入队列，以便存入DB
     string tickStr = Lib::tickData2String(msg.tick);
     string keyQ = "MARKET_TICK_Q";
-    string keyD = "CURRENT_TICK";
+    string keyD = "CURRENT_TICK_" + string(data->InstrumentID);
     _store->set(keyD, tickStr); // tick数据，供全局使用
     _store->push(keyQ, tickStr);
 

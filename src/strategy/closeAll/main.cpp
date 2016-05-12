@@ -32,7 +32,7 @@ bool check(string iID)
     string s = store->get("TRADE_STATUS_" + iID);
     int status = Lib::stoi(s);
 
-    string tickStr = store->get("CURRENT_TICK");
+    string tickStr = store->get("CURRENT_TICK_" + iID);
     TickData tick = Lib::string2TickData(tickStr);
 
     switch (status) {
