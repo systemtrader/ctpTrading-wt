@@ -73,15 +73,15 @@ void TradeLogic::onKLineOpen(KLineBlock block, TickData tick)
             break;
         case TRADE_STATUS_BUYOPENING:
         case TRADE_STATUS_SELLOPENING:
-            _cancelAll();
+            _rollbackAll();
             _forecastNothing(tick);
             break;
         case TRADE_STATUS_BUYCLOSING:
-            _cancelAll();
+            _rollbackAll();
             _forecastSellOpened(tick);
             break;
         case TRADE_STATUS_SELLCLOSING:
-            _cancelAll();
+            _rollbackAll();
             _forecastBuyOpened(tick);
             break;
         default:
@@ -264,13 +264,13 @@ void TradeLogic::_forecastSellOpened(TickData tick)
     }
 }
 
-void TradeLogic::_cancelAll()
+void TradeLogic::_rollbackAll()
 {
-    _cancelUp();
-    _cancelDown();
+    _rollbackUp();
+    _rollbackDown();
 }
 
-void TradeLogic::_cancelUp()
+void TradeLogic::_rollbackUp()
 {
     if (_forecastUp > 0) {
         _sendCancel(_forecastUp);
@@ -279,7 +279,7 @@ void TradeLogic::_cancelUp()
 
 }
 
-void TradeLogic::_cancelDown()
+void TradeLogic::_rollbackDown()
 {
     if (_forecastDown > 0) {
         _sendCancel(_forecastDown);
@@ -389,9 +389,11 @@ void TradeLogic::_calculateDown(double d2u, double d2d)
 void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
 {
     if (_isCurrentUp(tick)) {
-        _cancelDown();
+        _rollbackDown();
+        _sendRealCome(_forecastUp);
     } else {
-        _cancelUp();
+        _rollbackUp();
+        _sendRealCome(_forecastDown);
     }
     _tick(tick);
 }
@@ -429,15 +431,32 @@ void TradeLogic::_sendMsg(int msgType, double price)
     info << "|iID|" << _instrumnetID;
     info << "|action|" << msgType;
     info << "|price|" << price;
-    info << "|kIndex|" << _kIndex << endl;
-    info << "|groupID|" << _groupID << endl;
+    info << "|kIndex|" << _kIndex;
+    info << "|groupID|" << _groupID;
     info.close();
 }
 
-void TradeLogic::_sendCancel(int groupID)
+void TradeLogic::_sendRollBack(int groupID)
 {
     MSG_TO_TRADE_STRATEGY msg = {0};
-    msg.msgType = MSG_TRADE_CANCEL;
+    msg.msgType = MSG_TRADE_ROLLBACK;
+    msg.groupID = groupID;
+    strcpy(msg.instrumnetID, Lib::stoc(_instrumnetID));
+    _tradeStrategySrvClient->send((void *)&msg);
+
+    //log
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info);
+    info << "TradeLogicSrv[sendMsg]";
+    info << "|iID|" << _instrumnetID;
+    info << "|groupID|" << groupID;
+    info.close();
+}
+
+void TradeLogic::_sendRealCome(int groupID)
+{
+    MSG_TO_TRADE_STRATEGY msg = {0};
+    msg.msgType = MSG_TRADE_REAL_COME;
     msg.groupID = groupID;
     strcpy(msg.instrumnetID, Lib::stoc(_instrumnetID));
     _tradeStrategySrvClient->send((void *)&msg);

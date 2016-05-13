@@ -24,8 +24,8 @@ void setTimer(int orderID)
 
     ts.it_interval.tv_sec = 0;
     ts.it_interval.tv_nsec = 0;
-    ts.it_value.tv_sec = timeoutSec;
-    ts.it_value.tv_nsec = 0;
+    ts.it_value.tv_sec = 0;
+    ts.it_value.tv_nsec = timeoutSec * 1000 * 1000;
     timer_settime(timer, 0, &ts, NULL);
 }
 
@@ -45,16 +45,80 @@ TradeStrategy::~TradeStrategy()
     cout << "~TradeStrategy" << endl;
 }
 
-void TradeStrategy::_initTrade(int action, int kIndex, int hasNext, string instrumnetID)
+void TradeStrategy::accessAction(MSG_TO_TRADE_STRATEGY msg)
 {
-    _orderID++;
-    TRADE_DATA order = {0};
-    order.action = action;
-    order.hasNext = hasNext;
-    order.tryTimes = 5;
-    order.kIndex = kIndex;
-    order.instrumnetID = instrumnetID;
-    _tradingInfo[_orderID] = order;
+    if (msg.msgType == MSG_TRADE_FORECAST_OVER) {
+        _dealForecast();
+        return;
+    }
+    if (msg.msgType == MSG_TRADE_REAL_COME) {
+        _dealRealCome(msg.groupID);
+        return;
+    }
+    _waitingList.push_back(msg);
+}
+
+void TradeStrategy::_dealForecast()
+{
+    int closeCnt = 0;
+    // 处理开仓、撤单，立即执行
+    std::vector<MSG_TO_TRADE_STRATEGY>::iterator it;
+    for (it = _waitingList.begin(); it != _waitingList.end(); it++) {
+        switch (it->msgType) {
+            case MSG_TRADE_ROLLBACK:
+                _rollback(it->groupID);
+                _waitingList.erase(it);
+                break;
+            case MSG_TRADE_BUYOPEN:
+            case MSG_TRADE_SELLOPEN:
+                _open(*it);
+                _mainAction[it->groupID] = it->msgType;
+                _waitingList.erase(it);
+                break;
+            case MSG_TRADE_SELLCLOSE:
+            case MSG_TRADE_BUYCLOSE:
+                if (!_mainAction[it->groupID]) {
+                    _mainAction[it->groupID] = it->msgType;
+                }
+                closeCnt++;
+            default:
+                break;
+        }
+    }
+
+    // 处理平仓，由于可能对同一笔开仓进行两笔平仓操作，
+    // 所以要看同一次操作中有几个平仓，若两个以上，先暂存
+    if (closeCnt > 0) {
+        for (it = _waitingList.begin(); it != _waitingList.end(); it++) {
+            _waitingCancelList[it->groupID] = *it
+        }
+    } else {
+        _close(*(_waitingList.begin()));
+    }
+    _waitingList.clear();
+
+}
+
+void TradeStrategy::_dealRealCome(int groupID)
+{
+    std::vector<MSG_TO_TRADE_STRATEGY>::iterator it;
+    for (it = _waitingList.begin(); it != _waitingList.end(); it++) {
+        _rollback(it->groupID);
+        _waitingList.erase(it);
+    }
+    _waitingList.clear();
+    // 开启定时器
+    std::map<int, MSG_TO_TRADE_STRATEGY>::iterator it;
+    for (it = _order2tradeMap.begin(); it != _order2tradeMap.end(); i++) {
+        setTimer(*(it->first));
+    }
+}
+
+void TradeStrategy::_initTrade(MSG_TO_TRADE_STRATEGY data)
+{
+    _orderID++; // 生成订单ID
+    _group2orderMap[data.groupID].push_back(_orderID);
+    _order2tradeMap[_orderID] = data;
 
     // log
     ofstream info;
@@ -66,10 +130,42 @@ void TradeStrategy::_initTrade(int action, int kIndex, int hasNext, string instr
     info << endl;
     info.close();
 
-    // save data
-    string data = "klineorder_" + Lib::itos(kIndex) + "_" + Lib::itos(_orderID) + "_" + instrumnetID;
-    _store->push("ORDER_LOGS", data);
 }
+
+void TradeStrategy::_open(MSG_TO_TRADE_STRATEGY data)
+{
+    _initTrade(data);
+
+    if (data.msgType == MSG_TRADE_BUYOPEN) {
+        _sendMsg(data.price, data.total, true, true, _orderID);
+    }
+    if (data.msgType == MSG_TRADE_SELLOPEN) {
+        _sendMsg(data.price, data.total, false, true, _orderID);
+    }
+}
+
+void TradeStrategy::_close(MSG_TO_TRADE_STRATEGY data)
+{
+    _initTrade(data);
+
+    if (data.msgType == MSG_TRADE_BUYCLOSE) {
+        _sendMsg(data.price, data.total, true, false, _orderID);
+    }
+    if (data.msgType == MSG_TRADE_SELLCLOSE) {
+        _sendMsg(data.price, data.total, false, false, _orderID);
+    }
+}
+
+void TradeStrategy::_rollback(int groupID)
+{
+    std::vector<int> orderIDs = _group2orderMap[groupID];
+    if (!orderID) return;
+    for (int i = 0; i < orderIDs.size(); ++i)
+    {
+        _cancel(orderID);
+    }
+}
+
 
 void TradeStrategy::_removeTradeInfo(int orderID)
 {
@@ -114,7 +210,8 @@ bool TradeStrategy::_isTrading(int orderID)
     return i == _tradingInfo.end() ? false : true;
 }
 
-void TradeStrategy::tradeAction(int action, double price, int total, int kIndex, int hasNext, string instrumnetID)
+void TradeStrategy::tradeAction(int
+    , double price, int total, int kIndex, int hasNext, string instrumnetID)
 {
     _initTrade(action, kIndex, hasNext, instrumnetID);
     switch (action) {

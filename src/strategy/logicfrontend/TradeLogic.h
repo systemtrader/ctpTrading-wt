@@ -64,16 +64,17 @@ private:
     void _forecastBuyOpened(TickData);
 
     // 撤单操作
-    void _cancelAll();
-    void _cancelUp();
-    void _cancelDown();
+    void _rollbackAll();
+    void _rollbackUp();
+    void _rollbackDown();
 
     void _tick(TickData); // 处理tick信息
 
     // 判断仓位状态
     int _getStatus();
     void _sendMsg(int, double = 0);
-    void _sendCancel(int);
+    void _sendRollBack(int);
+    void _sendRealCome(int);
 
 public:
     TradeLogic(int, double, int, string, int, string, string, int);

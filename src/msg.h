@@ -32,15 +32,13 @@ typedef struct msg_k_line
 #define MSG_TRADE_BUYCLOSE  7
 #define MSG_TRADE_SELLCLOSE 8
 #define MSG_TRADE_CANCEL    9
-// tradeSrv->tradeStrategySrv
-#define MSG_TRADE_BACK_TRADED   10
-#define MSG_TRADE_BACK_CANCELED 11
+#define MSG_TRADE_ROLLBACK  15
 
 #define MSG_TRADE_FORECAST_OVER 14
+#define MSG_TRADE_REAL_COME 16
 
-#define FORECAST_CANCEL_UP   1
-#define FORECAST_CANCEL_DOWN 2
-#define FORECAST_CANCEL_ALL  3
+#define MSG_TRADE_BACK_TRADED   10
+#define MSG_TRADE_BACK_CANCELED 11
 typedef struct msg_trade_data
 {
     long int msgType;
