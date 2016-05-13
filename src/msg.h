@@ -35,14 +35,20 @@ typedef struct msg_k_line
 // tradeSrv->tradeStrategySrv
 #define MSG_TRADE_BACK_TRADED   10
 #define MSG_TRADE_BACK_CANCELED 11
+
+#define MSG_TRADE_FORECAST_OVER 14
+
+#define FORECAST_CANCEL_UP   1
+#define FORECAST_CANCEL_DOWN 2
+#define FORECAST_CANCEL_ALL  3
 typedef struct msg_trade_data
 {
     long int msgType;
     double price;
     int total;
     int kIndex;
-    int orderID;
-    int hasNext;
+    int groupID; // 逻辑模块生成
+    int orderID; // 下单模块生成，下单系统反馈时使用
     char instrumnetID[7];
 
 } MSG_TO_TRADE_STRATEGY;

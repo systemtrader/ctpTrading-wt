@@ -30,14 +30,16 @@ int main(int argc, char const *argv[])
     string peroidStr = getOptionToString("peroid");
     string thresholdStr = getOptionToString("threshold");
     string iIDs = getOptionToString("instrumnet_id");
+    string krs = getOptionToString("k_range");
     std::vector<string> instrumnetIDs = Lib::split(iIDs, "/");
     std::vector<string> peroids = Lib::split(peroidStr, "/");
     std::vector<string> thresholds = Lib::split(thresholdStr, "/");
+    std::vector<string> kRanges = Lib::split(krs, "/");
 
     for (int i = 0; i < instrumnetIDs.size(); ++i)
     {
         TradeLogic * tmp = new TradeLogic(Lib::stoi(peroids[i]), Lib::stod(thresholds[i]), tradeStrategySrvID,
-            logPath, db, stopTradeTime, instrumnetIDs[i]);
+            logPath, db, stopTradeTime, instrumnetIDs[i], Lib::stoi(kRanges[i]));
         tmp->init();
         services[instrumnetIDs[i]] = tmp;
     }

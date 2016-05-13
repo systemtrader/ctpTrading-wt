@@ -32,6 +32,12 @@ private:
     // 算法参数
     int _peroid; // 周期
     double _threshold; // 阈值
+    int _kRange;
+
+    // 订单组id
+    int _groupID;
+    int _forecastUp;
+    int _forecastDown;
 
     // 计算辅助变量
     int _kIndex;
@@ -44,25 +50,39 @@ private:
 
     double _pUp2Up;
     double _pUp2Down;
-    void _calculateUp();
+    void _calculateUp(double, double);
 
     double _pDown2Up;
     double _pDown2Down;
-    void _calculateDown();
+    void _calculateDown(double, double);
+
+    bool _isCurrentUp(TickData);
+
+    // 预测开仓、平仓
+    void _forecastNothing(TickData);
+    void _forecastSellOpened(TickData);
+    void _forecastBuyOpened(TickData);
+
+    // 撤单操作
+    void _cancelAll();
+    void _cancelUp();
+    void _cancelDown();
 
     void _tick(TickData); // 处理tick信息
 
     // 判断仓位状态
     int _getStatus();
-    void _sendMsg(int, double = 0, int = 0);
+    void _sendMsg(int, double = 0);
+    void _sendCancel(int);
 
 public:
-    TradeLogic(int, double, int, string, int, string, string);
+    TradeLogic(int, double, int, string, int, string, string, int);
     ~TradeLogic();
 
     void init(); // 初始化历史K线
 
     void onKLineClose(KLineBlock, TickData);
+    void onKLineOpen(KLineBlock, TickData);
 };
 
 #endif
