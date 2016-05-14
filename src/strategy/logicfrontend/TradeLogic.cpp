@@ -74,6 +74,7 @@ void TradeLogic::_tick(TickData tick)
     for (i = _tickGroup.begin(); i != _tickGroup.end(); i++) {
         t[j--] = *i;
     }
+
     if (t[0].price > t[1].price) {
         if (t[1].price > t[2].price) {
             _countDown2Down++;
@@ -84,13 +85,14 @@ void TradeLogic::_tick(TickData tick)
         }
     } else {
         if (t[1].price > t[2].price) {
-            _countUp2Up++;
-            _transTypeList.push_front(TRANS_TYPE_UP2UP);
-        } else {
             _countUp2Down++;
             _transTypeList.push_front(TRANS_TYPE_UP2DOWN);
+        } else {
+            _countUp2Up++;
+            _transTypeList.push_front(TRANS_TYPE_UP2UP);
         }
     }
+
     // 检查转换列表是否够用，够用删除相应的记录
     while (_transTypeList.size() > _peroid) {
         int type = _transTypeList.back();
@@ -118,7 +120,7 @@ void TradeLogic::_calculateUp()
 {
     if (_countUp2Down + _countUp2Up > 0) {
         _pUp2Up = (double)_countUp2Up / ((double)_countUp2Up + (double)_countUp2Down);
-        _pUp2Down = (double)_countUp2Down / ((double)_countUp2Up + (double)_countUp2Down);
+        _pUp2Down = 1 - _pUp2Up;
     }
     //log
     ofstream info;
@@ -136,7 +138,7 @@ void TradeLogic::_calculateDown()
 {
     if (_countDown2Up + _countDown2Down > 0) {
         _pDown2Up = (double)_countDown2Up / ((double)_countDown2Up + (double)_countDown2Down);
-        _pDown2Down = (double)_countDown2Down / ((double)_countDown2Up + (double)_countDown2Down);
+        _pDown2Down = 1 - _pDown2Up;
     }
     //log
     ofstream info;
@@ -153,12 +155,15 @@ void TradeLogic::_calculateDown()
 
 void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
 {
+    _tick(tick);
     if (_transTypeList.size() < _peroid) {
-        _tick(tick);
         return; // 计算转义概率条件不足，不做操作
     }
+
     _kIndex = block.getIndex();
-    TickData last = _tickGroup.front();
+    list<TickData>::iterator i = _tickGroup.begin();
+    i++;
+    TickData last = *i;
     bool isUp = true;
     if (last.price > tick.price) isUp = false;
 
@@ -169,6 +174,7 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
     }
 
     int status = _getStatus();
+    
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeLogicSrv[onKLineClose]";
@@ -269,7 +275,6 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
         default:
             break;
     }
-    _tick(tick);
 }
 
 int TradeLogic::_getStatus()
