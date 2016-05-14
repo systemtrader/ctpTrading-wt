@@ -115,8 +115,8 @@ int main(int argc, char const *argv[])
 
     } else if (cmd == 5) {
 
-        system(phpCmd.c_str());
-        sleep(1);
+        // system(.c_str());
+        // sleep(1);
         // 需要手动启动tradeStrategyAfter 1 以及消费者
         system("./tradeStrategySrv &");
         system("./tradeLogicSrv &");

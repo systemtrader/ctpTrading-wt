@@ -212,9 +212,9 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
                 }
                 if (_pUp2Up <= _threshold ) { // 不满足买开，平仓
                     if (singleAction) {
-                        _sendMsg(MSG_TRADE_SELLCLOSE, tick.bidPrice1);
+                        _sendMsg(MSG_TRADE_SELLCLOSE, tick.price);
                     } else {
-                        _sendMsg(MSG_TRADE_SELLCLOSE, tick.bidPrice1, 1);
+                        _sendMsg(MSG_TRADE_SELLCLOSE, tick.price, 1);
                     }
                 }
                 if (!singleAction)
@@ -225,9 +225,9 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
                 }
                 if (_pDown2Up <= _threshold) { // 不满足买开，平
                     if (singleAction) {
-                        _sendMsg(MSG_TRADE_SELLCLOSE, tick.bidPrice1);
+                        _sendMsg(MSG_TRADE_SELLCLOSE, tick.price);
                     } else {
-                        _sendMsg(MSG_TRADE_SELLCLOSE, tick.bidPrice1, 1);
+                        _sendMsg(MSG_TRADE_SELLCLOSE, tick.price, 1);
                     }
                 }
                 if (!singleAction)
@@ -244,9 +244,9 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
                 }
                 if (_pUp2Down <= _threshold) { // 卖开
                     if (singleAction) {
-                        _sendMsg(MSG_TRADE_BUYCLOSE, tick.askPrice1);
+                        _sendMsg(MSG_TRADE_BUYCLOSE, tick.price);
                     } else {
-                        _sendMsg(MSG_TRADE_BUYCLOSE, tick.askPrice1, 1);
+                        _sendMsg(MSG_TRADE_BUYCLOSE, tick.price, 1);
                     }
                 }
                 if (!singleAction)
@@ -257,9 +257,9 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
                 }
                 if (_pDown2Down <= _threshold) { // 卖开
                     if (singleAction) {
-                        _sendMsg(MSG_TRADE_BUYCLOSE, tick.askPrice1);
+                        _sendMsg(MSG_TRADE_BUYCLOSE, tick.price);
                     } else {
-                        _sendMsg(MSG_TRADE_BUYCLOSE, tick.askPrice1, 1);
+                        _sendMsg(MSG_TRADE_BUYCLOSE, tick.price, 1);
                     }
                 }
                 if (!singleAction)
