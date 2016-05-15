@@ -56,7 +56,7 @@ private:
     double _pDown2Down;
     void _calculateDown(double, double);
 
-    bool _isCurrentUp(TickData);
+    bool _isCurrentUp();
 
     // 预测开仓、平仓
     void _forecastNothing(TickData);
@@ -72,6 +72,7 @@ private:
 
     // 判断仓位状态
     int _getStatus();
+    void _setStatus(int);
     void _sendMsg(int, double = 0);
     void _sendRollBack(int);
     void _sendRealCome(int);

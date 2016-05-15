@@ -16,12 +16,13 @@ private:
 
     Redis * _store;
     QClient * _tradeSrvClient;
+    QClient * _klineClient;
     string _logPath;
     int _orderID;
 
     std::vector<MSG_TO_TRADE_STRATEGY> _waitingList; // 等待预测结束的暂存
-    std::map<int, MSG_TO_TRADE_STRATEGY> _waitingCancelList; // 多个平仓，用户暂存平仓信息
-    std::map<int, int> _mainAction; // 每个groupID对应的主要操作，最终还原持仓状态
+    // std::map<int, MSG_TO_TRADE_STRATEGY> _waitingCancelList; // 多个平仓，用户暂存平仓信息
+    // std::map<int, int> _mainAction; // 每个groupID对应的主要操作，最终还原持仓状态
 
     // 接到订单发送完成消息，开始处理waitingList中的订单
     // 处理订单的重组，发送，或者继续等待
@@ -31,12 +32,12 @@ private:
     void _open(MSG_TO_TRADE_STRATEGY);
     void _close(MSG_TO_TRADE_STRATEGY);
 
-    std::map<int, std::vector<int> > _group2orderMap; // 保存groupID与orderID关系
-    std::map<int, MSG_TO_TRADE_STRATEGY> _order2tradeMap; // 保存orderID与trade详情的关系
+    std::map<int, int> _group2orderMap; // 保存groupID与orderID关系
+    std::map<int, MSG_TO_TRADE_STRATEGY> _orderDetail; // 保存orderID与trade详情的关系
 
-    void _initTrade(MSG_TO_TRADE_STRATEGY); // 初始化交易
+    int _initTrade(MSG_TO_TRADE_STRATEGY); // 初始化交易
 
-    void _removeTradeInfo(int);
+    void _removeOrderInfo(int);
     bool _isTrading(int);
 
     void _zhuijia(int); // 追价
@@ -48,7 +49,7 @@ private:
     void _sendMsg(double, int, bool, bool, int);
 
 public:
-    TradeStrategy(int, string, int);
+    TradeStrategy(int, string, int, int);
     ~TradeStrategy();
 
     void accessAction(MSG_TO_TRADE_STRATEGY);

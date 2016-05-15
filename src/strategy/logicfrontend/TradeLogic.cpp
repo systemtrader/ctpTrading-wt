@@ -61,6 +61,14 @@ void TradeLogic::onKLineOpen(KLineBlock block, TickData tick)
         return; // 计算概率条件不足，不做操作
     }
     int status = _getStatus();
+
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info);
+    info << "TradeLogicSrv[forecastBegin]";
+    info << "|status|" << status;
+    info << "|kIndex|" << _kIndex;
+    info << endl;
+
     switch (status) {
         case TRADE_STATUS_NOTHING:
             _forecastNothing(tick);
@@ -71,30 +79,24 @@ void TradeLogic::onKLineOpen(KLineBlock block, TickData tick)
         case TRADE_STATUS_SELLOPENED:
             _forecastSellOpened(tick);
             break;
-        case TRADE_STATUS_BUYOPENING:
-        case TRADE_STATUS_SELLOPENING:
-            _rollbackAll();
-            _forecastNothing(tick);
-            break;
-        case TRADE_STATUS_BUYCLOSING:
-            _rollbackAll();
-            _forecastSellOpened(tick);
-            break;
-        case TRADE_STATUS_SELLCLOSING:
-            _rollbackAll();
-            _forecastBuyOpened(tick);
-            break;
         default:
             break;
     }
     _sendMsg(MSG_TRADE_FORECAST_OVER);
+
+    info << "TradeLogicSrv[forecastEnd]";
+    info << endl;
+    info.close();
 }
 
-bool TradeLogic::_isCurrentUp(TickData tick)
+bool TradeLogic::_isCurrentUp()
 {
-    TickData last = _tickGroup.front();
+    list<TickData>::iterator it = _tickGroup.begin();
+    TickData last = *it;
+    it++;
+    TickData before = *it;
     bool isUp = true;
-    if (last.price > tick.price) isUp = false;
+    if (last.price < before.price) isUp = false;
     return isUp;
 }
 
@@ -102,8 +104,8 @@ bool TradeLogic::_isCurrentUp(TickData tick)
  * 空仓情况下，预测开仓
  */
 void TradeLogic::_forecastNothing(TickData tick)
-{
-    if (_isCurrentUp(tick)) { // 当前是up
+{    
+    if (_isCurrentUp()) { // 当前是up
 
         // 下一个点up
         _calculateUp(_countUp2Down, _countUp2Up + 1);
@@ -132,12 +134,10 @@ void TradeLogic::_forecastNothing(TickData tick)
 
         // 下一个点up
         _calculateUp(_countUp2Down, _countUp2Up);
-
         if (_pUp2Up > _threshold) { // 买开
             _groupID++;
             _sendMsg(MSG_TRADE_BUYOPEN, tick.price + _kRange);
         }
-
         if (_pUp2Down > _threshold) { // 卖开
             _groupID++;
             _sendMsg(MSG_TRADE_SELLOPEN, tick.price + _kRange);
@@ -160,7 +160,7 @@ void TradeLogic::_forecastNothing(TickData tick)
 
 void TradeLogic::_forecastBuyOpened(TickData tick)
 {
-    if (_isCurrentUp(tick)) {
+    if (_isCurrentUp()) {
 
         // up
         _calculateUp(_countUp2Down, _countUp2Up + 1);
@@ -168,9 +168,9 @@ void TradeLogic::_forecastBuyOpened(TickData tick)
         if (_pUp2Up <= _threshold ) { // 不满足买开，平仓
             _sendMsg(MSG_TRADE_SELLCLOSE, tick.price + _kRange);
         }
-        if (_pUp2Down > _threshold) {
-            _sendMsg(MSG_TRADE_SELLOPEN, tick.price + _kRange); // 开仓
-        }
+        // if (_pUp2Down > _threshold) {
+        //     _sendMsg(MSG_TRADE_SELLOPEN, tick.price + _kRange); // 开仓
+        // }
         _forecastUp = _groupID;
 
         // down
@@ -179,9 +179,9 @@ void TradeLogic::_forecastBuyOpened(TickData tick)
         if (_pDown2Up <= _threshold) { // 不满足买开，平
             _sendMsg(MSG_TRADE_SELLCLOSE, tick.price - _kRange);
         }
-        if (_pDown2Down > _threshold) {
-            _sendMsg(MSG_TRADE_SELLOPEN, tick.price - _kRange);
-        }
+        // if (_pDown2Down > _threshold) {
+        //     _sendMsg(MSG_TRADE_SELLOPEN, tick.price - _kRange);
+        // }
         _forecastDown = _groupID;
 
     } else {
@@ -192,9 +192,9 @@ void TradeLogic::_forecastBuyOpened(TickData tick)
         if (_pUp2Up <= _threshold ) { // 不满足买开，平仓
             _sendMsg(MSG_TRADE_SELLCLOSE, tick.price + _kRange);
         }
-        if (_pUp2Down > _threshold) {
-            _sendMsg(MSG_TRADE_SELLOPEN, tick.price + _kRange); // 开仓
-        }
+        // if (_pUp2Down > _threshold) {
+        //     _sendMsg(MSG_TRADE_SELLOPEN, tick.price + _kRange); // 开仓
+        // }
         _forecastUp = _groupID;
 
         // down
@@ -203,9 +203,9 @@ void TradeLogic::_forecastBuyOpened(TickData tick)
         if (_pDown2Up <= _threshold) { // 不满足买开，平
             _sendMsg(MSG_TRADE_SELLCLOSE, tick.price - _kRange);
         }
-        if (_pDown2Down > _threshold) {
-            _sendMsg(MSG_TRADE_SELLOPEN, tick.price - _kRange);
-        }
+        // if (_pDown2Down > _threshold) {
+        //     _sendMsg(MSG_TRADE_SELLOPEN, tick.price - _kRange);
+        // }
         _forecastDown = _groupID;
 
     }
@@ -213,14 +213,14 @@ void TradeLogic::_forecastBuyOpened(TickData tick)
 
 void TradeLogic::_forecastSellOpened(TickData tick)
 {
-    if (_isCurrentUp(tick)) {
+    if (_isCurrentUp()) {
 
         // up
         _calculateUp(_countUp2Down, _countUp2Up + 1);
         _groupID++;
-        if (_pUp2Up > _threshold) {
-            _sendMsg(MSG_TRADE_BUYOPEN, tick.price + _kRange);
-        }
+        // if (_pUp2Up > _threshold) {
+        //     _sendMsg(MSG_TRADE_BUYOPEN, tick.price + _kRange);
+        // }
         if (_pUp2Down <= _threshold) { // 卖开
             _sendMsg(MSG_TRADE_BUYCLOSE, tick.price + _kRange);
         }
@@ -229,9 +229,9 @@ void TradeLogic::_forecastSellOpened(TickData tick)
         // down
         _calculateDown(_countDown2Up, _countDown2Down);
         _groupID++;
-        if (_pDown2Up > _threshold) {
-            _sendMsg(MSG_TRADE_BUYOPEN, tick.price - _kRange);
-        }
+        // if (_pDown2Up > _threshold) {
+        //     _sendMsg(MSG_TRADE_BUYOPEN, tick.price - _kRange);
+        // }
         if (_pDown2Down <= _threshold) { // 卖开
             _sendMsg(MSG_TRADE_BUYCLOSE, tick.price - _kRange);
         }
@@ -242,9 +242,9 @@ void TradeLogic::_forecastSellOpened(TickData tick)
         // up
         _calculateUp(_countUp2Down, _countUp2Up);
         _groupID++;
-        if (_pUp2Up > _threshold) {
-            _sendMsg(MSG_TRADE_BUYOPEN, tick.price + _kRange);
-        }
+        // if (_pUp2Up > _threshold) {
+        //     _sendMsg(MSG_TRADE_BUYOPEN, tick.price + _kRange);
+        // }
         if (_pUp2Down <= _threshold) { // 卖开
             _sendMsg(MSG_TRADE_BUYCLOSE, tick.price + _kRange);
         }
@@ -253,9 +253,9 @@ void TradeLogic::_forecastSellOpened(TickData tick)
         // down
         _calculateDown(_countDown2Up, _countDown2Down + 1);
         _groupID++;
-        if (_pDown2Up > _threshold) {
-            _sendMsg(MSG_TRADE_BUYOPEN, tick.price - _kRange);
-        }
+        // if (_pDown2Up > _threshold) {
+        //     _sendMsg(MSG_TRADE_BUYOPEN, tick.price - _kRange);
+        // }
         if (_pDown2Down <= _threshold) { // 卖开
             _sendMsg(MSG_TRADE_BUYCLOSE, tick.price - _kRange);
         }
@@ -273,7 +273,7 @@ void TradeLogic::_rollbackAll()
 void TradeLogic::_rollbackUp()
 {
     if (_forecastUp > 0) {
-        _sendCancel(_forecastUp);
+        _sendRollBack(_forecastUp);
         _forecastUp = 0;
     }
 
@@ -282,7 +282,7 @@ void TradeLogic::_rollbackUp()
 void TradeLogic::_rollbackDown()
 {
     if (_forecastDown > 0) {
-        _sendCancel(_forecastDown);
+        _sendRollBack(_forecastDown);
         _forecastDown = 0;
     }
 }
@@ -319,11 +319,11 @@ void TradeLogic::_tick(TickData tick)
         }
     } else {
         if (t[1].price > t[2].price) {
-            _countUp2Up++;
-            _transTypeList.push_front(TRANS_TYPE_UP2UP);
-        } else {
             _countUp2Down++;
             _transTypeList.push_front(TRANS_TYPE_UP2DOWN);
+        } else {
+            _countUp2Up++;
+            _transTypeList.push_front(TRANS_TYPE_UP2UP);
         }
     }
     // 检查转换列表是否够用，够用删除相应的记录
@@ -388,12 +388,30 @@ void TradeLogic::_calculateDown(double d2u, double d2d)
 
 void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
 {
-    if (_isCurrentUp(tick)) {
-        _rollbackDown();
-        _sendRealCome(_forecastUp);
-    } else {
-        _rollbackUp();
-        _sendRealCome(_forecastDown);
+    int status = _getStatus();
+    switch (status) {
+        case TRADE_STATUS_OPENING:
+            _rollbackAll();
+            _setStatus(TRADE_STATUS_NOTHING);
+            break;
+        case TRADE_STATUS_SELLCOLSING:
+            _rollbackAll();
+            _setStatus(TRADE_STATUS_NOTHING);
+            _sendMsg(MSG_TRADE_SELLCLOSE, tick.bidPrice1);
+            _sendMsg(MSG_TRADE_REAL_COME);
+            break;
+        case TRADE_STATUS_BUYCLOSING:
+            _rollbackAll();
+            _setStatus(TRADE_STATUS_NOTHING);
+            _sendMsg(MSG_TRADE_BUYCLOSE, tick.askPrice1);
+            _sendMsg(MSG_TRADE_REAL_COME);
+            break;
+        default:
+            if (_isCurrentUp()) {
+                _rollbackDown();
+            } else {
+                _rollbackUp();
+            }
     }
     _tick(tick);
 }
@@ -402,6 +420,11 @@ int TradeLogic::_getStatus()
 {
     string status = _store->get("TRADE_STATUS_" + _instrumnetID);
     return Lib::stoi(status);
+}
+
+void TradeLogic::_setStatus(int status)
+{
+    _store->set("TRADE_STATUS_" + _instrumnetID, Lib::itos(status));
 }
 
 void TradeLogic::_sendMsg(int msgType, double price)
@@ -447,26 +470,26 @@ void TradeLogic::_sendRollBack(int groupID)
     //log
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
-    info << "TradeLogicSrv[sendMsg]";
+    info << "TradeLogicSrv[sendRollBack]";
     info << "|iID|" << _instrumnetID;
     info << "|groupID|" << groupID;
     info.close();
 }
 
-void TradeLogic::_sendRealCome(int groupID)
-{
-    MSG_TO_TRADE_STRATEGY msg = {0};
-    msg.msgType = MSG_TRADE_REAL_COME;
-    msg.groupID = groupID;
-    strcpy(msg.instrumnetID, Lib::stoc(_instrumnetID));
-    _tradeStrategySrvClient->send((void *)&msg);
+// void TradeLogic::_sendRealCome(int groupID)
+// {
+//     MSG_TO_TRADE_STRATEGY msg = {0};
+//     msg.msgType = MSG_TRADE_REAL_COME;
+//     msg.groupID = groupID;
+//     strcpy(msg.instrumnetID, Lib::stoc(_instrumnetID));
+//     _tradeStrategySrvClient->send((void *)&msg);
 
-    //log
-    ofstream info;
-    Lib::initInfoLogHandle(_logPath, info);
-    info << "TradeLogicSrv[sendMsg]";
-    info << "|iID|" << _instrumnetID;
-    info << "|groupID|" << groupID;
-    info.close();
-}
+//     //log
+//     ofstream info;
+//     Lib::initInfoLogHandle(_logPath, info);
+//     info << "TradeLogicSrv[sendMsg]";
+//     info << "|iID|" << _instrumnetID;
+//     info << "|groupID|" << groupID;
+//     info.close();
+// }
 

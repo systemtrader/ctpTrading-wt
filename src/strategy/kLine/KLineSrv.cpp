@@ -69,7 +69,7 @@ void KLineSrv::_initBlock(TickData tick)
 
 bool KLineSrv::_checkBlockClose(TickData tick)
 {
-    if (abs(_currentBlock->getOpenPrice() - tick.price) > _kRange) {
+    if (abs(_currentBlock->getOpenPrice() - tick.price) >= _kRange) {
         return true;
     }
     return false;

@@ -22,8 +22,8 @@ int main(int argc, char const *argv[])
     } else {
         db = getOptionToInt("rds_db_online");
     }
-
-    service = new TradeStrategy(tradeSrvID, logPath, db);
+    int kLineSrvID  = getOptionToInt("k_line_service_id");
+    service = new TradeStrategy(tradeSrvID, logPath, db, kLineSrvID);
 
     // 服务化
     QService Qsrv(tradeStrategySrvID, sizeof(MSG_TO_TRADE_STRATEGY));
@@ -45,17 +45,12 @@ bool action(long int msgType, const void * data)
     MSG_TO_TRADE_STRATEGY msg = *((MSG_TO_TRADE_STRATEGY*)data);
     // cout << "|PRICE|" << msg.price << "|KINDEX|"  << msg.kIndex << endl;
     // 下单操作
-    if (msgType == MSG_TRADE_BUYOPEN) {
-        service->tradeAction(TRADE_ACTION_BUYOPEN, msg.price, 1, msg.kIndex, msg.hasNext, string(msg.instrumnetID));
-    }
-    if (msgType == MSG_TRADE_SELLOPEN) {
-        service->tradeAction(TRADE_ACTION_SELLOPEN, msg.price, 1, msg.kIndex, msg.hasNext, string(msg.instrumnetID));
-    }
-    if (msgType == MSG_TRADE_SELLCLOSE) {
-        service->tradeAction(TRADE_ACTION_SELLCLOSE, msg.price, 1, msg.kIndex, msg.hasNext, string(msg.instrumnetID));
-    }
-    if (msgType == MSG_TRADE_BUYCLOSE) {
-        service->tradeAction(TRADE_ACTION_BUYCLOSE, msg.price, 1, msg.kIndex, msg.hasNext, string(msg.instrumnetID));
+    if (msgType == MSG_TRADE_BUYOPEN ||
+        msgType == MSG_TRADE_SELLOPEN ||
+        msgType == MSG_TRADE_SELLCLOSE ||
+        msgType == MSG_TRADE_BUYCLOSE) 
+    {
+        service->accessAction(msg);
     }
 
     // if (msgType == MSG_TRADE_CANCEL) {
