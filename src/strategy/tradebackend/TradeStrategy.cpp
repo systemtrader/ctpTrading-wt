@@ -343,6 +343,7 @@ void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen, i
     msg.total = total;
     msg.isOpen = isOpen;
     msg.orderID = orderID;
+    msg.forecastType = order.forecastType;
     strcpy(msg.instrumnetID, Lib::stoc(order.instrumnetID));
     _tradeSrvClient->send((void *)&msg);
 
@@ -356,6 +357,7 @@ void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen, i
     info << "|isOpen|" << isOpen;
     info << "|kIndex|" << order.kIndex;
     info << "|orderID|" << orderID;
+    info << "|forecastType|" << order.forecastType;
     info << endl;
     info.close();
 }

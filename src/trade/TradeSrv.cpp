@@ -113,7 +113,7 @@ void TradeSrv::onPositionRtn(CThostFtdcInvestorPositionField * const rsp)
     _ydPostion[iID] = rsp->Position - rsp->TodayPosition;
 }
 
-void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int orderID, string instrumnetID)
+void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int orderID, string instrumnetID, int forecastType)
 {
     _initOrderRef(orderID);
     TThostFtdcOffsetFlagEnType flag = THOST_FTDC_OFEN_Open;
@@ -123,8 +123,24 @@ void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int order
             flag = THOST_FTDC_OFEN_Close;
         }
     }
+
+    TThostFtdcContingentConditionType condition;
+    switch (forecastType) {
+        case FORECAST_TYPE_NONE:
+            condition = THOST_FTDC_VC_AV;
+            break;
+        case FORECAST_TYPE_UP:
+            condition = THOST_FTDC_CC_LastPriceGreaterEqualStopPrice;
+            break;
+        case FORECAST_TYPE_DOWN:
+            condition = THOST_FTDC_CC_LastPriceLesserEqualStopPrice;
+            break;
+        default:
+            break;
+    }
+
     CThostFtdcInputOrderField order = _createOrder(instrumnetID, isBuy, total, price, flag,
-            THOST_FTDC_HFEN_Speculation, THOST_FTDC_OPT_LimitPrice, THOST_FTDC_TC_GFD, THOST_FTDC_VC_AV);
+            THOST_FTDC_HFEN_Speculation, THOST_FTDC_OPT_LimitPrice, THOST_FTDC_TC_GFD, THOST_FTDC_VC_AV, condition);
 
     int res = _tradeApi->ReqOrderInsert(&order, _maxOrderRef);
     Lib::sysReqLog(_logPath, "TradeSrv[trade]", res);
@@ -311,8 +327,11 @@ CThostFtdcInputOrderField TradeSrv::_createOrder(string instrumnetID, bool isBuy
 
     order.Direction = isBuy ? THOST_FTDC_D_Buy : THOST_FTDC_D_Sell; ///买卖方向
     order.VolumeTotalOriginal = total;///数量
-    order.LimitPrice = price;///价格
-    order.StopPrice = 0;///止损价
+    if (condition == THOST_FTDC_CC_Immediately) {
+        order.LimitPrice = price;///价格
+    } else {
+        order.StopPrice = price;///止损价
+    }
 
     ///组合开平标志
     //THOST_FTDC_OFEN_Open 开仓

@@ -67,7 +67,7 @@ public:
     void getPosition();
     void onPositionRtn(CThostFtdcInvestorPositionField * const);
 
-    void trade(double, int, bool, bool, int, string);
+    void trade(double, int, bool, bool, int, string, int);
     void onTraded(CThostFtdcTradeField * const);
     void onOrderRtn(CThostFtdcOrderField * const);
 

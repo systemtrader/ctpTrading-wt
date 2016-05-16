@@ -427,7 +427,7 @@ void TradeLogic::_setStatus(int status)
     _store->set("TRADE_STATUS_" + _instrumnetID, Lib::itos(status));
 }
 
-void TradeLogic::_sendMsg(int msgType, double price)
+void TradeLogic::_sendMsg(int msgType, double price, int forecastType)
 {
     string now = Lib::getDate("%H:%M");
     std::vector<string> nowHM = Lib::split(now, ":");
@@ -444,6 +444,7 @@ void TradeLogic::_sendMsg(int msgType, double price)
     msg.total = 1;
     msg.kIndex = _kIndex;
     msg.groupID = _groupID;
+    msg.forecastType = forecastType;
     strcpy(msg.instrumnetID, Lib::stoc(_instrumnetID));
     _tradeStrategySrvClient->send((void *)&msg);
 
