@@ -30,7 +30,7 @@ private:
     void _dealRealCome();
     void _rollback(int);
     void _open(MSG_TO_TRADE_STRATEGY);
-    void _close(MSG_TO_TRADE_STRATEGY);
+    int _close(MSG_TO_TRADE_STRATEGY);
 
     std::map<int, int> _group2orderMap; // 保存groupID与orderID关系
     std::map<int, MSG_TO_TRADE_STRATEGY> _orderDetail; // 保存orderID与trade详情的关系

@@ -70,6 +70,12 @@ bool action(long int msgType, const void * data)
         services[string(tick.instrumnetID)]->onKLineClose(block, tick);
     }
 
+    if (msgType == MSG_KLINE_OPEN) {
+        KLineBlock block = KLineBlock::makeViaData(((MSG_TO_TRADE_LOGIC*)data)->block);
+        TickData tick = ((MSG_TO_TRADE_LOGIC*)data)->tick;
+        services[string(tick.instrumnetID)]->onKLineOpen(block, tick);
+    }
+
     return true;
 }
 

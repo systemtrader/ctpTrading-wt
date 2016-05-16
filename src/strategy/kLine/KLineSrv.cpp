@@ -89,16 +89,6 @@ void KLineSrv::_closeBlock(TickData tick)
     delete _currentBlock;
     _currentBlock = NULL;
 
-    // 发送消息
-    MSG_TO_TRADE_LOGIC msg = {0};
-    msg.msgType = MSG_KLINE_CLOSE;
-    msg.block = blockData;
-    msg.tick = tick;
-    _tradeLogicSrvClient->send((void *)&msg);
-
-    // 储存消息
-    _store->push(keyQ, strData);
-
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "KLineSrv[close]";
@@ -108,4 +98,14 @@ void KLineSrv::_closeBlock(TickData tick)
     info << "|close|" << blockData.close;
     info << endl;
     info.close();
+
+    // 发送消息
+    MSG_TO_TRADE_LOGIC msg = {0};
+    msg.msgType = MSG_KLINE_CLOSE;
+    msg.block = blockData;
+    msg.tick = tick;
+    _tradeLogicSrvClient->send((void *)&msg);
+
+    // 储存消息
+    _store->push(keyQ, strData);
 }

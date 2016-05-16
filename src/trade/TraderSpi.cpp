@@ -5,6 +5,7 @@ TraderSpi::TraderSpi(TradeSrv * service, string logPath)
 {
     _service = service;
     _logPath = logPath;
+    _sessionID = 0;
 }
 
 TraderSpi::~TraderSpi()
@@ -41,6 +42,7 @@ void TraderSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
     Lib::sysErrLog(_logPath, "TradeSrv[onLogin]", pRspInfo, nRequestID, bIsLast);
     _service->onLogin(pRspUserLogin);
     _service->confirm();
+    _sessionID = pRspUserLogin->SessionID;
 
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
@@ -91,6 +93,7 @@ void TraderSpi::OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder,
 
 void TraderSpi::OnRtnOrder(CThostFtdcOrderField *pOrder)
 {
+    if (_sessionID != pOrder->SessionID) return;
     _service->onOrderRtn(pOrder);
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
@@ -103,6 +106,7 @@ void TraderSpi::OnRtnOrder(CThostFtdcOrderField *pOrder)
         info << "|OrderSysID|" << pOrder->OrderSysID;
         info << "|OrderSubmitStatus|" << pOrder->OrderSubmitStatus;
         info << "|OrderStatus|" << pOrder->OrderStatus;
+        info << "|RelativeOrderSysID|" << pOrder->RelativeOrderSysID;
     }
     info << endl;
     info.close();

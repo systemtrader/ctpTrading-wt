@@ -13,13 +13,14 @@ private:
 
     TradeSrv * _service;
     string _logPath;
+    int _sessionID;
 
 public:
     TraderSpi(TradeSrv *, string);
     ~TraderSpi();
 
     void OnFrontConnected();
-    void OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm, 
+    void OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm,
         CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
     void OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
         CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);

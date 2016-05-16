@@ -47,11 +47,6 @@ bool check(string iID)
             sendMsg(MSG_TRADE_BUYCLOSE, tick.askPrice1, iID);
             break;
 
-        case TRADE_STATUS_NOTHING:
-        case TRADE_STATUS_BUYOPENING:
-        case TRADE_STATUS_SELLOPENING:
-        case TRADE_STATUS_SELLCLOSING:
-        case TRADE_STATUS_BUYCLOSING:
         default:
             break;
     }

@@ -35,6 +35,7 @@ private:
     QClient * _tradeStrategySrvClient;
 
     map<int, map<int, CThostFtdcOrderField> > _orderMap;
+    map<string, CThostFtdcOrderField> _conditionOrderMap;
     map<int, int> _orderRefMap;
 
     void _initOrderRef(int);

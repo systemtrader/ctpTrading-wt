@@ -40,9 +40,9 @@ typedef struct msg_k_line
 #define MSG_TRADE_BACK_TRADED   10
 #define MSG_TRADE_BACK_CANCELED 11
 
-#define FORECAST_TYPE_NONE 0;
-#define FORECAST_TYPE_UP   1;
-#define FORECAST_TYPE_DOWN 2;
+#define FORECAST_TYPE_NONE 0
+#define FORECAST_TYPE_UP   1
+#define FORECAST_TYPE_DOWN 2
 typedef struct msg_trade_data
 {
     long int msgType;

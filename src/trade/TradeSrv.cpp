@@ -119,9 +119,6 @@ void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int order
     TThostFtdcOffsetFlagEnType flag = THOST_FTDC_OFEN_Open;
     if (!isOpen) {
         flag = THOST_FTDC_OFEN_CloseToday;
-        if (_ydPostion[instrumnetID] > 0) {
-            flag = THOST_FTDC_OFEN_Close;
-        }
     }
 
     TThostFtdcContingentConditionType condition;
@@ -151,6 +148,7 @@ void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int order
     info << "|price|" << price;
     info << "|orderID|" << orderID;
     info << "|orderRef|" << _maxOrderRef;
+    info << "|condition|" << condition;
     info << endl;
     info.close();
 
@@ -170,12 +168,21 @@ void TradeSrv::onTraded(CThostFtdcTradeField * const rsp)
     if (_ydPostion[iID] > 0) _ydPostion[iID]--;
 
     int orderID = _getOrderID(atoi(rsp->OrderRef));
-    if (orderID <= 0) return;
-
-    CThostFtdcOrderField orderInfo = _getOrderInfo(orderID, atoi(rsp->OrderRef));
-    if (strcmp(orderInfo.ExchangeID, rsp->ExchangeID) != 0 ||
-        strcmp(orderInfo.OrderSysID, rsp->OrderSysID) != 0) // 不是我的订单，我就不处理了
-        return;
+    if (orderID <= 0) {
+        map<string, CThostFtdcOrderField>::iterator it = _conditionOrderMap.find(string(rsp->OrderSysID));
+        if(it != _conditionOrderMap.end()) {
+            _conditionOrderMap.erase(it);//列表移除
+        } else {
+            // 没找到，不是我的订单，byebye
+            return;
+        }
+    } else {
+        // 普通单
+        CThostFtdcOrderField orderInfo = _getOrderInfo(orderID, atoi(rsp->OrderRef));
+        if (strcmp(orderInfo.ExchangeID, rsp->ExchangeID) != 0 ||
+            strcmp(orderInfo.OrderSysID, rsp->OrderSysID) != 0) // 不是我的订单，我就不处理了
+            return;
+    }
 
     MSG_TO_TRADE_STRATEGY msg = {0};
     msg.msgType = MSG_TRADE_BACK_TRADED;
@@ -204,6 +211,7 @@ void TradeSrv::onOrderRtn(CThostFtdcOrderField * const rsp)
     if (orderID <= 0) return;
 
     _setOrderInfo(orderID, rsp);
+    _conditionOrderMap[string(rsp->RelativeOrderSysID)] = *rsp;
 
     // save data
     char c;
@@ -224,6 +232,16 @@ void TradeSrv::onOrderRtn(CThostFtdcOrderField * const rsp)
     msg.msgType = MSG_TRADE_BACK_CANCELED;
     msg.orderID = orderID;
     _tradeStrategySrvClient->send((void *)&msg);
+
+    // 将完成的order删除
+    map<int, CThostFtdcOrderField>::iterator iter = _orderMap[orderID].find(atoi(rsp->OrderRef));
+    if(iter != _orderMap[orderID].end()) {
+        _orderMap[orderID].erase(iter);//列表移除
+    }
+    map<string, CThostFtdcOrderField>::iterator it = _conditionOrderMap.find(string(rsp->OrderSysID));
+    if(it != _conditionOrderMap.end()) {
+        _conditionOrderMap.erase(it);//列表移除
+    }
 }
 
 void TradeSrv::cancel(int orderID)
@@ -327,9 +345,8 @@ CThostFtdcInputOrderField TradeSrv::_createOrder(string instrumnetID, bool isBuy
 
     order.Direction = isBuy ? THOST_FTDC_D_Buy : THOST_FTDC_D_Sell; ///买卖方向
     order.VolumeTotalOriginal = total;///数量
-    if (condition == THOST_FTDC_CC_Immediately) {
-        order.LimitPrice = price;///价格
-    } else {
+    order.LimitPrice = price;///价格
+    if (contingentCondition != THOST_FTDC_CC_Immediately) {
         order.StopPrice = price;///止损价
     }
 

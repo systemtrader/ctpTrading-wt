@@ -60,12 +60,23 @@ void TradeStrategy::accessAction(MSG_TO_TRADE_STRATEGY msg)
         _dealRealCome();
         return;
     }
+    // log
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info);
+    info << "TradeStrategySrv[accessPush]";
+    info << "|iID|" << msg.instrumnetID;
+    info << "|kIndex|" << msg.kIndex;
+    info << "|groupID|" << msg.groupID;
+    info << "|price|" << msg.price;
+    info << endl;
+    info.close();
+
     _waitingList.push_back(msg);
 }
 
 void TradeStrategy::_dealForecast()
 {
-    int closeCnt = 0;
+    std::vector<MSG_TO_TRADE_STRATEGY> closeList;
     // 处理开仓、撤单，立即执行
     std::vector<MSG_TO_TRADE_STRATEGY>::iterator it;
     for (it = _waitingList.begin(); it != _waitingList.end(); it++) {
@@ -73,11 +84,10 @@ void TradeStrategy::_dealForecast()
             case MSG_TRADE_BUYOPEN:
             case MSG_TRADE_SELLOPEN:
                 _open(*it);
-                _waitingList.erase(it);
                 break;
             case MSG_TRADE_SELLCLOSE:
             case MSG_TRADE_BUYCLOSE:
-                closeCnt++;
+                closeList.push_back(*it);
             default:
                 break;
         }
@@ -85,19 +95,21 @@ void TradeStrategy::_dealForecast()
 
     // 处理平仓，由于可能对同一笔开仓进行两笔平仓操作，
     // 所以要看同一次操作中有几个平仓，若两个以上，则放弃，等待tick满足条件再平仓
-    if (closeCnt = 1) {
-        _close(*(_waitingList.begin()));
+    if (closeList.size() == 1) {
+        _close(closeList[0]);
     }
     _waitingList.clear();
+    closeList.clear();
 
 }
 
 void TradeStrategy::_dealRealCome()
 {
+    int orderID;
     std::vector<MSG_TO_TRADE_STRATEGY>::iterator it;
     for (it = _waitingList.begin(); it != _waitingList.end(); it++) {
-        _close(*it);
-        setTimer(_orderID);
+        orderID = _close(*it);
+        setTimer(orderID);
     }
     _waitingList.clear();
 }
@@ -132,7 +144,7 @@ void TradeStrategy::_open(MSG_TO_TRADE_STRATEGY data)
     }
 }
 
-void TradeStrategy::_close(MSG_TO_TRADE_STRATEGY data)
+int TradeStrategy::_close(MSG_TO_TRADE_STRATEGY data)
 {
     int orderID = _initTrade(data);
 
@@ -142,6 +154,7 @@ void TradeStrategy::_close(MSG_TO_TRADE_STRATEGY data)
     if (data.msgType == MSG_TRADE_SELLCLOSE) {
         _sendMsg(data.price, data.total, false, false, orderID);
     }
+    return orderID;
 }
 
 void TradeStrategy::_rollback(int groupID)
@@ -224,7 +237,7 @@ void TradeStrategy::_removeOrderInfo(int orderID)
             isOK = true;
         }
     }
-    
+
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeStrategySrv[removeTrade]";
@@ -314,7 +327,7 @@ void TradeStrategy::onCancel(int orderID)
 void TradeStrategy::timeout(int orderID)
 {
     if (_isTrading(orderID)) {
-    
+
         MSG_TO_TRADE_STRATEGY order = _orderDetail[orderID];
 
         ofstream info;
@@ -357,6 +370,7 @@ void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen, i
     info << "|isOpen|" << isOpen;
     info << "|kIndex|" << order.kIndex;
     info << "|orderID|" << orderID;
+    info << "|groupID|" << order.groupID;
     info << "|forecastType|" << order.forecastType;
     info << endl;
     info.close();
