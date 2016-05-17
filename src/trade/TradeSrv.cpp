@@ -169,13 +169,14 @@ void TradeSrv::onTraded(CThostFtdcTradeField * const rsp)
 
     int orderID = _getOrderID(atoi(rsp->OrderRef));
     if (orderID <= 0) {
-        map<string, CThostFtdcOrderField>::iterator it = _conditionOrderMap.find(string(rsp->OrderSysID));
-        if(it != _conditionOrderMap.end()) {
-            _conditionOrderMap.erase(it);//列表移除
-        } else {
-            // 没找到，不是我的订单，byebye
-            return;
-        }
+        // map<string, CThostFtdcOrderField>::iterator it = _conditionOrderMap.find(string(rsp->OrderSysID));
+        // if(it != _conditionOrderMap.end()) {
+        //     _conditionOrderMap.erase(it);//列表移除
+        // } else {
+        //     // 没找到，不是我的订单，byebye
+        //     return;
+        // }
+        return;
     } else {
         // 普通单
         CThostFtdcOrderField orderInfo = _getOrderInfo(orderID, atoi(rsp->OrderRef));
@@ -211,7 +212,7 @@ void TradeSrv::onOrderRtn(CThostFtdcOrderField * const rsp)
     if (orderID <= 0) return;
 
     _setOrderInfo(orderID, rsp);
-    _conditionOrderMap[string(rsp->RelativeOrderSysID)] = *rsp;
+    // _conditionOrderMap[string(rsp->RelativeOrderSysID)] = *rsp;
 
     // save data
     char c;
@@ -238,10 +239,10 @@ void TradeSrv::onOrderRtn(CThostFtdcOrderField * const rsp)
     if(iter != _orderMap[orderID].end()) {
         _orderMap[orderID].erase(iter);//列表移除
     }
-    map<string, CThostFtdcOrderField>::iterator it = _conditionOrderMap.find(string(rsp->OrderSysID));
-    if(it != _conditionOrderMap.end()) {
-        _conditionOrderMap.erase(it);//列表移除
-    }
+    // map<string, CThostFtdcOrderField>::iterator it = _conditionOrderMap.find(string(rsp->OrderSysID));
+    // if(it != _conditionOrderMap.end()) {
+    //     _conditionOrderMap.erase(it);//列表移除
+    // }
 }
 
 void TradeSrv::cancel(int orderID)
@@ -274,9 +275,6 @@ void TradeSrv::cancel(int orderID)
         ///合约代码
         strncpy(req.InstrumentID, orderInfo.InstrumentID, sizeof(TThostFtdcInstrumentIDType));
 
-        int res = _tradeApi->ReqOrderAction(&req, Lib::stoi(orderInfo.OrderRef));
-        Lib::sysReqLog(_logPath, "TradeSrv[cancel]", res);
-
         ofstream info;
         Lib::initInfoLogHandle(_logPath, info);
         info << "TradeSrv[cancel]";
@@ -285,6 +283,10 @@ void TradeSrv::cancel(int orderID)
         info << "|OrderSysID|" << orderInfo.OrderSysID;
         info << endl;
         info.close();
+
+        int res = _tradeApi->ReqOrderAction(&req, Lib::stoi(orderInfo.OrderRef));
+        Lib::sysReqLog(_logPath, "TradeSrv[cancel]", res);
+
 
     }
 

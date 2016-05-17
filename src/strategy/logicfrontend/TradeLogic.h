@@ -73,7 +73,7 @@ private:
     // 判断仓位状态
     int _getStatus();
     void _setStatus(int);
-    void _sendMsg(int, double = 0, int = 0);
+    void _sendMsg(int, double = 0, int = 0, int = 0);
     void _sendRollBack(int);
     void _sendRealCome(int);
 

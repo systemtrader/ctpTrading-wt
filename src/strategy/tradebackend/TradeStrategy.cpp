@@ -57,7 +57,7 @@ void TradeStrategy::accessAction(MSG_TO_TRADE_STRATEGY msg)
         return;
     }
     if (msg.msgType == MSG_TRADE_REAL_COME) {
-        _dealRealCome();
+        _dealRealCome(msg.groupID);
         return;
     }
     // log
@@ -76,7 +76,7 @@ void TradeStrategy::accessAction(MSG_TO_TRADE_STRATEGY msg)
 
 void TradeStrategy::_dealForecast()
 {
-    std::vector<MSG_TO_TRADE_STRATEGY> closeList;
+    // std::vector<MSG_TO_TRADE_STRATEGY> closeList;
     // 处理开仓、撤单，立即执行
     std::vector<MSG_TO_TRADE_STRATEGY>::iterator it;
     for (it = _waitingList.begin(); it != _waitingList.end(); it++) {
@@ -87,7 +87,9 @@ void TradeStrategy::_dealForecast()
                 break;
             case MSG_TRADE_SELLCLOSE:
             case MSG_TRADE_BUYCLOSE:
-                closeList.push_back(*it);
+                _close(*it);
+                break;
+                // closeList.push_back(*it);
             default:
                 break;
         }
@@ -95,21 +97,25 @@ void TradeStrategy::_dealForecast()
 
     // 处理平仓，由于可能对同一笔开仓进行两笔平仓操作，
     // 所以要看同一次操作中有几个平仓，若两个以上，则放弃，等待tick满足条件再平仓
-    if (closeList.size() == 1) {
-        _close(closeList[0]);
-    }
+    // if (closeList.size() == 1) {
+    //     _close(closeList[0]);
+    // }
     _waitingList.clear();
-    closeList.clear();
+    // closeList.clear();
 
 }
 
-void TradeStrategy::_dealRealCome()
+void TradeStrategy::_dealRealCome(int groupID)
 {
     int orderID;
     std::vector<MSG_TO_TRADE_STRATEGY>::iterator it;
     for (it = _waitingList.begin(); it != _waitingList.end(); it++) {
-        orderID = _close(*it);
-        setTimer(orderID);
+        if (groupID > 0) {
+            _waitingCancelList[groupID] = *it;
+        } else {
+            orderID = _close(*it);
+            setTimer(orderID);
+        }
     }
     _waitingList.clear();
 }
@@ -166,7 +172,9 @@ void TradeStrategy::_rollback(int groupID)
 
 void TradeStrategy::_cancel(int orderID)
 {
-    MSG_TO_TRADE_STRATEGY order = _orderDetail[orderID];
+    std::map<int, MSG_TO_TRADE_STRATEGY>::iterator i = _orderDetail.find(orderID);
+    if (i == _orderDetail.end()) return;
+    MSG_TO_TRADE_STRATEGY order = i->second;
 
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
@@ -219,7 +227,6 @@ void TradeStrategy::_zhuijia(int orderID)
     setTimer(newOrderID);
 }
 
-
 void TradeStrategy::_removeOrderInfo(int orderID)
 {
     bool isOK = false;
@@ -259,7 +266,9 @@ bool TradeStrategy::_isTrading(int orderID)
 
 void TradeStrategy::onSuccess(int orderID)
 {
-    MSG_TO_TRADE_STRATEGY order = _orderDetail[orderID];
+    std::map<int, MSG_TO_TRADE_STRATEGY>::iterator i = _orderDetail.find(orderID);
+    if (i == _orderDetail.end()) return;
+    MSG_TO_TRADE_STRATEGY order = i->second;
 
     _removeOrderInfo(orderID);
     switch (order.msgType) {
@@ -277,6 +286,18 @@ void TradeStrategy::onSuccess(int orderID)
             break;
     }
 
+    // log
+    int status = _getStatus(order.instrumnetID);
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info);
+    info << "TradeStrategySrv[successBack]";
+    info << "|iID|" << order.instrumnetID;
+    info << "|kIndex|" << order.kIndex;
+    info << "|orderID|" << orderID;
+    info << "|status|" << status;
+    info << endl;
+    info.close();
+
     // 生成一个Tick，发送给K线系统
     MSG_TO_KLINE msg = {0};
     msg.msgType = MSG_TICK;
@@ -292,23 +313,13 @@ void TradeStrategy::onSuccess(int orderID)
     string keyD = "CURRENT_TICK_" + string(order.instrumnetID);
     _store->set(keyD, tickStr); // tick数据，供全局使用
     _store->push(keyQ, tickStr);
-
-    // log
-    int status = _getStatus(order.instrumnetID);
-    ofstream info;
-    Lib::initInfoLogHandle(_logPath, info);
-    info << "TradeStrategySrv[successBack]";
-    info << "|iID|" << order.instrumnetID;
-    info << "|kIndex|" << order.kIndex;
-    info << "|orderID|" << orderID;
-    info << "|status|" << status;
-    info << endl;
-    info.close();
 }
 
 void TradeStrategy::onCancel(int orderID)
 {
-    MSG_TO_TRADE_STRATEGY order = _orderDetail[orderID];
+    std::map<int, MSG_TO_TRADE_STRATEGY>::iterator i = _orderDetail.find(orderID);
+    if (i == _orderDetail.end()) return;
+    MSG_TO_TRADE_STRATEGY order = i->second;
 
     // log
     ofstream info;
@@ -321,27 +332,43 @@ void TradeStrategy::onCancel(int orderID)
     info << endl;
     info.close();
 
+    int groupID = order.groupID;
+    if (groupID > 0) {
+        std::map<int, MSG_TO_TRADE_STRATEGY>::iterator i = _waitingCancelList.find(groupID);
+        if (i == _waitingCancelList.end()) return;
+        MSG_TO_TRADE_STRATEGY waitingOrder = i->second;
+        if (waitingOrder.msgType > 0) {
+            int closeOrderID = _close(waitingOrder);
+            setTimer(closeOrderID);
+            return;
+        }
+    }
+
+    std::map<int, int>::iterator it = _zhuijiaOrder.find(orderID);
+    if (it != _zhuijiaOrder.end()) {
+        _zhuijia(orderID);
+    }
     _removeOrderInfo(orderID);
 }
 
 void TradeStrategy::timeout(int orderID)
 {
-    if (_isTrading(orderID)) {
+    std::map<int, MSG_TO_TRADE_STRATEGY>::iterator i = _orderDetail.find(orderID);
+    if (i == _orderDetail.end()) return;
+    MSG_TO_TRADE_STRATEGY order = i->second;
 
-        MSG_TO_TRADE_STRATEGY order = _orderDetail[orderID];
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info);
+    info << "TradeStrategySrv[timeout]";
+    info << "|iID|" << order.instrumnetID;
+    info << "|kIndex|" << order.kIndex;
+    info << "|orderID|" << orderID;
+    info << "|groupID|" << order.groupID;
+    info << endl;
+    info.close();
 
-        ofstream info;
-        Lib::initInfoLogHandle(_logPath, info);
-        info << "TradeStrategySrv[timeout]";
-        info << "|iID|" << order.instrumnetID;
-        info << "|kIndex|" << order.kIndex;
-        info << "|orderID|" << orderID;
-        info << endl;
-        info.close();
-
-        _zhuijia(orderID);
-        _cancel(orderID);
-    }
+    _cancel(orderID);
+    _zhuijiaOrder[orderID] = 1;
 
 }
 

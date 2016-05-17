@@ -47,6 +47,14 @@ bool KLineSrv::_isBlockExist()
 
 void KLineSrv::_initBlock(TickData tick)
 {
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info);
+    info << "KLineSrv[open]";
+    info << "|iID|" << _instrumnetID;
+    info << "|index|" << _index;
+    info << endl;
+    info.close();
+
     _currentBlock = new KLineBlock();
     _currentBlock->init(_index, tick);
 
@@ -57,12 +65,6 @@ void KLineSrv::_initBlock(TickData tick)
     msg.tick = tick;
     _tradeLogicSrvClient->send((void *)&msg);
 
-    ofstream info;
-    Lib::initInfoLogHandle(_logPath, info);
-    info << "KLineSrv[open]";
-    info << "|iID|" << _instrumnetID;
-    info << "|index|" << _index << endl;
-    info.close();
 
     _index++;
 }
@@ -91,6 +93,7 @@ void KLineSrv::_closeBlock(TickData tick)
 
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
+    info << endl << endl;
     info << "KLineSrv[close]";
     info << "|iID|" << _instrumnetID;
     info << "|index|" << blockData.index;
