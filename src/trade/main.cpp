@@ -44,9 +44,11 @@ int main(int argc, char const *argv[])
 
 bool action(long int msgType, const void * data)
 {
+    cout << "msgType:" << msgType << endl;
     // cout << "MSG|" << msgType;
     if (msgType == MSG_SHUTDOWN) {
         if (service) delete service;
+        cout << "over" << endl;
         // cout << endl;
         return false;
     }
@@ -59,6 +61,7 @@ bool action(long int msgType, const void * data)
     if (msgType == MSG_ORDER_CANCEL) {
         service->cancel(msg.orderID);
     }
+    cout << "return" << endl;
     return true;
 }
 

@@ -10,6 +10,20 @@
 #include <map>
 #include <list>
 
+typedef struct order_data
+{
+    int orderID;
+    int groupID;
+    int kIndex;
+    int action;
+    double price;
+    int total;
+    int forecastType;
+    char instrumnetID[7];
+    MSG_TO_TRADE_STRATEGY msg;
+    bool setTimer;
+} ORDER_DATA;
+
 class TradeStrategy
 {
 private:
@@ -20,30 +34,30 @@ private:
     string _logPath;
     int _orderID;
 
+    ORDER_DATA _makeOrderData(MSG_TO_TRADE_STRATEGY);
+
     std::vector<MSG_TO_TRADE_STRATEGY> _waitingList; // 等待预测结束的暂存
-    std::map<int, MSG_TO_TRADE_STRATEGY> _waitingCancelList; // 多个平仓，用户暂存平仓信息
-    // std::map<int, int> _mainAction; // 每个groupID对应的主要操作，最终还原持仓状态
+    std::map<int, ORDER_DATA> _allOrders; // 全部订单信息
+    std::map<int, std::vector<int> > _gid2OrderIDs; // 操作组
+    std::vector<int> _openOrderIDList;
+    std::vector<int> _closeOrderIDList;
+    std::vector<int> _cancelOrderIDList;
 
-    // 接到订单发送完成消息，开始处理waitingList中的订单
-    // 处理订单的重组，发送，或者继续等待
+    void _findOrder2Send(bool = false); // 从List中寻找可以发送的订单并发送
+    void _initTrade(MSG_TO_TRADE_STRATEGY, bool = false); // 初始化订单
+    void _clearTrade(int); // 清空订单
+    void _clearOpen();
+
+    void _open(ORDER_DATA);
+    void _close(ORDER_DATA);
+    void _cancel(int);
+    void _zhuijia(ORDER_DATA);
+
     void _dealForecast();
-    void _dealRealCome(int);
+    void _dealRealCome();
     void _rollback(int);
-    void _open(MSG_TO_TRADE_STRATEGY);
-    int _close(MSG_TO_TRADE_STRATEGY);
 
-    std::map<int, int> _group2orderMap; // 保存groupID与orderID关系
-    std::map<int, MSG_TO_TRADE_STRATEGY> _orderDetail; // 保存orderID与trade详情的关系
-
-    int _initTrade(MSG_TO_TRADE_STRATEGY); // 初始化交易
-
-    void _removeOrderInfo(int);
-    bool _isTrading(int);
-
-    std::map<int, int> _zhuijiaOrder;
-    void _zhuijia(int); // 追价
-    void _cancel(int); // 撤销
-
+    void _showData();
     int _getStatus(string);
     void _setStatus(int, string);
     TickData _getTick(string);
@@ -56,6 +70,7 @@ public:
     void accessAction(MSG_TO_TRADE_STRATEGY);
     void onSuccess(int);
     void onCancel(int);
+    void onCancelErr(int);
     void timeout(int);
 
 };

@@ -68,7 +68,7 @@ void QClient::send(void * data)
         if(msgsnd(_msgID, data, _msgLen, 0) == -1)
         {
             fprintf(stderr, "msgsnd failed: %d\n", errno);
-            usleep(1000);
+            exit(EXIT_FAILURE);
         } else {
             return;
         }

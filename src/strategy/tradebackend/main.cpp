@@ -58,6 +58,10 @@ bool action(long int msgType, const void * data)
         service->onCancel(msg.orderID);
         return true;
     }
+    if (msgType == MSG_TRADE_BACK_CANCELEDERR) {
+        service->onCancelErr(msg.orderID);
+        return true;
+    }
     // 下单操作
     service->accessAction(msg);
     return true;

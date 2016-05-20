@@ -85,10 +85,10 @@ int main(int argc, char const *argv[])
         sleep(1);
 
         // 启动各服务模块
-        system("./tradeSrv &");
-        system("./tradeStrategySrv &");
-        system("./tradeLogicSrv &");
-        system("./kLineSrv &");
+        system("./tradeSrv > /tmp/log &");
+        system("./tradeStrategySrv > /tmp/log &");
+        system("./tradeLogicSrv > /tmp/log &");
+        system("./kLineSrv > /tmp/log &");
         sleep(1);
 
         // 启动数据源
