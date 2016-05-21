@@ -108,15 +108,15 @@ void TradeLogic::_forecastNothing(TickData tick)
 
         // 下一个点up
         _calculateUp(_countUp2Down, _countUp2Up + 1);
-        if (_pUp2Down > _threshold) { // 卖开
+        _calculateDown(_countDown2Up, _countDown2Down);
+        if (_pUp2Down > _threshold && _pUp2Down > _pDown2Up) { // 卖开
             _groupID++;
             _sendMsg(MSG_TRADE_SELLOPEN, tick.price + _kRange);
             _forecastUp = _groupID;
         }
 
         // 下一个点down
-        _calculateDown(_countDown2Up, _countDown2Down);
-        if (_pDown2Up > _threshold) { // 买开
+        if (_pDown2Up > _threshold && _pDown2Up > _pUp2Down) { // 买开
             _groupID++;
             _sendMsg(MSG_TRADE_BUYOPEN, tick.price - _kRange);
             _forecastDown = _groupID;
@@ -127,15 +127,15 @@ void TradeLogic::_forecastNothing(TickData tick)
 
         // 下一个点up
         _calculateUp(_countUp2Down, _countUp2Up);
-        if (_pUp2Down > _threshold) { // 卖开
+        _calculateDown(_countDown2Up, _countDown2Down + 1);
+        if (_pUp2Down > _threshold && _pUp2Down > _pDown2Up) { // 卖开
             _groupID++;
             _sendMsg(MSG_TRADE_SELLOPEN, tick.price + _kRange);
             _forecastUp = _groupID;
         }
 
         // 下一个点down
-        _calculateDown(_countDown2Up, _countDown2Down + 1);
-        if (_pDown2Up > _threshold) { // 买开
+        if (_pDown2Up > _threshold && _pDown2Up > _pUp2Down) { // 买开
             _groupID++;
             _sendMsg(MSG_TRADE_BUYOPEN, tick.price - _kRange);
             _forecastDown = _groupID;
