@@ -334,23 +334,29 @@ void TradeStrategy::_findOrder2Send(bool sendOpen)
 
     if (_cancelOrderIDList.size() > 0) {
         int cancelID = *(_cancelOrderIDList.begin());
-        info << "|cancelID|" << cancelID;
-        info << endl;
-        info.close();
-        _cancel(cancelID);
-        return;
+        if (!_orderIDCanceled[cancelID]) {
+            info << "|cancelID|" << cancelID;
+            info << endl;
+            info.close();
+            _orderIDCanceled[cancelID] = 1;
+            _cancel(cancelID);
+            return;
+        }
     }
     ORDER_DATA data;
     if (_closeOrderIDList.size() > 0) {
         int closeID = *(_closeOrderIDList.begin());
-        info << "|closeID|" << closeID;
-        info << endl;
-        info.close();
-        data = _allOrders[closeID];
-        _close(data);
-        // if (data.setTimer)
-            // setTimer(data.orderID);
-        return;
+        if (!_orderIDDealed[closeID]) {
+            info << "|closeID|" << closeID;
+            info << endl;
+            info.close();
+            data = _allOrders[closeID];
+            _orderIDDealed[closeID] = 1;
+            _close(data);
+            // if (data.setTimer)
+                // setTimer(data.orderID);
+            return;
+        }
     }
     if (sendOpen && _openOrderIDList.size() > 0) {
         std::vector<int>::iterator i;

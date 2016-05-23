@@ -43,6 +43,9 @@ private:
     std::vector<int> _closeOrderIDList;
     std::vector<int> _cancelOrderIDList;
 
+    map<int, int> _orderIDDealed; // orderID -> 1
+    map<int, int> _orderIDCanceled; // orderID -> 1
+
     void _findOrder2Send(bool = false); // 从List中寻找可以发送的订单并发送
     void _initTrade(MSG_TO_TRADE_STRATEGY, bool = false); // 初始化订单
     void _clearTrade(int); // 清空订单
