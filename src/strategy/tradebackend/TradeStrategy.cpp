@@ -249,7 +249,7 @@ void TradeStrategy::_zhuijia(ORDER_DATA data)
     info << "TradeStrategySrv[zhuijia]";
     info << "|iID|" << data.instrumnetID;
     info << "|kIndex|" << data.kIndex;
-    info << "|dataID|" << data.orderID;
+    info << "|orderID|" << data.orderID;
     info << "|groupID|" << data.groupID;
     info << endl;
     info.close();
@@ -348,8 +348,8 @@ void TradeStrategy::_findOrder2Send(bool sendOpen)
         info.close();
         data = _allOrders[closeID];
         _close(data);
-        if (data.setTimer)
-            setTimer(data.orderID);
+        // if (data.setTimer)
+            // setTimer(data.orderID);
         return;
     }
     if (sendOpen && _openOrderIDList.size() > 0) {
@@ -360,8 +360,8 @@ void TradeStrategy::_findOrder2Send(bool sendOpen)
             info << *i << ",";
             data = _allOrders[(*i)];
             _open(data);
-            if (data.setTimer)
-                setTimer(data.orderID);
+            // if (data.setTimer)
+                // setTimer(data.orderID);
 
         }
         info << endl;

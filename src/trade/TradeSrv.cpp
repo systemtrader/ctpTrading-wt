@@ -18,7 +18,14 @@ TradeSrv::TradeSrv(string brokerID, string userID, string password,
 
 TradeSrv::~TradeSrv()
 {
+    if (_traderSpi) {
+        cout << "~_traderSpi" << endl;
+    } else {
+        cout << "~nothing" << endl;
+    }
+
     if (_tradeApi) {
+        _tradeApi->RegisterSpi(NULL);
         _tradeApi->Release();
         _tradeApi = NULL;
     }
@@ -34,10 +41,10 @@ void TradeSrv::init()
     _tradeApi = CThostFtdcTraderApi::CreateFtdcTraderApi(Lib::stoc(_flowPath));
     _traderSpi = new TraderSpi(this, _logPath); // 初始化回调实例
     _tradeApi->RegisterSpi(_traderSpi);
-    // _tradeApi->SubscribePrivateTopic(THOST_TERT_QUICK);
-    // _tradeApi->SubscribePublicTopic(THOST_TERT_QUICK);
-    _tradeApi->SubscribePrivateTopic(THOST_TERT_RESUME);
-    _tradeApi->SubscribePublicTopic(THOST_TERT_RESUME);
+    _tradeApi->SubscribePrivateTopic(THOST_TERT_QUICK);
+    _tradeApi->SubscribePublicTopic(THOST_TERT_QUICK);
+    // _tradeApi->SubscribePrivateTopic(THOST_TERT_RESUME);
+    // _tradeApi->SubscribePublicTopic(THOST_TERT_RESUME);
 
     _tradeApi->RegisterFront(Lib::stoc(_tradeFront));
     _tradeApi->Init();
