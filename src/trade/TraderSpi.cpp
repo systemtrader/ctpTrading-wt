@@ -85,7 +85,13 @@ void TraderSpi::OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder,
 
 void TraderSpi::OnRtnOrder(CThostFtdcOrderField *pOrder)
 {
-    if (!pOrder) return;
+    if (!pOrder) {
+        ofstream info;
+        Lib::initInfoLogHandle(_logPath, info);
+        info << "TradeSpi[OnRtnOrder]|empty" << endl;
+        info.close();
+        return;
+    }
     if (pOrder->OrderStatus != THOST_FTDC_OST_Canceled) {
         _service->onOrderRtn(pOrder);
     } else {
@@ -95,6 +101,13 @@ void TraderSpi::OnRtnOrder(CThostFtdcOrderField *pOrder)
 
 void TraderSpi::OnRtnTrade(CThostFtdcTradeField *pTrade)
 {
+    if (!pTrade) {
+        ofstream info;
+        Lib::initInfoLogHandle(_logPath, info);
+        info << "TradeSpi[OnRtnTrade]|empty" << endl;
+        info.close();
+        return;
+    }
     _service->onTraded(pTrade);
 }
 

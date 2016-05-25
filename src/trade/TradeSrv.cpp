@@ -216,12 +216,76 @@ void TradeSrv::onOrderRtn(CThostFtdcOrderField * const rsp)
         return;
     }
 
-    info << "|iID|" << rsp->InstrumentID;
-    info << "|FrontID|" << rsp->FrontID;
-    info << "|SessionID|" << rsp->SessionID;
-    info << "|OrderRef|" << rsp->OrderRef;
-    info << "|OrderSysID|" << rsp->OrderSysID;
-    info << "|OrderStatus|" << rsp->OrderStatus;
+info << "|BrokerID|" << rsp->BrokerID;
+info << "|InvestorID|" << rsp->InvestorID;
+info << "|InstrumentID|" << rsp->InstrumentID;
+info << "|OrderRef|" << rsp->OrderRef;
+info << "|UserID|" << rsp->UserID;
+info << "|OrderPriceType|" << rsp->OrderPriceType;
+info << "|Direction|" << rsp->Direction;
+info << "|CombOffsetFlag|" << rsp->CombOffsetFlag;
+info << "|CombHedgeFlag|" << rsp->CombHedgeFlag;
+info << "|LimitPrice|" << rsp->LimitPrice;
+info << "|VolumeTotalOriginal|" << rsp->VolumeTotalOriginal;
+info << "|TimeCondition|" << rsp->TimeCondition;
+info << "|GTDDate|" << rsp->GTDDate;
+info << "|VolumeCondition|" << rsp->VolumeCondition;
+info << "|MinVolume|" << rsp->MinVolume;
+info << "|ContingentCondition|" << rsp->ContingentCondition;
+info << "|StopPrice|" << rsp->StopPrice;
+info << "|ForceCloseReason|" << rsp->ForceCloseReason;
+info << "|IsAutoSuspend|" << rsp->IsAutoSuspend;
+info << "|BusinessUnit|" << rsp->BusinessUnit;
+info << "|RequestID|" << rsp->RequestID;
+info << "|OrderLocalID|" << rsp->OrderLocalID;
+info << "|ExchangeID|" << rsp->ExchangeID;
+info << "|ParticipantID|" << rsp->ParticipantID;
+info << "|ClientID|" << rsp->ClientID;
+info << "|ExchangeInstID|" << rsp->ExchangeInstID;
+info << "|TraderID|" << rsp->TraderID;
+info << "|InstallID|" << rsp->InstallID;
+info << "|OrderSubmitStatus|" << rsp->OrderSubmitStatus;
+info << "|NotifySequence|" << rsp->NotifySequence;
+info << "|TradingDay|" << rsp->TradingDay;
+info << "|SettlementID|" << rsp->SettlementID;
+info << "|OrderSysID|" << rsp->OrderSysID;
+info << "|OrderSource|" << rsp->OrderSource;
+info << "|OrderStatus|" << rsp->OrderStatus;
+info << "|OrderType|" << rsp->OrderType;
+info << "|VolumeTraded|" << rsp->VolumeTraded;
+info << "|VolumeTotal|" << rsp->VolumeTotal;
+info << "|InsertDate|" << rsp->InsertDate;
+info << "|InsertTime|" << rsp->InsertTime;
+info << "|ActiveTime|" << rsp->ActiveTime;
+info << "|SuspendTime|" << rsp->SuspendTime;
+info << "|UpdateTime|" << rsp->UpdateTime;
+info << "|CancelTime|" << rsp->CancelTime;
+info << "|ActiveTraderID|" << rsp->ActiveTraderID;
+info << "|ClearingPartID|" << rsp->ClearingPartID;
+info << "|SequenceNo|" << rsp->SequenceNo;
+info << "|FrontID|" << rsp->FrontID;
+info << "|SessionID|" << rsp->SessionID;
+info << "|UserProductInfo|" << rsp->UserProductInfo;
+info << "|StatusMsg|" << rsp->StatusMsg;
+info << "|UserForceClose|" << rsp->UserForceClose;
+info << "|ActiveUserID|" << rsp->ActiveUserID;
+info << "|BrokerOrderSeq|" << rsp->BrokerOrderSeq;
+info << "|RelativeOrderSysID|" << rsp->RelativeOrderSysID;
+info << "|ZCETotalTradedVolume|" << rsp->ZCETotalTradedVolume;
+info << "|IsSwapOrder|" << rsp->IsSwapOrder;
+info << "|BranchID|" << rsp->BranchID;
+info << "|InvestUnitID|" << rsp->InvestUnitID;
+info << "|AccountID|" << rsp->AccountID;
+info << "|CurrencyID|" << rsp->CurrencyID;
+info << "|IPAddress|" << rsp->IPAddress;
+info << "|MacAddress|" << rsp->MacAddress;
+
+    // info << "|iID|" << rsp->InstrumentID;
+    // info << "|FrontID|" << rsp->FrontID;
+    // info << "|SessionID|" << rsp->SessionID;
+    // info << "|OrderRef|" << rsp->OrderRef;
+    // info << "|OrderSysID|" << rsp->OrderSysID;
+    // info << "|OrderStatus|" << rsp->OrderStatus;
     info << endl;
     info.close();
 
@@ -270,11 +334,16 @@ void TradeSrv::cancel(int orderID)
     info << "|FrontID|" << orderInfo.FrontID;
     info << "|SessionID|" << orderInfo.SessionID;
     info << "|OrderSysID|" << orderInfo.OrderSysID;
+    info << "|InvestorID|" << orderInfo.InvestorID;
+    info << "|InstrumentID|" << orderInfo.InstrumentID;
+    info << "|ActionFlag|" << THOST_FTDC_AF_Delete;
+    info << "|BrokerID|" << orderInfo.BrokerID;
+    info << "|ExchangeID|" << orderInfo.ExchangeID;
     info << endl;
     info.close();
 
     ///投资者代码
-    strncpy(req.InvestorID, orderInfo.InvestorID,sizeof(TThostFtdcInvestorIDType));
+    // strncpy(req.InvestorID, orderInfo.InvestorID,sizeof(TThostFtdcInvestorIDType));
     ///报单引用
     strncpy(req.OrderRef, orderInfo.OrderRef,sizeof(TThostFtdcOrderRefType));
     ///前置编号
@@ -287,14 +356,14 @@ void TradeSrv::cancel(int orderID)
     req.ActionFlag = THOST_FTDC_AF_Delete;
 
     ///经纪公司代码
-    if (strlen(orderInfo.BrokerID) > 0)
-        strncpy(req.BrokerID, orderInfo.BrokerID,sizeof(TThostFtdcBrokerIDType));
-    ///交易所代码
-    if (strlen(orderInfo.ExchangeID) > 0)
-        strncpy(req.ExchangeID, orderInfo.ExchangeID, sizeof(TThostFtdcExchangeIDType));
-    ///报单编号
-    if (strlen(orderInfo.OrderSysID) > 0)
-        strncpy(req.OrderSysID, orderInfo.OrderSysID, sizeof(TThostFtdcOrderSysIDType));
+    // if (strlen(orderInfo.BrokerID) > 0)
+    //     strncpy(req.BrokerID, orderInfo.BrokerID,sizeof(TThostFtdcBrokerIDType));
+    // ///交易所代码
+    // if (strlen(orderInfo.ExchangeID) > 0)
+    //     strncpy(req.ExchangeID, orderInfo.ExchangeID, sizeof(TThostFtdcExchangeIDType));
+    // ///报单编号
+    // if (strlen(orderInfo.OrderSysID) > 0)
+    //     strncpy(req.OrderSysID, orderInfo.OrderSysID, sizeof(TThostFtdcOrderSysIDType));
 
     int res = _tradeApi->ReqOrderAction(&req, Lib::stoi(orderInfo.OrderRef));
     Lib::sysReqLog(_logPath, "TradeSrv[cancel]", res);
@@ -326,13 +395,75 @@ void TradeSrv::onCancel(CThostFtdcOrderField * const rsp)
         info.close();
         return;
     }
-
-    info << "|iID|" << rsp->InstrumentID;
-    info << "|FrontID|" << rsp->FrontID;
-    info << "|SessionID|" << rsp->SessionID;
-    info << "|OrderRef|" << rsp->OrderRef;
-    info << "|OrderSysID|" << rsp->OrderSysID;
-    info << "|OrderStatus|" << rsp->OrderStatus;
+info << "|BrokerID|" << rsp->BrokerID;
+info << "|InvestorID|" << rsp->InvestorID;
+info << "|InstrumentID|" << rsp->InstrumentID;
+info << "|OrderRef|" << rsp->OrderRef;
+info << "|UserID|" << rsp->UserID;
+info << "|OrderPriceType|" << rsp->OrderPriceType;
+info << "|Direction|" << rsp->Direction;
+info << "|CombOffsetFlag|" << rsp->CombOffsetFlag;
+info << "|CombHedgeFlag|" << rsp->CombHedgeFlag;
+info << "|LimitPrice|" << rsp->LimitPrice;
+info << "|VolumeTotalOriginal|" << rsp->VolumeTotalOriginal;
+info << "|TimeCondition|" << rsp->TimeCondition;
+info << "|GTDDate|" << rsp->GTDDate;
+info << "|VolumeCondition|" << rsp->VolumeCondition;
+info << "|MinVolume|" << rsp->MinVolume;
+info << "|ContingentCondition|" << rsp->ContingentCondition;
+info << "|StopPrice|" << rsp->StopPrice;
+info << "|ForceCloseReason|" << rsp->ForceCloseReason;
+info << "|IsAutoSuspend|" << rsp->IsAutoSuspend;
+info << "|BusinessUnit|" << rsp->BusinessUnit;
+info << "|RequestID|" << rsp->RequestID;
+info << "|OrderLocalID|" << rsp->OrderLocalID;
+info << "|ExchangeID|" << rsp->ExchangeID;
+info << "|ParticipantID|" << rsp->ParticipantID;
+info << "|ClientID|" << rsp->ClientID;
+info << "|ExchangeInstID|" << rsp->ExchangeInstID;
+info << "|TraderID|" << rsp->TraderID;
+info << "|InstallID|" << rsp->InstallID;
+info << "|OrderSubmitStatus|" << rsp->OrderSubmitStatus;
+info << "|NotifySequence|" << rsp->NotifySequence;
+info << "|TradingDay|" << rsp->TradingDay;
+info << "|SettlementID|" << rsp->SettlementID;
+info << "|OrderSysID|" << rsp->OrderSysID;
+info << "|OrderSource|" << rsp->OrderSource;
+info << "|OrderStatus|" << rsp->OrderStatus;
+info << "|OrderType|" << rsp->OrderType;
+info << "|VolumeTraded|" << rsp->VolumeTraded;
+info << "|VolumeTotal|" << rsp->VolumeTotal;
+info << "|InsertDate|" << rsp->InsertDate;
+info << "|InsertTime|" << rsp->InsertTime;
+info << "|ActiveTime|" << rsp->ActiveTime;
+info << "|SuspendTime|" << rsp->SuspendTime;
+info << "|UpdateTime|" << rsp->UpdateTime;
+info << "|CancelTime|" << rsp->CancelTime;
+info << "|ActiveTraderID|" << rsp->ActiveTraderID;
+info << "|ClearingPartID|" << rsp->ClearingPartID;
+info << "|SequenceNo|" << rsp->SequenceNo;
+info << "|FrontID|" << rsp->FrontID;
+info << "|SessionID|" << rsp->SessionID;
+info << "|UserProductInfo|" << rsp->UserProductInfo;
+info << "|StatusMsg|" << rsp->StatusMsg;
+info << "|UserForceClose|" << rsp->UserForceClose;
+info << "|ActiveUserID|" << rsp->ActiveUserID;
+info << "|BrokerOrderSeq|" << rsp->BrokerOrderSeq;
+info << "|RelativeOrderSysID|" << rsp->RelativeOrderSysID;
+info << "|ZCETotalTradedVolume|" << rsp->ZCETotalTradedVolume;
+info << "|IsSwapOrder|" << rsp->IsSwapOrder;
+info << "|BranchID|" << rsp->BranchID;
+info << "|InvestUnitID|" << rsp->InvestUnitID;
+info << "|AccountID|" << rsp->AccountID;
+info << "|CurrencyID|" << rsp->CurrencyID;
+info << "|IPAddress|" << rsp->IPAddress;
+info << "|MacAddress|" << rsp->MacAddress;
+    // info << "|iID|" << rsp->InstrumentID;
+    // info << "|FrontID|" << rsp->FrontID;
+    // info << "|SessionID|" << rsp->SessionID;
+    // info << "|OrderRef|" << rsp->OrderRef;
+    // info << "|OrderSysID|" << rsp->OrderSysID;
+    // info << "|OrderStatus|" << rsp->OrderStatus;
     info << endl;
     info.close();
 
