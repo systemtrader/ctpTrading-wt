@@ -121,6 +121,7 @@ void TradeStrategy::onSuccess(int orderID)
     msg.tick.price = order.price;
     msg.tick.bidPrice1 = order.price;
     msg.tick.askPrice1 = order.price;
+    msg.tick.isOrder = true;
     strcpy(msg.tick.instrumnetID, order.instrumnetID);
     _klineClient->send((void *)&msg);
 

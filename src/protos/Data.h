@@ -11,6 +11,7 @@ typedef struct Tick
     char time[9];
     int msec;
     char instrumnetID[7];
+    bool isOrder;
 } TickData;
 
 typedef struct KLineBlockData

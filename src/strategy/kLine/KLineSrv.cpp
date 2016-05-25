@@ -99,6 +99,7 @@ void KLineSrv::_closeBlock(TickData tick)
     info << "|index|" << blockData.index;
     info << "|open|" << blockData.open;
     info << "|close|" << blockData.close;
+    info << "|isOrder|" << tick.isOrder;
     info << endl;
     info.close();
 
