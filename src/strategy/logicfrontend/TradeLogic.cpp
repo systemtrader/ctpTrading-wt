@@ -189,17 +189,17 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
 
             if (isUp) {
                 if (_pUp2Up > _threshold) { // 买开
-                    _sendMsg(MSG_TRADE_BUYOPEN, tick.price);
+                    _sendMsg(MSG_TRADE_BUYOPEN, tick.price + 10);
                 }
                 if (_pUp2Down > _threshold) { // 卖开
-                    _sendMsg(MSG_TRADE_SELLOPEN, tick.price);
+                    _sendMsg(MSG_TRADE_SELLOPEN, tick.price - 10);
                 }
             } else {
                 if (_pDown2Down > _threshold) { // 卖开
-                    _sendMsg(MSG_TRADE_SELLOPEN, tick.price);
+                    _sendMsg(MSG_TRADE_SELLOPEN, tick.price - 10);
                 }
                 if (_pDown2Up > _threshold) { // 买开
-                    _sendMsg(MSG_TRADE_BUYOPEN, tick.price);
+                    _sendMsg(MSG_TRADE_BUYOPEN, tick.price + 10);
                 }
             }
             break;
@@ -212,26 +212,26 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
                 }
                 if (_pUp2Up <= _threshold ) { // 不满足买开，平仓
                     if (singleAction) {
-                        _sendMsg(MSG_TRADE_SELLCLOSE, tick.price);
+                        _sendMsg(MSG_TRADE_SELLCLOSE, tick.price - 10);
                     } else {
-                        _sendMsg(MSG_TRADE_SELLCLOSE, tick.price, 1);
+                        _sendMsg(MSG_TRADE_SELLCLOSE, tick.price - 10, 1);
                     }
                 }
                 if (!singleAction)
-                    _sendMsg(MSG_TRADE_SELLOPEN, tick.price);
+                    _sendMsg(MSG_TRADE_SELLOPEN, tick.price - 10);
             } else {
                 if (_pDown2Down > _threshold) {
                     singleAction = false;
                 }
                 if (_pDown2Up <= _threshold) { // 不满足买开，平
                     if (singleAction) {
-                        _sendMsg(MSG_TRADE_SELLCLOSE, tick.price);
+                        _sendMsg(MSG_TRADE_SELLCLOSE, tick.price - 10);
                     } else {
-                        _sendMsg(MSG_TRADE_SELLCLOSE, tick.price, 1);
+                        _sendMsg(MSG_TRADE_SELLCLOSE, tick.price - 10, 1);
                     }
                 }
                 if (!singleAction)
-                    _sendMsg(MSG_TRADE_SELLOPEN, tick.price);
+                    _sendMsg(MSG_TRADE_SELLOPEN, tick.price - 10);
             }
 
             break;
@@ -244,26 +244,26 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
                 }
                 if (_pUp2Down <= _threshold) { // 卖开
                     if (singleAction) {
-                        _sendMsg(MSG_TRADE_BUYCLOSE, tick.price);
+                        _sendMsg(MSG_TRADE_BUYCLOSE, tick.price + 10);
                     } else {
-                        _sendMsg(MSG_TRADE_BUYCLOSE, tick.price, 1);
+                        _sendMsg(MSG_TRADE_BUYCLOSE, tick.price + 10, 1);
                     }
                 }
                 if (!singleAction)
-                    _sendMsg(MSG_TRADE_BUYOPEN, tick.price);
+                    _sendMsg(MSG_TRADE_BUYOPEN, tick.price + 10);
             } else {
                 if (_pDown2Up > _threshold) {
                     singleAction = false;
                 }
                 if (_pDown2Down <= _threshold) { // 卖开
                     if (singleAction) {
-                        _sendMsg(MSG_TRADE_BUYCLOSE, tick.price);
+                        _sendMsg(MSG_TRADE_BUYCLOSE, tick.price + 10);
                     } else {
-                        _sendMsg(MSG_TRADE_BUYCLOSE, tick.price, 1);
+                        _sendMsg(MSG_TRADE_BUYCLOSE, tick.price + 10, 1);
                     }
                 }
                 if (!singleAction)
-                    _sendMsg(MSG_TRADE_BUYOPEN, tick.price);
+                    _sendMsg(MSG_TRADE_BUYOPEN, tick.price + 10);
             }
             break;
 

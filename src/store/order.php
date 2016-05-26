@@ -14,6 +14,7 @@ class Order
 
     public function run()
     {
+        $totalPrice = 0;
         echo "Order consumer run" . PHP_EOL;
         while (true) {
             $data = $this->consumer->popViaRds("ORDER_LOGS");
@@ -33,6 +34,14 @@ class Order
                     $sql = "INSERT INTO `order` (`order_id`, `front_id`, `session_id`, `order_ref`, `price`, `is_buy`, `is_open`, `start_time`, `start_usec`, `instrumnet_id`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                     $params = array($orderID, $frontID, $sessionID, $orderRef, $price, $isBuy, $isOpen, $date, $usec, $iID);
                     $this->consumer->insertDB($sql, $params);
+                    
+                    if ($isOpen) {
+                        $oncePrice = $isBuy ? 0 - $price : $price;
+		    } else {
+                        $oncePrice = $isBuy ? $oncePrice - $price : $oncePrice + $price;
+                        $totalPrice += $oncePrice;
+                    }
+                    file_put_contents('/tmp/totalPrice', $totalPrice, FILE_APPEND);
                 }
                 if ($type == "traded") {
                     $orderRef = $data[1];
