@@ -31,18 +31,24 @@ typedef struct msg_k_line
 #define MSG_TRADE_SELLOPEN  6
 #define MSG_TRADE_BUYCLOSE  7
 #define MSG_TRADE_SELLCLOSE 8
-#define MSG_TRADE_CANCEL    9
-// tradeSrv->tradeStrategySrv
+#define MSG_TRADE_ROLLBACK  15
+
+#define MSG_TRADE_FORECAST_OVER 14
+#define MSG_TRADE_REAL_COME 16
+
 #define MSG_TRADE_BACK_TRADED   10
 #define MSG_TRADE_BACK_CANCELED 11
+#define MSG_TRADE_BACK_CANCELEDERR 17
+
 typedef struct msg_trade_data
 {
     long int msgType;
     double price;
     int total;
     int kIndex;
-    int orderID;
-    int hasNext;
+    // int groupID; // 逻辑模块生成
+    int orderID; // 下单模块生成，下单系统反馈时使用
+    // int forecastType;
     char instrumnetID[7];
 
 } MSG_TO_TRADE_STRATEGY;
@@ -58,6 +64,7 @@ typedef struct msg_trade
     int total;
     bool isOpen;
     int orderID;
+    int forecastType;
     char instrumnetID[7];
 
 } MSG_TO_TRADE;

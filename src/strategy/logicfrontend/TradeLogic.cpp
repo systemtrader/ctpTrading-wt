@@ -174,7 +174,7 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
     }
 
     int status = _getStatus();
-    
+
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeLogicSrv[onKLineClose]";
@@ -182,7 +182,6 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
     info << endl;
     info.close();
 
-    bool singleAction = true;
     switch (status) {
 
         case TRADE_STATUS_NOTHING: // 空仓，判断是否开仓
@@ -207,31 +206,15 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
         case TRADE_STATUS_BUYOPENED:
 
             if (isUp) {
-                if (_pUp2Down > _threshold) {
-                    singleAction = false;
-                }
                 if (_pUp2Up <= _threshold ) { // 不满足买开，平仓
-                    if (singleAction) {
-                        _sendMsg(MSG_TRADE_SELLCLOSE, tick.price - 10);
-                    } else {
-                        _sendMsg(MSG_TRADE_SELLCLOSE, tick.price - 10, 1);
-                    }
+                    _sendMsg(MSG_TRADE_SELLCLOSE, tick.price - 10);
                 }
-                if (!singleAction)
-                    _sendMsg(MSG_TRADE_SELLOPEN, tick.price - 10);
+
             } else {
-                if (_pDown2Down > _threshold) {
-                    singleAction = false;
-                }
+
                 if (_pDown2Up <= _threshold) { // 不满足买开，平
-                    if (singleAction) {
-                        _sendMsg(MSG_TRADE_SELLCLOSE, tick.price - 10);
-                    } else {
-                        _sendMsg(MSG_TRADE_SELLCLOSE, tick.price - 10, 1);
-                    }
+                    _sendMsg(MSG_TRADE_SELLCLOSE, tick.price - 10);
                 }
-                if (!singleAction)
-                    _sendMsg(MSG_TRADE_SELLOPEN, tick.price - 10);
             }
 
             break;
@@ -239,31 +222,13 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
         case TRADE_STATUS_SELLOPENED:
 
             if (isUp) {
-                if (_pUp2Up > _threshold) {
-                    singleAction = false;
-                }
                 if (_pUp2Down <= _threshold) { // 卖开
-                    if (singleAction) {
-                        _sendMsg(MSG_TRADE_BUYCLOSE, tick.price + 10);
-                    } else {
-                        _sendMsg(MSG_TRADE_BUYCLOSE, tick.price + 10, 1);
-                    }
+                    _sendMsg(MSG_TRADE_BUYCLOSE, tick.price + 10);
                 }
-                if (!singleAction)
-                    _sendMsg(MSG_TRADE_BUYOPEN, tick.price + 10);
             } else {
-                if (_pDown2Up > _threshold) {
-                    singleAction = false;
-                }
                 if (_pDown2Down <= _threshold) { // 卖开
-                    if (singleAction) {
-                        _sendMsg(MSG_TRADE_BUYCLOSE, tick.price + 10);
-                    } else {
-                        _sendMsg(MSG_TRADE_BUYCLOSE, tick.price + 10, 1);
-                    }
+                    _sendMsg(MSG_TRADE_BUYCLOSE, tick.price + 10);
                 }
-                if (!singleAction)
-                    _sendMsg(MSG_TRADE_BUYOPEN, tick.price + 10);
             }
             break;
 
@@ -299,7 +264,6 @@ void TradeLogic::_sendMsg(int msgType, double price, int hasNext)
     msg.price = price;
     msg.kIndex = _kIndex;
     msg.total = 1;
-    msg.hasNext = hasNext;
     strcpy(msg.instrumnetID, Lib::stoc(_instrumnetID));
     _tradeStrategySrvClient->send((void *)&msg);
 

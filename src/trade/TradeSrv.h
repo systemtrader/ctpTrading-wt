@@ -28,19 +28,26 @@ private:
     TThostFtdcSessionIDType _sessionID;
     int _maxOrderRef;
 
-    std::map<string, int> _ydPostion; // 昨仓
-
     CThostFtdcTraderApi * _tradeApi;
     TraderSpi * _traderSpi;
     QClient * _tradeStrategySrvClient;
 
-    map<int, map<int, CThostFtdcOrderField> > _orderMap;
-    map<int, int> _orderRefMap;
+    map<int, CThostFtdcOrderField> _orderRef2Info;// orderRef -> OrderInfo
+    map<int, int> _orderRef2ID; // orderRef -> orderID
+    map<int, int> _orderID2Ref; // orderID -> orderRef
+    map<int, int> _orderIDDealed; // orderID -> 1
+    map<int, int> _orderIDCanceled; // orderID -> 1
 
-    void _initOrderRef(int);
-    void _setOrderInfo(int, CThostFtdcOrderField * const);
-    CThostFtdcOrderField _getOrderInfo(int, int);
-    int _getOrderID(int);
+    void _showData();
+    bool _isOrderDealed(int);
+    bool _isOrderCanceled(int);
+
+    void _initOrder(int, string); // 初始化Order记录
+    void _clearOrderByRef(int); // 清理Order记录
+    int _getOrderIDByRef(int);
+    int _getOrderRefByID(int);
+    void _updateOrderInfoByRef(int, CThostFtdcOrderField * const); // 更新OrderInfo记录
+    CThostFtdcOrderField _getOrderInfoByRef(int);
 
     CThostFtdcInputOrderField _createOrder(string, bool, int, double,
         TThostFtdcOffsetFlagEnType, // 开平标志
@@ -56,23 +63,19 @@ public:
     TradeSrv(string, string, string, string, string, string, string, int, int);
     ~TradeSrv();
 
-    // void setStatus(int);
-
     void init();
 
     void confirm();
     void login();
     void onLogin(CThostFtdcRspUserLoginField * const);
 
-    void getPosition();
-    void onPositionRtn(CThostFtdcInvestorPositionField * const);
-
     void trade(double, int, bool, bool, int, string);
     void onTraded(CThostFtdcTradeField * const);
     void onOrderRtn(CThostFtdcOrderField * const);
 
     void cancel(int);
-    void onCancel(CThostFtdcInputOrderActionField * const);
+    void onCancel(CThostFtdcOrderField * const);
+    void onCancelErr(CThostFtdcInputOrderActionField * const);
 
 };
 

@@ -13,8 +13,8 @@
 typedef struct trade_data
 {
     int action;
-    int hasNext;
-    int tryTimes;
+    double price;
+    int total;
     int kIndex;
     string instrumnetID;
 
@@ -27,13 +27,14 @@ private:
     Redis * _store;
     QClient * _tradeSrvClient;
     string _logPath;
-    int _orderID;
 
-    std::map<int, TRADE_DATA> _tradingInfo;
-    void _removeTradeInfo(int);
+    int _orderID;
+    std::map<int, TRADE_DATA> _tradingInfo; // orderID -> tradeInfo
     bool _isTrading(int);
 
-    void _initTrade(int, int, int, string); // 初始化交易
+    int _initTrade(int, int, int, string, double); // 初始化交易
+    void _clearTradeInfo(int);
+
     void _zhuijia(int); // 追价
     void _cancel(int); // 撤销
 
@@ -46,9 +47,10 @@ public:
     TradeStrategy(int, string, int);
     ~TradeStrategy();
 
-    void tradeAction(int, double, int, int, int, string);
+    void tradeAction(int, double, int, int, string);
     void onSuccess(int);
     void onCancel(int);
+    void onCancelErr(int);
     void timeout(int);
 
 };

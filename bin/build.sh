@@ -9,9 +9,9 @@ g++ -o tradeSrv ../src/trade/*.cpp ../src/libs/*.cpp ../include/iniReader/*.cpp 
 g++ -o closeAll ../src/strategy/closeAll/*.cpp ../src/libs/*.cpp ../include/iniReader/*.cpp ../src/protos/*.cpp -lhiredis
 
 #历史回测模块
-g++ -o readCsvSendToTick ../src/history/ReadCsvSendTick.cpp ../src/libs/*.cpp ../include/iniReader/*.cpp -lhiredis
+# g++ -o readCsvSendToTick ../src/history/ReadCsvSendTick.cpp ../src/libs/*.cpp ../include/iniReader/*.cpp -lhiredis
 # g++ -o readKLineDataAndSend ../src/history/readKLineDataAndSend.cpp ../src/libs/*.cpp ../include/iniReader/*.cpp -lhiredis
-g++ -o tradeStrategyAfter ../src/test/tradeStrategyAfter.cpp ../include/iniReader/*.cpp ../src/libs/*.cpp -lhiredis
+# g++ -o tradeStrategyAfter ../src/test/tradeStrategyAfter.cpp ../include/iniReader/*.cpp ../src/libs/*.cpp -lhiredis
 
 # 测试模块
 # g++ -o tradeSrvBefore ../src/test/tradeSrvBefore.cpp ../include/iniReader/*.cpp ../src/libs/*.cpp -lhiredis
