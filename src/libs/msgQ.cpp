@@ -1,5 +1,15 @@
 #include "msgQ.h"
 
+void logger(string msg, int errNo)
+{
+    string logPath = "../../log/QError.log";
+    ofstream info;
+    Lib::initInfoLogHandle(logPath, info);
+    info << msg << "|" << errNo;
+    info << endl;
+    info.close();
+}
+
 QService::QService(int qid, int msgStructLen)
 {
     _msgStructLen = msgStructLen;
@@ -8,7 +18,8 @@ QService::QService(int qid, int msgStructLen)
     _msgID = msgget((key_t)qid, 0666 | IPC_CREAT);
     if(_msgID == -1)
     {
-        fprintf(stderr, "msgget failed with error: %d\n", errno);
+        // fprintf(stderr, "msgget failed with error: %d\n", errno);
+        logger("msgget failed", errno);
         exit(EXIT_FAILURE);
     }
 }
@@ -36,7 +47,8 @@ void QService::run()
     {
         if(msgrcv(_msgID, data, MAX_BUF, 0, 0) == -1)
         {
-            fprintf(stderr, "msgrcv failed with errno: %d\n", errno);
+            // fprintf(stderr, "msgrcv failed with errno: %d\n", errno);
+            logger("msgrcv failed", errno);
             exit(EXIT_FAILURE);
         }
         long int msgType = *((long int *)data);
@@ -51,7 +63,8 @@ QClient::QClient(int qid, int msgStructLen)
     _msgID = msgget((key_t)qid, 0666 | IPC_CREAT);
     if(_msgID == -1)
     {
-        fprintf(stderr, "msgget failed with error: %d\n", errno);
+        // fprintf(stderr, "msgget failed with error: %d\n", errno);
+        logger("msgget failed", errno);
         exit(EXIT_FAILURE);
     }
 }
@@ -67,7 +80,8 @@ void QClient::send(void * data)
     {
         if(msgsnd(_msgID, data, _msgLen, 0) == -1)
         {
-            fprintf(stderr, "msgsnd failed: %d\n", errno);
+            // fprintf(stderr, "msgsnd failed: %d\n", errno);
+            logger("msgsnd failed", errno);
             usleep(1000);
         } else {
             return;

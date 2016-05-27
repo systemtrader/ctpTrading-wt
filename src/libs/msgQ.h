@@ -1,6 +1,7 @@
 #ifndef MSGQ_H
 #define MSGQ_H
 
+#include "Lib.h"
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
