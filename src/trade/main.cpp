@@ -8,7 +8,7 @@ int main(int argc, char const *argv[])
 {
     // 初始化参数
     parseIniFile("../etc/config.ini");
-    string flowPath = getOptionToString("flow_path");
+    string flowPath = getOptionToString("flow_path_t");
     string logPath  = getOptionToString("log_path");
     string bid      = getOptionToString("trade_broker_id");
     string userID   = getOptionToString("trade_user_id");

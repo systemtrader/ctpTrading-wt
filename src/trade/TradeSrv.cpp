@@ -47,10 +47,10 @@ void TradeSrv::init()
     _tradeApi = CThostFtdcTraderApi::CreateFtdcTraderApi(Lib::stoc(_flowPath));
     _traderSpi = new TraderSpi(this, _logPath); // 初始化回调实例
     _tradeApi->RegisterSpi(_traderSpi);
-    // _tradeApi->SubscribePrivateTopic(THOST_TERT_QUICK);
-    // _tradeApi->SubscribePublicTopic(THOST_TERT_QUICK);
-    _tradeApi->SubscribePrivateTopic(THOST_TERT_RESUME);
-    _tradeApi->SubscribePublicTopic(THOST_TERT_RESUME);
+    _tradeApi->SubscribePrivateTopic(THOST_TERT_QUICK);
+    _tradeApi->SubscribePublicTopic(THOST_TERT_QUICK);
+    // _tradeApi->SubscribePrivateTopic(THOST_TERT_RESUME);
+    // _tradeApi->SubscribePublicTopic(THOST_TERT_RESUME);
 
     _tradeApi->RegisterFront(Lib::stoc(_tradeFront));
     _tradeApi->Init();
@@ -267,6 +267,13 @@ void TradeSrv::_initOrderRef(int orderID)
     _maxOrderRef++;
     _orderRefMap[_maxOrderRef] = orderID;
     CThostFtdcOrderField info = {0};
+
+    info.FrontID = _frontID;
+    info.SessionID = _sessionID;
+    sprintf(info.OrderRef, "%d", _maxOrderRef);
+    strcpy(info.InstrumentID, "sn1609");
+    strcpy(info.InvestorID, _userID.c_str());
+
     _orderMap[orderID][_maxOrderRef] = info;
 }
 
