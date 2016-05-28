@@ -1,13 +1,14 @@
 #include "TradeLogic.h"
 
-TradeLogic::TradeLogic(int peroid, double threshold,
+TradeLogic::TradeLogic(int peroid, double threshold_open, double threshold_close
     int serviceID, string logPath, int db,
     string stopTradeTime, string instrumnetID)
 {
     _instrumnetID = instrumnetID;
 
     _peroid = peroid;
-    _threshold = threshold;
+    _threshold_open = threshold_open;
+    _threshold_close = threshold_close;
 
     _logPath = logPath;
 
@@ -187,17 +188,17 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
         case TRADE_STATUS_NOTHING: // 空仓，判断是否开仓
 
             if (isUp) {
-                if (_pUp2Up > _threshold) { // 买开
+                if (_pUp2Up > _threshold_open) { // 买开
                     _sendMsg(MSG_TRADE_BUYOPEN, tick.price + 10);
                 }
-                if (_pUp2Down > _threshold) { // 卖开
+                if (_pUp2Down > _threshold_open) { // 卖开
                     _sendMsg(MSG_TRADE_SELLOPEN, tick.price - 10);
                 }
             } else {
-                if (_pDown2Down > _threshold) { // 卖开
+                if (_pDown2Down > _threshold_open) { // 卖开
                     _sendMsg(MSG_TRADE_SELLOPEN, tick.price - 10);
                 }
-                if (_pDown2Up > _threshold) { // 买开
+                if (_pDown2Up > _threshold_open) { // 买开
                     _sendMsg(MSG_TRADE_BUYOPEN, tick.price + 10);
                 }
             }
@@ -206,13 +207,13 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
         case TRADE_STATUS_BUYOPENED:
 
             if (isUp) {
-                if (_pUp2Up <= _threshold ) { // 不满足买开，平仓
+                if (_pUp2Up <= _threshold_close ) { // 不满足买开，平仓
                     _sendMsg(MSG_TRADE_SELLCLOSE, tick.price - 10);
                 }
 
             } else {
 
-                if (_pDown2Up <= _threshold) { // 不满足买开，平
+                if (_pDown2Up <= _threshold_close) { // 不满足买开，平
                     _sendMsg(MSG_TRADE_SELLCLOSE, tick.price - 10);
                 }
             }
@@ -222,11 +223,11 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
         case TRADE_STATUS_SELLOPENED:
 
             if (isUp) {
-                if (_pUp2Down <= _threshold) { // 卖开
+                if (_pUp2Down <= _threshold_close) { // 卖开
                     _sendMsg(MSG_TRADE_BUYCLOSE, tick.price + 10);
                 }
             } else {
-                if (_pDown2Down <= _threshold) { // 卖开
+                if (_pDown2Down <= _threshold_close) { // 卖开
                     _sendMsg(MSG_TRADE_BUYCLOSE, tick.price + 10);
                 }
             }
