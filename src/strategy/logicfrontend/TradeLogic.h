@@ -31,7 +31,8 @@ private:
 
     // 算法参数
     int _peroid; // 周期
-    double _threshold; // 阈值
+    double _threshold_open; // 阈值
+    double _threshold_close;
 
     // 计算辅助变量
     int _kIndex;
@@ -57,7 +58,7 @@ private:
     void _sendMsg(int, double = 0, int = 0);
 
 public:
-    TradeLogic(int, double, int, string, int, string, string);
+    TradeLogic(int, double, double, int, string, int, string, string);
     ~TradeLogic();
 
     void init(); // 初始化历史K线

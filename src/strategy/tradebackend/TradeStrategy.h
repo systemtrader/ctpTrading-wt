@@ -32,9 +32,12 @@ private:
     std::map<int, TRADE_DATA> _tradingInfo; // orderID -> tradeInfo
     bool _isTrading(int);
 
+    std::list<MSG_TO_TRADE_STRATEGY> _waitList;
+
     int _initTrade(int, int, int, string, double); // 初始化交易
     void _clearTradeInfo(int);
 
+    void _tradeAction(MSG_TO_TRADE_STRATEGY);
     void _zhuijia(int); // 追价
     void _cancel(int); // 撤销
 
@@ -47,7 +50,7 @@ public:
     TradeStrategy(int, string, int);
     ~TradeStrategy();
 
-    void tradeAction(int, double, int, int, string);
+    void trade(MSG_TO_TRADE_STRATEGY);
     void onSuccess(int);
     void onCancel(int);
     void onCancelErr(int);

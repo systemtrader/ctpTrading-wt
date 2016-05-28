@@ -95,8 +95,42 @@ bool TradeStrategy::_isTrading(int orderID)
     return i == _tradingInfo.end() ? false : true;
 }
 
-void TradeStrategy::tradeAction(int action, double price, int total, int kIndex, string instrumnetID)
+void TradeStrategy::trade(MSG_TO_TRADE_STRATEGY msg)
 {
+    int status = _getStatus(string(msg.instrumnetID));
+    if (status == TRADE_STATUS_BUYOPENING || 
+        status == TRADE_STATUS_BUYCLOSING ||
+        status == TRADE_STATUS_SELLOPENING ||
+        status == TRADE_STATUS_SELLCLOSING)
+    {
+        _waitList.push_back(msg);
+        return;
+    }
+
+    _tradeAction(msg);
+}
+
+void TradeStrategy::_tradeAction(MSG_TO_TRADE_STRATEGY msg)
+{
+    int action;
+    double price = msg.price;
+    int total = 1;
+    int kIndex = msg.kIndex;
+    string instrumnetID = string(msg.instrumnetID);
+
+    if (msg.msgType == MSG_TRADE_BUYOPEN) {
+        action = TRADE_ACTION_BUYOPEN;
+    }
+    if (msg.msgType == MSG_TRADE_SELLOPEN) {
+        action = TRADE_ACTION_SELLOPEN;
+    }
+    if (msg.msgType == MSG_TRADE_SELLCLOSE) {
+        action = TRADE_ACTION_SELLCLOSE;
+    }
+    if (msg.msgType == MSG_TRADE_BUYCLOSE) {
+        action = TRADE_ACTION_BUYCLOSE;
+    }
+
     int orderID = _initTrade(action, kIndex, total, instrumnetID, price);
     switch (action) {
 
@@ -130,23 +164,6 @@ void TradeStrategy::onSuccess(int orderID)
 {
     if (!_isTrading(orderID)) return;
     TRADE_DATA order = _tradingInfo[orderID];
-
-    _clearTradeInfo(orderID);
-    switch (order.action) {
-        case TRADE_ACTION_BUYOPEN:
-            _setStatus(TRADE_STATUS_BUYOPENED, order.instrumnetID);
-            break;
-        case TRADE_ACTION_SELLOPEN:
-            _setStatus(TRADE_STATUS_SELLOPENED, order.instrumnetID);
-            break;
-        case TRADE_ACTION_BUYCLOSE:
-        case TRADE_ACTION_SELLCLOSE:
-            _setStatus(TRADE_STATUS_NOTHING, order.instrumnetID);
-            break;
-        default:
-            break;
-    }
-
     // log
     int status = _getStatus(order.instrumnetID);
     ofstream info;
@@ -158,6 +175,30 @@ void TradeStrategy::onSuccess(int orderID)
     info << "|status|" << status;
     info << endl;
     info.close();
+
+    _clearTradeInfo(orderID);
+
+    if (_waitList.size() == 0) {
+        switch (order.action) {
+            case TRADE_ACTION_BUYOPEN:
+                _setStatus(TRADE_STATUS_BUYOPENED, order.instrumnetID);
+                break;
+            case TRADE_ACTION_SELLOPEN:
+                _setStatus(TRADE_STATUS_SELLOPENED, order.instrumnetID);
+                break;
+            case TRADE_ACTION_BUYCLOSE:
+            case TRADE_ACTION_SELLCLOSE:
+                _setStatus(TRADE_STATUS_NOTHING, order.instrumnetID);
+                break;
+            default:
+                break;
+        }
+    } else {
+        MSG_TO_TRADE_STRATEGY msg = _waitList.front();
+        _waitList.pop_front();
+        _tradeAction(msg);
+    }
+
 }
 
 void TradeStrategy::onCancel(int orderID)
@@ -179,6 +220,7 @@ void TradeStrategy::onCancel(int orderID)
         order.action == TRADE_ACTION_SELLCLOSE) 
     {
         _zhuijia(orderID);
+
     } else {
         switch (order.action) {
             case TRADE_ACTION_BUYOPEN:
