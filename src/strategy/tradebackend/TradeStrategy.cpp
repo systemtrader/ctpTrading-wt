@@ -175,8 +175,8 @@ void TradeStrategy::onCancel(int orderID)
     info << endl;
     info.close();
 
-    if (order.action == TRADE_ACTION_BUYCLOSE || 
-        order.action == TRADE_ACTION_SELLCLOSE) 
+    if (order.action == TRADE_ACTION_BUYCLOSE ||
+        order.action == TRADE_ACTION_SELLCLOSE)
     {
         _zhuijia(orderID);
     } else {
@@ -199,7 +199,7 @@ void TradeStrategy::onCancel(int orderID)
 
 }
 
-void TradeStrategy::onCancelErr(int orderID) 
+void TradeStrategy::onCancelErr(int orderID)
 {
     if (!_isTrading(orderID)) return;
     //
@@ -265,11 +265,11 @@ void TradeStrategy::_zhuijia(int orderID)
     TickData tick = _getTick(order.instrumnetID);
     switch (order.action) {
         case TRADE_ACTION_SELLCLOSE:
-            price = tick.price - 10;
+            price = tick.bidPrice1;
             _sendMsg(price, 1, false, false, newOrderID);
             break;
         case TRADE_ACTION_BUYCLOSE:
-            price = tick.price + 10;
+            price = tick.askPrice1;;
             _sendMsg(price, 1, true, false, newOrderID);
             break;
         default:
