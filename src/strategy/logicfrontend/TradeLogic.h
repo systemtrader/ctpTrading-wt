@@ -58,7 +58,7 @@ private:
     void _sendMsg(int, double = 0, int = 0);
 
 public:
-    TradeLogic(int, double, int, string, int, string, string);
+    TradeLogic(int, double, double, int, string, int, string, string);
     ~TradeLogic();
 
     void init(); // 初始化历史K线

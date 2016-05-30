@@ -1,6 +1,6 @@
 #include "TradeLogic.h"
 
-TradeLogic::TradeLogic(int peroid, double threshold_open, double threshold_close
+TradeLogic::TradeLogic(int peroid, double threshold_open, double threshold_close,
     int serviceID, string logPath, int db,
     string stopTradeTime, string instrumnetID)
 {
