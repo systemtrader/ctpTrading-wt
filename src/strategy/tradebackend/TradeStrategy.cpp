@@ -269,7 +269,7 @@ void TradeStrategy::_zhuijia(int orderID)
             _sendMsg(price, 1, false, false, newOrderID);
             break;
         case TRADE_ACTION_BUYCLOSE:
-            price = tick.askPrice1;;
+            price = tick.askPrice1;
             _sendMsg(price, 1, true, false, newOrderID);
             break;
         default:
