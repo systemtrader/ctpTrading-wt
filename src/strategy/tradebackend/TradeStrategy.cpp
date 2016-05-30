@@ -12,7 +12,7 @@ void timeout(union sigval v)
 
 void setTimer(int orderID)
 {
-    // è®¾å®šå®šæ—¶å™¨
+    // Éè¶¨¶¨Ê±Æ÷
     struct sigevent evp;
     struct itimerspec ts;
 
@@ -98,7 +98,15 @@ bool TradeStrategy::_isTrading(int orderID)
 void TradeStrategy::trade(MSG_TO_TRADE_STRATEGY msg)
 {
     int status = _getStatus(string(msg.instrumnetID));
-    if (status == TRADE_STATUS_BUYOPENING || 
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info);
+    info << "TradeStrategySrv[tradeCome]";
+    info << "|iID|" << msg.instrumnetID;
+    info << "|kIndex|" << msg.kIndex;
+    info << "|status|" << status;
+    info << endl;
+    info.close();
+    if (status == TRADE_STATUS_BUYOPENING ||
         status == TRADE_STATUS_BUYCLOSING ||
         status == TRADE_STATUS_SELLOPENING ||
         status == TRADE_STATUS_SELLCLOSING)
@@ -216,8 +224,8 @@ void TradeStrategy::onCancel(int orderID)
     info << endl;
     info.close();
 
-    if (order.action == TRADE_ACTION_BUYCLOSE || 
-        order.action == TRADE_ACTION_SELLCLOSE) 
+    if (order.action == TRADE_ACTION_BUYCLOSE ||
+        order.action == TRADE_ACTION_SELLCLOSE)
     {
         _zhuijia(orderID);
 
@@ -241,7 +249,7 @@ void TradeStrategy::onCancel(int orderID)
 
 }
 
-void TradeStrategy::onCancelErr(int orderID) 
+void TradeStrategy::onCancelErr(int orderID)
 {
     if (!_isTrading(orderID)) return;
     //
@@ -307,17 +315,17 @@ void TradeStrategy::_zhuijia(int orderID)
     TickData tick = _getTick(order.instrumnetID);
     switch (order.action) {
         case TRADE_ACTION_SELLCLOSE:
-            price = tick.price - 10;
+            price = tick.bidPrice1;
             _sendMsg(price, 1, false, false, newOrderID);
             break;
         case TRADE_ACTION_BUYCLOSE:
-            price = tick.price + 10;
+            price = tick.askPrice1;
             _sendMsg(price, 1, true, false, newOrderID);
             break;
         default:
             break;
     }
-    // å¯åŠ¨å®šæ—¶å™¨
+    // Æô¶¯¶¨Ê±Æ÷
     setTimer(newOrderID);
 }
 

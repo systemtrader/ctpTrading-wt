@@ -209,18 +209,18 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
             if (isUp) {
                 if (_pUp2Up <= _threshold_close ) { // 不满足买开，平仓
                     _sendMsg(MSG_TRADE_SELLCLOSE, tick.price - 10);
-                }
-                if (_pUp2Down > _threshold_open) {
-                    _sendMsg(MSG_TRADE_SELLOPEN, tick.price - 10);
+                    if (_pUp2Down > _threshold_open) {
+                        _sendMsg(MSG_TRADE_SELLOPEN, tick.price - 10);
+                    }
                 }
 
             } else {
 
                 if (_pDown2Up <= _threshold_close) { // 不满足买开，平
                     _sendMsg(MSG_TRADE_SELLCLOSE, tick.price - 10);
-                }
-                if (_pDown2Down > _threshold_open) {
-                    _sendMsg(MSG_TRADE_SELLOPEN, tick.price - 10);
+                    if (_pDown2Down > _threshold_open) {
+                        _sendMsg(MSG_TRADE_SELLOPEN, tick.price - 10);
+                    }
                 }
             }
 
@@ -231,16 +231,16 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
             if (isUp) {
                 if (_pUp2Down <= _threshold_close) { // 卖开
                     _sendMsg(MSG_TRADE_BUYCLOSE, tick.price + 10);
-                }
-                if (_pUp2Up > _threshold_open) { // 买开
-                    _sendMsg(MSG_TRADE_BUYOPEN, tick.price + 10);
+                    if (_pUp2Up > _threshold_open) { // 买开
+                        _sendMsg(MSG_TRADE_BUYOPEN, tick.price + 10);
+                    }
                 }
             } else {
                 if (_pDown2Down <= _threshold_close) { // 卖开
                     _sendMsg(MSG_TRADE_BUYCLOSE, tick.price + 10);
-                }
-                if (_pDown2Up > _threshold_open) { // 买开
-                    _sendMsg(MSG_TRADE_BUYOPEN, tick.price + 10);
+                    if (_pDown2Up > _threshold_open) { // 买开
+                        _sendMsg(MSG_TRADE_BUYOPEN, tick.price + 10);
+                    }
                 }
             }
             break;
