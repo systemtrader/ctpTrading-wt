@@ -204,6 +204,7 @@ void TradeStrategy::onSuccess(int orderID)
     } else {
         MSG_TO_TRADE_STRATEGY msg = _waitList.front();
         _waitList.pop_front();
+        usleep(1*1000);
         _tradeAction(msg);
     }
 
