@@ -29,6 +29,9 @@ private:
     string _instrumnetID; // 合约代码
     std::vector<TRADE_HM> _timeHM; // 停止交易时间
 
+    int _forecastID;
+    int _rollbackID;
+
     // 算法参数
     int _peroid; // 周期
     double _threshold_open; // 阈值
@@ -45,17 +48,25 @@ private:
 
     double _pUp2Up;
     double _pUp2Down;
-    void _calculateUp();
+    void _calculateUp(double, double);
 
     double _pDown2Up;
     double _pDown2Down;
-    void _calculateDown();
+    void _calculateDown(double, double);
 
     void _tick(TickData); // 处理tick信息
 
+    bool _isCurrentUp();
+    void _rollback();
+    void _forecastNothing(TickData);
+    void _forecastSellOpened(TickData);
+    void _forecastBuyOpened(TickData);
+
+    void _sendRollBack(int);
+
     // 判断仓位状态
     int _getStatus();
-    void _sendMsg(int, double = 0, int = 0);
+    void _sendMsg(int, double = 0, bool = false, int = 0);
 
 public:
     TradeLogic(int, double, double, int, string, int, string, string);
@@ -64,6 +75,7 @@ public:
     void init(); // 初始化历史K线
 
     void onKLineClose(KLineBlock, TickData);
+    void onKLineOpen(KLineBlock, TickData);
 };
 
 #endif

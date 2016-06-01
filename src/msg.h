@@ -46,6 +46,8 @@ typedef struct msg_trade_data
     double price;
     int total;
     int kIndex;
+    bool isForecast; // 是否是预测单
+    int forecastID; // 预测id
     // int groupID; // 逻辑模块生成
     int orderID; // 下单模块生成，下单系统反馈时使用
     // int forecastType;

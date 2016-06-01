@@ -360,6 +360,19 @@ void TradeSrv::onCancel(CThostFtdcOrderField * const rsp)
     _tradeStrategySrvClient->send((void *)&msg);
 
     _clearOrderByRef(orderRef);
+
+    // save data
+    char c;
+    string str;
+    stringstream stream;
+    stream << rsp->OrderStatus;
+    str = stream.str();
+
+    string time = Lib::getDate("%Y/%m/%d-%H:%M:%S", true);
+    string data = "orderRtn_" + string(rsp->OrderRef) + "_" + Lib::itos(_frontID) + "_" + Lib::itos(_sessionID) + "_" +
+                  string(rsp->InsertDate) + "_" + string(rsp->InsertTime) + "_" + time + "_" +
+                  str;
+    _store->push("ORDER_LOGS", data);
 }
 
 void TradeSrv::onCancelErr(CThostFtdcInputOrderActionField * const rsp)

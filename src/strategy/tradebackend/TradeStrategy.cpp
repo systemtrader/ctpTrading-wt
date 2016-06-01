@@ -12,7 +12,6 @@ void timeout(union sigval v)
 
 void setTimer(int orderID)
 {
-    // 设定定时器
     struct sigevent evp;
     struct itimerspec ts;
 
@@ -45,7 +44,7 @@ TradeStrategy::~TradeStrategy()
     cout << "~TradeStrategy" << endl;
 }
 
-int TradeStrategy::_initTrade(int action, int kIndex, int total, string instrumnetID, double price)
+int TradeStrategy::_initTrade(int action, int kIndex, int total, string instrumnetID, double price, int forecastID)
 {
     _orderID++;
 
@@ -55,7 +54,10 @@ int TradeStrategy::_initTrade(int action, int kIndex, int total, string instrumn
     order.kIndex = kIndex;
     order.total = total;
     order.instrumnetID = instrumnetID;
+    order.forecastID = forecastID;
     _tradingInfo[_orderID] = order;
+
+    _forecastID2OrderID[forecastID] = _orderID;
 
     // log
     ofstream info;
@@ -95,6 +97,12 @@ bool TradeStrategy::_isTrading(int orderID)
     return i == _tradingInfo.end() ? false : true;
 }
 
+bool TradeStrategy::_isForecasting(int forecastID)
+{
+    std::map<int, int>::iterator i = _forecastID2OrderID.find(forecastID);
+    return i == _forecastID2OrderID.end() ? false : true;
+}
+
 void TradeStrategy::trade(MSG_TO_TRADE_STRATEGY msg)
 {
     int status = _getStatus(string(msg.instrumnetID));
@@ -106,6 +114,14 @@ void TradeStrategy::trade(MSG_TO_TRADE_STRATEGY msg)
     info << "|status|" << status;
     info << endl;
     info.close();
+
+    if (msg.msgType == MSG_TRADE_ROLLBACK) {
+        if (!_isForecasting(msg.forecastID)) return;
+        int orderID = _forecastID2OrderID[msg.forecastID];
+        _cancel(orderID);
+        return;
+    }
+
     if (status == TRADE_STATUS_BUYOPENING ||
         status == TRADE_STATUS_BUYCLOSING ||
         status == TRADE_STATUS_SELLOPENING ||
@@ -122,9 +138,10 @@ void TradeStrategy::_tradeAction(MSG_TO_TRADE_STRATEGY msg)
 {
     int action;
     double price = msg.price;
-    int total = 1;
+    int total = msg.total;
     int kIndex = msg.kIndex;
     string instrumnetID = string(msg.instrumnetID);
+    int forecastID = msg.forecastID;
 
     if (msg.msgType == MSG_TRADE_BUYOPEN) {
         action = TRADE_ACTION_BUYOPEN;
@@ -139,7 +156,7 @@ void TradeStrategy::_tradeAction(MSG_TO_TRADE_STRATEGY msg)
         action = TRADE_ACTION_BUYCLOSE;
     }
 
-    int orderID = _initTrade(action, kIndex, total, instrumnetID, price);
+    int orderID = _initTrade(action, kIndex, total, instrumnetID, price, forecastID);
     switch (action) {
 
         case TRADE_ACTION_BUYOPEN:
@@ -231,19 +248,26 @@ void TradeStrategy::onCancel(int orderID)
         _zhuijia(orderID);
 
     } else {
-        switch (order.action) {
-            case TRADE_ACTION_BUYOPEN:
-            case TRADE_ACTION_SELLOPEN:
-                _setStatus(TRADE_STATUS_NOTHING, order.instrumnetID);
-                break;
-            case TRADE_ACTION_BUYCLOSE:
-                _setStatus(TRADE_STATUS_SELLOPENED, order.instrumnetID);
-                break;
-            case TRADE_ACTION_SELLCLOSE:
-                _setStatus(TRADE_STATUS_BUYOPENED, order.instrumnetID);
-                break;
-            default:
-                break;
+        if (_waitList.size() == 0) {
+            switch (order.action) {
+                case TRADE_ACTION_BUYOPEN:
+                case TRADE_ACTION_SELLOPEN:
+                    _setStatus(TRADE_STATUS_NOTHING, order.instrumnetID);
+                    break;
+                case TRADE_ACTION_BUYCLOSE:
+                    _setStatus(TRADE_STATUS_SELLOPENED, order.instrumnetID);
+                    break;
+                case TRADE_ACTION_SELLCLOSE:
+                    _setStatus(TRADE_STATUS_BUYOPENED, order.instrumnetID);
+                    break;
+                default:
+                    break;
+            }
+        } else {
+            MSG_TO_TRADE_STRATEGY msg = _waitList.front();
+            _waitList.pop_front();
+            usleep(1*1000);
+            _tradeAction(msg);
         }
     }
     _clearTradeInfo(orderID);
@@ -299,7 +323,7 @@ void TradeStrategy::_zhuijia(int orderID)
     if (!_isTrading(orderID)) return;
     TRADE_DATA order = _tradingInfo[orderID];
 
-    int newOrderID = _initTrade(order.action, order.kIndex, order.total, order.instrumnetID, order.price);
+    int newOrderID = _initTrade(order.action, order.kIndex, order.total, order.instrumnetID, order.price, order.forecastID);
 
     // log
     ofstream info;

@@ -16,6 +16,7 @@ typedef struct trade_data
     double price;
     int total;
     int kIndex;
+    int forecastID;
     string instrumnetID;
 
 } TRADE_DATA;
@@ -31,10 +32,12 @@ private:
     int _orderID;
     std::map<int, TRADE_DATA> _tradingInfo; // orderID -> tradeInfo
     bool _isTrading(int);
+    std::map<int, int> _forecastID2OrderID;
+    bool _isForecasting(int);
 
     std::list<MSG_TO_TRADE_STRATEGY> _waitList;
 
-    int _initTrade(int, int, int, string, double); // 初始化交易
+    int _initTrade(int, int, int, string, double, int); // 初始化交易
     void _clearTradeInfo(int);
 
     void _tradeAction(MSG_TO_TRADE_STRATEGY);
