@@ -16,11 +16,12 @@ class Refresh
         }
         $this->iIDs = explode('/', $res['instrumnet_id']);
         $this->kRanges = explode('/', $res['k_range']);
+        $this->dbHost = $res['mysql_host'];
     }
 
     public function run()
     {
-        $db = new PDO("mysql:dbname={$this->mysqldb};host=127.0.0.1", "root", "Abc518131!");
+        $db = new PDO("mysql:dbname={$this->mysqldb};host={$this->dbHost}", "root", "Abc518131!");
 
         $i = 0;
         foreach ($this->iIDs as $iID) {
