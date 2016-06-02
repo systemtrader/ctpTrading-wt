@@ -28,12 +28,13 @@ void setTimer(int orderID)
     timer_settime(timer, 0, &ts, NULL);
 }
 
-TradeStrategy::TradeStrategy(int serviceID, string logPath, int db)
+TradeStrategy::TradeStrategy(int serviceID, string logPath, int db, int serviceIDK)
 {
     _orderID = 0;
     _logPath = logPath;
     _store = new Redis("127.0.0.1", 6379, db);
     _tradeSrvClient = new QClient(serviceID, sizeof(MSG_TO_TRADE));
+    _klineClient = new QClient(serviceIDK, sizeof(MSG_TO_KLINE));
 
 }
 
@@ -182,7 +183,8 @@ void TradeStrategy::_tradeAction(MSG_TO_TRADE_STRATEGY msg)
         default:
             break;
     }
-    setTimer(orderID);
+    if (!msg.isForecast)
+        setTimer(orderID);
 }
 
 void TradeStrategy::onSuccess(int orderID)
@@ -218,6 +220,23 @@ void TradeStrategy::onSuccess(int orderID)
             default:
                 break;
         }
+
+        // 生成一个Tick，发送给K线系统
+        MSG_TO_KLINE msg = {0};
+        msg.msgType = MSG_TICK;
+        msg.tick.price = order.price;
+        msg.tick.bidPrice1 = order.price;
+        msg.tick.askPrice1 = order.price;
+        strcpy(msg.tick.instrumnetID, order.instrumnetID.c_str());
+        _klineClient->send((void *)&msg);
+
+        // 将数据放入队列，以便存入DB
+        string tickStr = Lib::tickData2String(msg.tick);
+        string keyQ = "MARKET_TICK_Q";
+        string keyD = "CURRENT_TICK_" + string(order.instrumnetID);
+        _store->set(keyD, tickStr); // tick数据，供全局使用
+        _store->push(keyQ, tickStr);
+
     } else {
         MSG_TO_TRADE_STRATEGY msg = _waitList.front();
         _waitList.pop_front();
@@ -350,7 +369,7 @@ void TradeStrategy::_zhuijia(int orderID)
         default:
             break;
     }
-    // ������ʱ��
+
     setTimer(newOrderID);
 }
 

@@ -27,6 +27,7 @@ private:
 
     Redis * _store;
     QClient * _tradeSrvClient;
+    QClient * _klineClient;
     string _logPath;
 
     int _orderID;
@@ -50,7 +51,7 @@ private:
     void _sendMsg(double, int, bool, bool, int);
 
 public:
-    TradeStrategy(int, string, int);
+    TradeStrategy(int, string, int, int);
     ~TradeStrategy();
 
     void trade(MSG_TO_TRADE_STRATEGY);
