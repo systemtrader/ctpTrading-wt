@@ -15,6 +15,7 @@ class Consumer
             $this->mysqldb = $res['mysql_db_online'];
             $this->rdsdb = $res['rds_db_online'];
         }
+        $this->dbHost = $res['mysql_host'];
     }
 
     public function popViaRds($key)
@@ -32,7 +33,7 @@ class Consumer
     public function insertDB($sql, $data)
     {
         try {
-            $mysql = new PDO("mysql:dbname={$this->mysqldb};host=127.0.0.1", "root", "Abc518131!");
+            $mysql = new PDO("mysql:dbname={$this->mysqldb};host={$this->dbHost}", "root", "Abc518131!");
             $st = $mysql->prepare($sql);
             $result = $st->execute($data);
             $re = $mysql->lastInsertId();
@@ -45,7 +46,7 @@ class Consumer
     public function updateDB($sql, $data)
     {
         try {
-            $mysql = new PDO("mysql:dbname={$this->mysqldb};host=127.0.0.1", "root", "Abc518131!");
+            $mysql = new PDO("mysql:dbname={$this->mysqldb};host={$this->dbHost}", "root", "Abc518131!");
             $st = $mysql->prepare($sql);
             $re = $st->execute($data);
         } catch (Exception $e) {

@@ -18,11 +18,12 @@ class InitSys
         }
         $this->iIDs = explode('/', $res['instrumnet_id']);
         $this->peroid = $res['peroid'];
+        $this->dbHost = $res['mysql_host'];
     }
 
     public function run()
     {
-        $db = new PDO("mysql:dbname={$this->mysqldb};host=127.0.0.1", "root", "Abc518131!");
+        $db = new PDO("mysql:dbname={$this->mysqldb};host={$this->dbHost}", "root", "Abc518131!");
         $rds = new Redis();
         $rds->connect('127.0.0.1', 6379);
         $rds->select($this->rdsdb);
