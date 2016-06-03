@@ -47,16 +47,16 @@ bool KLineSrv::_isBlockExist()
 
 void KLineSrv::_initBlock(TickData tick)
 {
+    _currentBlock = new KLineBlock();
+    _currentBlock->init(_index, tick);
+
+
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "KLineSrv[open]";
     info << "|iID|" << _instrumnetID;
-    info << "|index|" << _index;
-    info << endl;
+    info << "|index|" << _index << endl;
     info.close();
-
-    _currentBlock = new KLineBlock();
-    _currentBlock->init(_index, tick);
 
     // 发送消息
     MSG_TO_TRADE_LOGIC msg = {0};
@@ -64,7 +64,6 @@ void KLineSrv::_initBlock(TickData tick)
     msg.block = _currentBlock->exportData();
     msg.tick = tick;
     _tradeLogicSrvClient->send((void *)&msg);
-
 
     _index++;
 }
@@ -84,6 +83,7 @@ void KLineSrv::_updateBlock(TickData tick)
 
 void KLineSrv::_closeBlock(TickData tick)
 {
+    
     _currentBlock->close();
     string keyQ = "K_LINE_Q";
     string strData = _currentBlock->exportString();
@@ -93,7 +93,6 @@ void KLineSrv::_closeBlock(TickData tick)
 
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
-    info << endl << endl;
     info << "KLineSrv[close]";
     info << "|iID|" << _instrumnetID;
     info << "|index|" << blockData.index;
@@ -101,7 +100,7 @@ void KLineSrv::_closeBlock(TickData tick)
     info << "|close|" << blockData.close;
     info << endl;
     info.close();
-
+    
     // 发送消息
     MSG_TO_TRADE_LOGIC msg = {0};
     msg.msgType = MSG_KLINE_CLOSE;
@@ -111,4 +110,5 @@ void KLineSrv::_closeBlock(TickData tick)
 
     // 储存消息
     _store->push(keyQ, strData);
+
 }

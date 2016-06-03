@@ -19,6 +19,7 @@ TradeSrv::TradeSrv(string brokerID, string userID, string password,
 TradeSrv::~TradeSrv()
 {
     if (_tradeApi) {
+        _tradeApi->RegisterSpi(NULL);
         _tradeApi->Release();
         _tradeApi = NULL;
     }
@@ -34,10 +35,10 @@ void TradeSrv::init()
     _tradeApi = CThostFtdcTraderApi::CreateFtdcTraderApi(Lib::stoc(_flowPath));
     _traderSpi = new TraderSpi(this, _logPath); // 初始化回调实例
     _tradeApi->RegisterSpi(_traderSpi);
-    // _tradeApi->SubscribePrivateTopic(THOST_TERT_QUICK);
-    // _tradeApi->SubscribePublicTopic(THOST_TERT_QUICK);
-    _tradeApi->SubscribePrivateTopic(THOST_TERT_RESUME);
-    _tradeApi->SubscribePublicTopic(THOST_TERT_RESUME);
+    _tradeApi->SubscribePrivateTopic(THOST_TERT_QUICK);
+    _tradeApi->SubscribePublicTopic(THOST_TERT_QUICK);
+    // _tradeApi->SubscribePrivateTopic(THOST_TERT_RESUME);
+    // _tradeApi->SubscribePublicTopic(THOST_TERT_RESUME);
 
     _tradeApi->RegisterFront(Lib::stoc(_tradeFront));
     _tradeApi->Init();
@@ -77,7 +78,7 @@ void TradeSrv::onLogin(CThostFtdcRspUserLoginField * const rsp)
     _maxOrderRef = atoi(rsp->MaxOrderRef);
 }
 
-void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int orderID, string instrumnetID, int forecastType)
+void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int orderID, string instrumnetID)
 {
     if (_isOrderDealed(orderID)) return;
     _initOrder(orderID, instrumnetID);
@@ -105,10 +106,9 @@ void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int order
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeSrv[trade]";
-    info << "|price|" << price;
     info << "|orderID|" << orderID;
     info << "|orderRef|" << _maxOrderRef;
-    info << "|condition|" << condition;
+    info << "|price|" << price;
     info << endl;
     info.close();
 
@@ -118,6 +118,11 @@ void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int order
 
     int res = _tradeApi->ReqOrderInsert(&order, _maxOrderRef);
     Lib::sysReqLog(_logPath, "TradeSrv[trade]", res);
+    if (!res) {
+        _orderIDDealed[orderID] = 1;
+    } else {
+        exit(1);
+    }
 
     // save data
     string time = Lib::getDate("%Y/%m/%d-%H:%M:%S", true);
@@ -141,6 +146,12 @@ void TradeSrv::onTraded(CThostFtdcTradeField * const rsp)
     }
 
     int orderRef = atoi(rsp->OrderRef);
+    if (orderRef <= 0) {
+        info << endl;
+        info.close();
+        return;
+    }
+
     int orderID = _getOrderIDByRef(orderRef);
     info << "|orderID|" << orderID;
     if (orderID <= 0) {
@@ -149,11 +160,22 @@ void TradeSrv::onTraded(CThostFtdcTradeField * const rsp)
         return;
     }
 
-    info << "|iID|" << rsp->InstrumentID;
+
+    // 普通单
+    CThostFtdcOrderField orderInfo = _getOrderInfoByRef(orderRef);
+    if (strcmp(orderInfo.ExchangeID, rsp->ExchangeID) != 0 ||
+        strcmp(orderInfo.OrderSysID, rsp->OrderSysID) != 0)
+    { // 不是我的订单，我就不处理了
+        info << endl;
+        info.close();
+        return;
+    }
+    info << "|orderID|" << orderID;
     info << "|OrderRef|" << rsp->OrderRef;
+    info << "|Price|" << rsp->Price;
+    info << "|iID|" << rsp->InstrumentID;
     info << "|TradeID|" << rsp->TradeID;
     info << "|OrderSysID|" << rsp->OrderSysID;
-    info << "|Price|" << rsp->Price;
     info << "|OrderLocalID|" << rsp->OrderLocalID;
     info << "|TradeDate|" << rsp->TradeDate;
     info << "|TradeTime|" << rsp->TradeTime;
@@ -161,19 +183,12 @@ void TradeSrv::onTraded(CThostFtdcTradeField * const rsp)
     info << endl;
     info.close();
 
-    // 普通单
-    CThostFtdcOrderField orderInfo = _getOrderInfoByRef(orderRef);
-    if (strcmp(orderInfo.ExchangeID, rsp->ExchangeID) != 0 ||
-        strcmp(orderInfo.OrderSysID, rsp->OrderSysID) != 0) // 不是我的订单，我就不处理了
-        return;
-
     _clearOrderByRef(orderRef);
 
     MSG_TO_TRADE_STRATEGY msg = {0};
     msg.msgType = MSG_TRADE_BACK_TRADED;
     msg.orderID = orderID;
     _tradeStrategySrvClient->send((void *)&msg);
-
 
     // save data
     string time = Lib::getDate("%Y/%m/%d-%H:%M:%S", true);
@@ -184,7 +199,6 @@ void TradeSrv::onTraded(CThostFtdcTradeField * const rsp)
 
 void TradeSrv::onOrderRtn(CThostFtdcOrderField * const rsp)
 {
-
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeSrv[onOrderRtn]";
@@ -201,24 +215,30 @@ void TradeSrv::onOrderRtn(CThostFtdcOrderField * const rsp)
     }
 
     int orderRef = atoi(rsp->OrderRef);
+    if (orderRef <= 0) {
+        info << endl;
+        info.close();
+        return;
+    }
     int orderID = _getOrderIDByRef(orderRef);
-    info << "|orderID|" << orderID;
     if (orderID <= 0) {
         info << endl;
         info.close();
         return;
     }
 
+    info << "|orderID|" << orderID;
+    info << "|OrderRef|" << rsp->OrderRef;
     info << "|iID|" << rsp->InstrumentID;
     info << "|FrontID|" << rsp->FrontID;
     info << "|SessionID|" << rsp->SessionID;
-    info << "|OrderRef|" << rsp->OrderRef;
     info << "|OrderSysID|" << rsp->OrderSysID;
     info << "|OrderStatus|" << rsp->OrderStatus;
     info << endl;
     info.close();
 
     _updateOrderInfoByRef(orderRef, rsp);
+
     // save data
     char c;
     string str;
@@ -236,17 +256,12 @@ void TradeSrv::onOrderRtn(CThostFtdcOrderField * const rsp)
 void TradeSrv::cancel(int orderID)
 {
     if (_isOrderCanceled(orderID)) return;
-    _orderIDCanceled[orderID] = 1;
 
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeSrv[cancel]";
 
-    CThostFtdcInputOrderActionField req = {0};
-
     int orderRef = _getOrderRefByID(orderID);
-    info << "|orderID|" << orderID;
-    info << "|orderRef|" << orderRef;
     if (orderRef <= 0) {
         info << endl;
         info.close();
@@ -254,17 +269,16 @@ void TradeSrv::cancel(int orderID)
     }
 
     CThostFtdcOrderField orderInfo = _getOrderInfoByRef(orderRef);
-    if (orderInfo.OrderRef == 0) {
-        info << endl;
-        info.close();
-        return;
-    }
 
+    info << "|orderID|" << orderID;
+    info << "|orderRef|" << orderRef;
     info << "|FrontID|" << orderInfo.FrontID;
     info << "|SessionID|" << orderInfo.SessionID;
     info << "|OrderSysID|" << orderInfo.OrderSysID;
     info << endl;
     info.close();
+
+    CThostFtdcInputOrderActionField req = {0};
 
     ///投资者代码
     strncpy(req.InvestorID, orderInfo.InvestorID,sizeof(TThostFtdcInvestorIDType));
@@ -291,6 +305,11 @@ void TradeSrv::cancel(int orderID)
 
     int res = _tradeApi->ReqOrderAction(&req, Lib::stoi(orderInfo.OrderRef));
     Lib::sysReqLog(_logPath, "TradeSrv[cancel]", res);
+    if (!res) {
+        _orderIDCanceled[orderID] = 1;
+    } else {
+        exit(1);
+    }
 }
 
 void TradeSrv::onCancel(CThostFtdcOrderField * const rsp)
@@ -312,18 +331,23 @@ void TradeSrv::onCancel(CThostFtdcOrderField * const rsp)
     }
 
     int orderRef = atoi(rsp->OrderRef);
+    if (orderRef <= 0) {
+        info << endl;
+        info.close();
+        return;
+    }
     int orderID = _getOrderIDByRef(orderRef);
-    info << "|orderID|" << orderID;
     if (orderID <= 0) {
         info << endl;
         info.close();
         return;
     }
 
+    info << "|orderID|" << orderID;
+    info << "|OrderRef|" << rsp->OrderRef;
     info << "|iID|" << rsp->InstrumentID;
     info << "|FrontID|" << rsp->FrontID;
     info << "|SessionID|" << rsp->SessionID;
-    info << "|OrderRef|" << rsp->OrderRef;
     info << "|OrderSysID|" << rsp->OrderSysID;
     info << "|OrderStatus|" << rsp->OrderStatus;
     info << endl;
@@ -336,10 +360,24 @@ void TradeSrv::onCancel(CThostFtdcOrderField * const rsp)
     _tradeStrategySrvClient->send((void *)&msg);
 
     _clearOrderByRef(orderRef);
+
+    // save data
+    char c;
+    string str;
+    stringstream stream;
+    stream << rsp->OrderStatus;
+    str = stream.str();
+
+    string time = Lib::getDate("%Y/%m/%d-%H:%M:%S", true);
+    string data = "orderRtn_" + string(rsp->OrderRef) + "_" + Lib::itos(_frontID) + "_" + Lib::itos(_sessionID) + "_" +
+                  string(rsp->InsertDate) + "_" + string(rsp->InsertTime) + "_" + time + "_" +
+                  str;
+    _store->push("ORDER_LOGS", data);
 }
 
 void TradeSrv::onCancelErr(CThostFtdcInputOrderActionField * const rsp)
 {
+
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeSrv[onCancelErr]";
@@ -349,16 +387,20 @@ void TradeSrv::onCancelErr(CThostFtdcInputOrderActionField * const rsp)
         info.close();
         return;
     }
-
     int orderRef = atoi(rsp->OrderRef);
+    if (orderRef <= 0) {
+        info << endl;
+        info.close();
+        return;
+    }
     int orderID = _getOrderIDByRef(orderRef);
-    info << "|orderID|" << orderID;
     if (orderID <= 0) {
         info << endl;
         info.close();
         return;
     }
 
+    info << "|orderID|" << orderID;
     info << "|OrderRef|" << rsp->OrderRef;
     info << "|OrderActionRef|" << rsp->OrderActionRef;
     info << "|SessionID|" << rsp->SessionID;
@@ -377,7 +419,6 @@ void TradeSrv::onCancelErr(CThostFtdcInputOrderActionField * const rsp)
 
 void TradeSrv::_initOrder(int orderID, string iID)
 {
-    _orderIDDealed[orderID] = 1;
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeSrv[initOrder]";
@@ -397,6 +438,7 @@ void TradeSrv::_initOrder(int orderID, string iID)
     sprintf(data.OrderRef, "%d", _maxOrderRef);
     strcpy(data.InstrumentID, iID.c_str());
     strcpy(data.InvestorID, _userID.c_str());
+
     _orderRef2Info[_maxOrderRef] = data;
     _showData();
 }
@@ -481,6 +523,7 @@ CThostFtdcInputOrderField TradeSrv::_createOrder(string instrumnetID, bool isBuy
     order.Direction = isBuy ? THOST_FTDC_D_Buy : THOST_FTDC_D_Sell; ///买卖方向
     order.VolumeTotalOriginal = total;///数量
     order.LimitPrice = price;///价格
+    order.StopPrice = 0;///止损价
     if (contingentCondition != THOST_FTDC_CC_Immediately) {
         order.StopPrice = price;///止损价
     }
@@ -587,19 +630,22 @@ void TradeSrv::_showData()
     std::map<int, int>::iterator i;
     for (i2C = _orderRef2Info.begin(); i2C != _orderRef2Info.end(); ++i2C)
     {
-        info << i2C->first << ",";
+        if (i2C != _orderRef2Info.begin()) info << ",";
+        info << i2C->first << "->" << (i2C->second).OrderRef;
     }
 
     info << "|orderRef2ID|";
     for (i = _orderRef2ID.begin(); i != _orderRef2ID.end(); ++i)
     {
-        info << i->first << "->" << i->second << ",";
+        if (i != _orderRef2ID.begin()) info << ",";
+        info << i->first << "->" << i->second;
     }
 
     info << "|orderID2Ref|";
     for (i = _orderID2Ref.begin(); i != _orderID2Ref.end(); ++i)
     {
-        info << i->first << "->" << i->second << ",";
+        if (i != _orderID2Ref.begin()) info << ",";
+        info << i->first << "->" << i->second;
     }
     info << endl;
     info.close();
