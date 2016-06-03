@@ -69,7 +69,7 @@ public:
     void login();
     void onLogin(CThostFtdcRspUserLoginField * const);
 
-    void trade(double, int, bool, bool, int, string);
+    void trade(double, int, bool, bool, int, string, int);
     void onTraded(CThostFtdcTradeField * const);
     void onOrderRtn(CThostFtdcOrderField * const);
 

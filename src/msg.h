@@ -50,6 +50,7 @@ typedef struct msg_trade_data
     int orderID; // 下单模块生成，下单系统反馈时使用
     // int forecastType;
     char instrumnetID[7];
+    int type;
 
 } MSG_TO_TRADE_STRATEGY;
 
@@ -66,6 +67,7 @@ typedef struct msg_trade
     int orderID;
     int forecastType;
     char instrumnetID[7];
+    int type;
 
 } MSG_TO_TRADE;
 

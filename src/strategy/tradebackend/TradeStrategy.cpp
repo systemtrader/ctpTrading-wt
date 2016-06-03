@@ -45,7 +45,7 @@ TradeStrategy::~TradeStrategy()
     cout << "~TradeStrategy" << endl;
 }
 
-int TradeStrategy::_initTrade(int action, int kIndex, int total, string instrumnetID, double price)
+int TradeStrategy::_initTrade(int action, int kIndex, int total, string instrumnetID, double price, int type)
 {
     _orderID++;
 
@@ -55,6 +55,7 @@ int TradeStrategy::_initTrade(int action, int kIndex, int total, string instrumn
     order.kIndex = kIndex;
     order.total = total;
     order.instrumnetID = instrumnetID;
+    order.type = type;
     _tradingInfo[_orderID] = order;
 
     // log
@@ -139,7 +140,7 @@ void TradeStrategy::_tradeAction(MSG_TO_TRADE_STRATEGY msg)
         action = TRADE_ACTION_BUYCLOSE;
     }
 
-    int orderID = _initTrade(action, kIndex, total, instrumnetID, price);
+    int orderID = _initTrade(action, kIndex, total, instrumnetID, price, msg.type);
     switch (action) {
 
         case TRADE_ACTION_BUYOPEN:
@@ -165,7 +166,8 @@ void TradeStrategy::_tradeAction(MSG_TO_TRADE_STRATEGY msg)
         default:
             break;
     }
-    setTimer(orderID);
+    if (msg.type != 1)
+        setTimer(orderID);
 }
 
 void TradeStrategy::onSuccess(int orderID)
@@ -299,7 +301,19 @@ void TradeStrategy::_zhuijia(int orderID)
     if (!_isTrading(orderID)) return;
     TRADE_DATA order = _tradingInfo[orderID];
 
-    int newOrderID = _initTrade(order.action, order.kIndex, order.total, order.instrumnetID, order.price);
+    double price;
+    switch (order.action) {
+        case TRADE_ACTION_SELLCLOSE:
+            price = order.price - 10;
+            break;
+        case TRADE_ACTION_BUYCLOSE:
+            price = order.price + 10;
+            break;
+        default:
+            break;
+    }
+
+    int newOrderID = _initTrade(order.action, order.kIndex, order.total, order.instrumnetID, price, order.type);
 
     // log
     ofstream info;
@@ -311,23 +325,23 @@ void TradeStrategy::_zhuijia(int orderID)
     info << "|kIndex|" << order.kIndex;
     info << endl;
     info.close();
-
-    double price;
-    TickData tick = _getTick(order.instrumnetID);
+    usleep(1*1000);
+    // double price;
+    // TickData tick = _getTick(order.instrumnetID);
     switch (order.action) {
         case TRADE_ACTION_SELLCLOSE:
-            price = tick.bidPrice1;
+            // price = tick.bidPrice1;
             _sendMsg(price, 1, false, false, newOrderID);
             break;
         case TRADE_ACTION_BUYCLOSE:
-            price = tick.askPrice1;
+            // price = tick.askPrice1;
             _sendMsg(price, 1, true, false, newOrderID);
             break;
         default:
             break;
     }
-    // Æô¶¯¶¨Ê±Æ÷
-    setTimer(newOrderID);
+    if (order.type != 1)
+        setTimer(newOrderID);
 }
 
 void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen, int orderID)
@@ -341,6 +355,7 @@ void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen, i
     msg.total = total;
     msg.isOpen = isOpen;
     msg.orderID = orderID;
+    msg.type = order.type;
     strcpy(msg.instrumnetID, Lib::stoc(order.instrumnetID));
     _tradeSrvClient->send((void *)&msg);
 
