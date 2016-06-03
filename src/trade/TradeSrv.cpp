@@ -188,6 +188,7 @@ void TradeSrv::onTraded(CThostFtdcTradeField * const rsp)
     MSG_TO_TRADE_STRATEGY msg = {0};
     msg.msgType = MSG_TRADE_BACK_TRADED;
     msg.orderID = orderID;
+    msg.price = rsp->Price;
     _tradeStrategySrvClient->send((void *)&msg);
 
     // save data

@@ -55,7 +55,7 @@ public:
     ~TradeStrategy();
 
     void trade(MSG_TO_TRADE_STRATEGY);
-    void onSuccess(int);
+    void onSuccess(int, double);
     void onCancel(int);
     void onCancelErr(int);
     void timeout(int);

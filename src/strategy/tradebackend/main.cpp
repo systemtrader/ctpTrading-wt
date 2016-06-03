@@ -52,7 +52,7 @@ bool action(long int msgType, const void * data)
 
     // 下单回馈
     if (msgType == MSG_TRADE_BACK_TRADED) {
-        service->onSuccess(msg.orderID);
+        service->onSuccess(msg.orderID, msg.price);
         return true;
     }
     if (msgType == MSG_TRADE_BACK_CANCELED) {

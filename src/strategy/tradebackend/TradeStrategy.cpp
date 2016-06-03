@@ -187,7 +187,7 @@ void TradeStrategy::_tradeAction(MSG_TO_TRADE_STRATEGY msg)
         setTimer(orderID);
 }
 
-void TradeStrategy::onSuccess(int orderID)
+void TradeStrategy::onSuccess(int orderID, double price)
 {
     if (!_isTrading(orderID)) return;
     TRADE_DATA order = _tradingInfo[orderID];
@@ -224,9 +224,9 @@ void TradeStrategy::onSuccess(int orderID)
         // 生成一个Tick，发送给K线系统
         MSG_TO_KLINE msg = {0};
         msg.msgType = MSG_TICK;
-        msg.tick.price = order.price;
-        msg.tick.bidPrice1 = order.price;
-        msg.tick.askPrice1 = order.price;
+        msg.tick.price = price;
+        msg.tick.bidPrice1 = price;
+        msg.tick.askPrice1 = price;
         strcpy(msg.tick.instrumnetID, order.instrumnetID.c_str());
         _klineClient->send((void *)&msg);
 
