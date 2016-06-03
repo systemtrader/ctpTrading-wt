@@ -31,6 +31,8 @@ int main(int argc, char const *argv[])
     string thresholdStrOpen = getOptionToString("threshold_open");
     string thresholdStrClose = getOptionToString("threshold_close");
     string iIDs = getOptionToString("instrumnet_id");
+    string krs = getOptionToString("k_range");
+    std::vector<string> kRanges = Lib::split(krs, "/");
     std::vector<string> instrumnetIDs = Lib::split(iIDs, "/");
     std::vector<string> peroids = Lib::split(peroidStr, "/");
     std::vector<string> thresholdsOpen = Lib::split(thresholdStrOpen, "/");
@@ -39,7 +41,7 @@ int main(int argc, char const *argv[])
     for (int i = 0; i < instrumnetIDs.size(); ++i)
     {
         TradeLogic * tmp = new TradeLogic(Lib::stoi(peroids[i]), Lib::stod(thresholdsOpen[i]), Lib::stod(thresholdsClose[i]), tradeStrategySrvID,
-            logPath, db, stopTradeTime, instrumnetIDs[i]);
+            logPath, db, stopTradeTime, instrumnetIDs[i], Lib::stoi(kRanges[i]));
         tmp->init();
         services[instrumnetIDs[i]] = tmp;
     }

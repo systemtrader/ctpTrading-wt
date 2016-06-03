@@ -285,7 +285,6 @@ void TradeStrategy::onCancel(int orderID)
         } else {
             MSG_TO_TRADE_STRATEGY msg = _waitList.front();
             _waitList.pop_front();
-            usleep(1*1000);
             _tradeAction(msg);
         }
     }
@@ -375,6 +374,7 @@ void TradeStrategy::_zhuijia(int orderID)
 
 void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen, int orderID)
 {
+    usleep(1000);
     TRADE_DATA order = _tradingInfo[orderID];
 
     MSG_TO_TRADE msg = {0};

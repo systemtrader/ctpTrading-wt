@@ -31,6 +31,7 @@ private:
 
     int _forecastID;
     int _rollbackID;
+    int _kRange;
 
     // 算法参数
     int _peroid; // 周期
@@ -69,7 +70,7 @@ private:
     void _sendMsg(int, double = 0, bool = false, int = 0);
 
 public:
-    TradeLogic(int, double, double, int, string, int, string, string);
+    TradeLogic(int, double, double, int, string, int, string, string, int);
     ~TradeLogic();
 
     void init(); // 初始化历史K线
