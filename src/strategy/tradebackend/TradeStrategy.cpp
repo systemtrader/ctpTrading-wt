@@ -45,7 +45,7 @@ TradeStrategy::~TradeStrategy()
     cout << "~TradeStrategy" << endl;
 }
 
-int TradeStrategy::_initTrade(int action, int kIndex, int total, string instrumnetID, double price, int forecastID)
+int TradeStrategy::_initTrade(int action, int kIndex, int total, string instrumnetID, double price, int forecastID, bool isForecast)
 {
     _orderID++;
 
@@ -56,6 +56,7 @@ int TradeStrategy::_initTrade(int action, int kIndex, int total, string instrumn
     order.total = total;
     order.instrumnetID = instrumnetID;
     order.forecastID = forecastID;
+    order.isForecast = isForecast;
     _tradingInfo[_orderID] = order;
 
     _forecastID2OrderID[forecastID] = _orderID;
@@ -157,7 +158,7 @@ void TradeStrategy::_tradeAction(MSG_TO_TRADE_STRATEGY msg)
         action = TRADE_ACTION_BUYCLOSE;
     }
 
-    int orderID = _initTrade(action, kIndex, total, instrumnetID, price, forecastID);
+    int orderID = _initTrade(action, kIndex, total, instrumnetID, price, forecastID, msg.isForecast);
     switch (action) {
 
         case TRADE_ACTION_BUYOPEN:
@@ -261,8 +262,8 @@ void TradeStrategy::onCancel(int orderID)
     info << endl;
     info.close();
 
-    if (order.action == TRADE_ACTION_BUYCLOSE ||
-        order.action == TRADE_ACTION_SELLCLOSE)
+    if ((order.action == TRADE_ACTION_BUYCLOSE ||
+        order.action == TRADE_ACTION_SELLCLOSE) && !order.isForecast)
     {
         _zhuijia(orderID);
 
@@ -341,7 +342,7 @@ void TradeStrategy::_zhuijia(int orderID)
     if (!_isTrading(orderID)) return;
     TRADE_DATA order = _tradingInfo[orderID];
 
-    int newOrderID = _initTrade(order.action, order.kIndex, order.total, order.instrumnetID, order.price, order.forecastID);
+    int newOrderID = _initTrade(order.action, order.kIndex, order.total, order.instrumnetID, order.price, order.forecastID, order.isForecast);
 
     // log
     ofstream info;
