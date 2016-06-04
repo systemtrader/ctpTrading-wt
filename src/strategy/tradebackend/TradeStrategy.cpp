@@ -45,7 +45,7 @@ TradeStrategy::~TradeStrategy()
     cout << "~TradeStrategy" << endl;
 }
 
-int TradeStrategy::_initTrade(int action, int kIndex, int total, string instrumnetID, double price, int forecastID, bool isForecast)
+int TradeStrategy::_initTrade(int action, int kIndex, int total, string instrumnetID, double price, int forecastID, bool isForecast, bool isMain)
 {
     _orderID++;
 
@@ -57,6 +57,7 @@ int TradeStrategy::_initTrade(int action, int kIndex, int total, string instrumn
     order.instrumnetID = instrumnetID;
     order.forecastID = forecastID;
     order.isForecast = isForecast;
+    order.isMain = isMain;
     _tradingInfo[_orderID] = order;
 
     _forecastID2OrderID[forecastID] = _orderID;
@@ -124,6 +125,11 @@ void TradeStrategy::trade(MSG_TO_TRADE_STRATEGY msg)
         return;
     }
 
+    if (!msg.isMain) {
+        _tradeAction(msg);
+        return;
+    }
+
     if (status == TRADE_STATUS_BUYOPENING ||
         status == TRADE_STATUS_BUYCLOSING ||
         status == TRADE_STATUS_SELLOPENING ||
@@ -158,7 +164,7 @@ void TradeStrategy::_tradeAction(MSG_TO_TRADE_STRATEGY msg)
         action = TRADE_ACTION_BUYCLOSE;
     }
 
-    int orderID = _initTrade(action, kIndex, total, instrumnetID, price, forecastID, msg.isForecast);
+    int orderID = _initTrade(action, kIndex, total, instrumnetID, price, forecastID, msg.isForecast, msg.isMain);
     switch (action) {
 
         case TRADE_ACTION_BUYOPEN:
@@ -207,41 +213,42 @@ void TradeStrategy::onSuccess(int orderID, double price)
     _clearTradeInfo(orderID);
 
     if (_waitList.size() == 0) {
-        switch (order.action) {
-            case TRADE_ACTION_BUYOPEN:
-                _setStatus(TRADE_STATUS_BUYOPENED, order.instrumnetID);
-                break;
-            case TRADE_ACTION_SELLOPEN:
-                _setStatus(TRADE_STATUS_SELLOPENED, order.instrumnetID);
-                break;
-            case TRADE_ACTION_BUYCLOSE:
-            case TRADE_ACTION_SELLCLOSE:
-                _setStatus(TRADE_STATUS_NOTHING, order.instrumnetID);
-                break;
-            default:
-                break;
+        if (order.isMain) {
+            switch (order.action) {
+                case TRADE_ACTION_BUYOPEN:
+                    _setStatus(TRADE_STATUS_BUYOPENED, order.instrumnetID);
+                    break;
+                case TRADE_ACTION_SELLOPEN:
+                    _setStatus(TRADE_STATUS_SELLOPENED, order.instrumnetID);
+                    break;
+                case TRADE_ACTION_BUYCLOSE:
+                case TRADE_ACTION_SELLCLOSE:
+                    _setStatus(TRADE_STATUS_NOTHING, order.instrumnetID);
+                    break;
+                default:
+                    break;
+            }
+
+            // 生成一个Tick，发送给K线系统
+            MSG_TO_KLINE msg = {0};
+            msg.msgType = MSG_TICK;
+            msg.tick.price = price;
+            msg.tick.bidPrice1 = price;
+            msg.tick.askPrice1 = price;
+            strcpy(msg.tick.instrumnetID, order.instrumnetID.c_str());
+            _klineClient->send((void *)&msg);
+
+            // 将数据放入队列，以便存入DB
+            string tickStr = Lib::tickData2String(msg.tick);
+            string keyQ = "MARKET_TICK_Q";
+            string keyD = "CURRENT_TICK_" + string(order.instrumnetID);
+            _store->set(keyD, tickStr); // tick数据，供全局使用
+            _store->push(keyQ, tickStr);
         }
-
-        // 生成一个Tick，发送给K线系统
-        MSG_TO_KLINE msg = {0};
-        msg.msgType = MSG_TICK;
-        msg.tick.price = price;
-        msg.tick.bidPrice1 = price;
-        msg.tick.askPrice1 = price;
-        strcpy(msg.tick.instrumnetID, order.instrumnetID.c_str());
-        _klineClient->send((void *)&msg);
-
-        // 将数据放入队列，以便存入DB
-        string tickStr = Lib::tickData2String(msg.tick);
-        string keyQ = "MARKET_TICK_Q";
-        string keyD = "CURRENT_TICK_" + string(order.instrumnetID);
-        _store->set(keyD, tickStr); // tick数据，供全局使用
-        _store->push(keyQ, tickStr);
 
     } else {
         MSG_TO_TRADE_STRATEGY msg = _waitList.front();
         _waitList.pop_front();
-        usleep(1*1000);
         _tradeAction(msg);
     }
 
@@ -269,19 +276,21 @@ void TradeStrategy::onCancel(int orderID)
 
     } else {
         if (_waitList.size() == 0) {
-            switch (order.action) {
-                case TRADE_ACTION_BUYOPEN:
-                case TRADE_ACTION_SELLOPEN:
-                    _setStatus(TRADE_STATUS_NOTHING, order.instrumnetID);
-                    break;
-                case TRADE_ACTION_BUYCLOSE:
-                    _setStatus(TRADE_STATUS_SELLOPENED, order.instrumnetID);
-                    break;
-                case TRADE_ACTION_SELLCLOSE:
-                    _setStatus(TRADE_STATUS_BUYOPENED, order.instrumnetID);
-                    break;
-                default:
-                    break;
+            if (order.isMain) {
+                switch (order.action) {
+                    case TRADE_ACTION_BUYOPEN:
+                    case TRADE_ACTION_SELLOPEN:
+                        _setStatus(TRADE_STATUS_NOTHING, order.instrumnetID);
+                        break;
+                    case TRADE_ACTION_BUYCLOSE:
+                        _setStatus(TRADE_STATUS_SELLOPENED, order.instrumnetID);
+                        break;
+                    case TRADE_ACTION_SELLCLOSE:
+                        _setStatus(TRADE_STATUS_BUYOPENED, order.instrumnetID);
+                        break;
+                    default:
+                        break;
+                }
             }
         } else {
             MSG_TO_TRADE_STRATEGY msg = _waitList.front();
@@ -342,7 +351,7 @@ void TradeStrategy::_zhuijia(int orderID)
     if (!_isTrading(orderID)) return;
     TRADE_DATA order = _tradingInfo[orderID];
 
-    int newOrderID = _initTrade(order.action, order.kIndex, order.total, order.instrumnetID, order.price, order.forecastID, order.isForecast);
+    int newOrderID = _initTrade(order.action, order.kIndex, order.total, order.instrumnetID, order.price, order.forecastID, order.isForecast, order.isMain);
 
     // log
     ofstream info;

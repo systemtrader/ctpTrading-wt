@@ -67,7 +67,7 @@ private:
 
     // 判断仓位状态
     int _getStatus();
-    void _sendMsg(int, double = 0, bool = false, int = 0);
+    void _sendMsg(int, double = 0, bool = false, int = 0, bool = false);
 
 public:
     TradeLogic(int, double, double, int, string, int, string, string, int);

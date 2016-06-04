@@ -18,6 +18,7 @@ typedef struct trade_data
     int kIndex;
     int forecastID;
     bool isForecast;
+    bool isMain;
     string instrumnetID;
 
 } TRADE_DATA;
@@ -39,7 +40,7 @@ private:
 
     std::list<MSG_TO_TRADE_STRATEGY> _waitList;
 
-    int _initTrade(int, int, int, string, double, int, bool); // 初始化交易
+    int _initTrade(int, int, int, string, double, int, bool, bool); // 初始化交易
     void _clearTradeInfo(int);
 
     void _tradeAction(MSG_TO_TRADE_STRATEGY);
