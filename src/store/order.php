@@ -69,9 +69,22 @@ class Order
                     $kIndex = $data[1];
                     $orderID = $data[2];
                     $iID = $data[3];
-                    $sql = "INSERT INTO `markov_kline_order` (`order_id`, `kindex`, `instrumnet_id`) VALUES (?, ?, ?)";
-                    $params = [$orderID, $kIndex, $iID];
+                    $isForecast = $data[4] == 0 ? 0 : 1;
+                    $isMain = $data[5] == 0 ? 0 : 1;
+                    $isZhuijia = $data[6] == 0 ? 0 : 1;
+                    $sql = "INSERT INTO `markov_kline_order` (`order_id`, `kindex`, `instrumnet_id`, `is_forecast`, `is_main`, `is_zhuijia`) VALUES (?, ?, ?, ?, ?, ?)";
+                    $params = [$orderID, $kIndex, $iID, $isForecast, $isMain, $isZhuijia];
                     $this->consumer->insertDB($sql, $params);
+                }
+                if ($type == "klineordercancel") {
+                    $orderID = $data[1];
+                    $iID = $data[2];
+                    $kIndex = $data[3];
+                    $type = $data[4];
+
+                    $sql = "UPDATE `markov_kline_order` SET `cancel_type` = ? WHERE `instrumnet_id` = ? AND `order_id` = ? AND `kindex` = ?";
+                    $params = array($type, $iID, $orderID, $kIndex);
+                    $this->consumer->updateDB($sql, $params);
                 }
                 echo ".";
             } else {

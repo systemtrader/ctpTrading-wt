@@ -40,12 +40,12 @@ private:
 
     std::list<MSG_TO_TRADE_STRATEGY> _waitList;
 
-    int _initTrade(int, int, int, string, double, int, bool, bool); // 初始化交易
+    int _initTrade(int, int, int, string, double, int, bool, bool, bool = false); // 初始化交易
     void _clearTradeInfo(int);
 
     void _tradeAction(MSG_TO_TRADE_STRATEGY);
     void _zhuijia(int); // 追价
-    void _cancel(int); // 撤销
+    void _cancel(int, int = 1); // 撤销
 
     int _getStatus(string);
     void _setStatus(int, string);

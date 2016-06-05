@@ -29,6 +29,14 @@ CREATE TABLE `markov_kline_order` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB CHARSET=utf8;
 
+alert table `markov_kline_order` 
+  add column `is_forecast` int(11) NOT NULL DEFAULT '0' COMMENT '是否是预测单',
+  add column `is_main` int(11) NOT NULL DEFAULT '0' COMMENT '是否是主线单',
+  add column `cancel_type` int(11) NOT NULL DEFAULT '0' COMMENT '撤单类型 1：超时撤单 2：预判撤单',
+  add column `is_zhuijia` int(11) NOT NULL DEFAULT '0' COMMENT '是否是追加单',
+  add column `mtime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+
+
 CREATE TABLE `tick` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `instrumnet_id` varchar(50) NOT NULL DEFAULT '',
@@ -80,4 +88,110 @@ CREATE TABLE `user` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB CHARSET=utf8;
 
+
+
+SELECT
+    sum(p)
+FROM
+    (
+        SELECT
+            CASE
+        WHEN is_buy = 1 THEN
+            (0 - real_price)
+        WHEN is_buy = 0 THEN
+            real_price
+        END AS p
+        FROM
+            `order`
+        WHERE
+            id > 98
+        AND STATUS = 1
+    ) AS tmp;
+
+
+
+
+SELECT
+    CASE
+WHEN is_open = 0 THEN
+    @l
+WHEN is_open = 1 THEN
+    @l :=@l + 1
+END AS l,
+ CASE
+WHEN is_buy = 1 THEN
+    (0 - real_price)
+WHEN is_buy = 0 THEN
+    real_price
+END AS p
+FROM
+    `order` o,
+    (SELECT @l := 0) tmp
+WHERE
+    id > 98
+AND STATUS = 1;
+
+
+
+
+
+SELECT
+    SUM(p)
+FROM
+    (
+        SELECT
+            CASE
+        WHEN is_open = 0 THEN
+            @l
+        WHEN is_open = 1 THEN
+            @l :=@l + 1
+        END AS l,
+        CASE
+    WHEN is_buy = 1 THEN
+        (0 - real_price)
+    WHEN is_buy = 0 THEN
+        real_price
+    END AS p
+    FROM
+        `order` o,
+        (SELECT @l := 0) tmp
+    WHERE
+        id > 98
+    AND STATUS = 1
+    ) tmp2
+GROUP BY
+    l;
+
+
+SELECT
+    sum(g)
+FROM
+    (
+        SELECT
+            SUM(p) AS g
+        FROM
+            (
+                SELECT
+                    CASE
+                WHEN is_open = 0 THEN
+                    @l
+                WHEN is_open = 1 THEN
+                    @l :=@l + 1
+                END AS l,
+                CASE
+            WHEN is_buy = 1 THEN
+                (0 - real_price)
+            WHEN is_buy = 0 THEN
+                real_price
+            END AS p
+            FROM
+                `order` o,
+                (SELECT @l := 0) tmp
+            WHERE
+                id > 98
+            AND STATUS = 1
+            ) tmp2
+        GROUP BY
+            l
+    ) tmp3;
 

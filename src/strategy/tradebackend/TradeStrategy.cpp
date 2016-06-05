@@ -45,7 +45,7 @@ TradeStrategy::~TradeStrategy()
     cout << "~TradeStrategy" << endl;
 }
 
-int TradeStrategy::_initTrade(int action, int kIndex, int total, string instrumnetID, double price, int forecastID, bool isForecast, bool isMain)
+int TradeStrategy::_initTrade(int action, int kIndex, int total, string instrumnetID, double price, int forecastID, bool isForecast, bool isMain, bool isZhuijia)
 {
     _orderID++;
 
@@ -73,7 +73,8 @@ int TradeStrategy::_initTrade(int action, int kIndex, int total, string instrumn
     info.close();
 
     // save data
-    string data = "klineorder_" + Lib::itos(kIndex) + "_" + Lib::itos(_orderID) + "_" + instrumnetID;
+    string data = "klineorder_" + Lib::itos(kIndex) + "_" + Lib::itos(_orderID) + "_" + instrumnetID + "_" + Lib::itos(isForecast) 
+                + "_" + Lib::itos(isMain) + "_" + Lib::itos(isZhuijia);
     _store->push("ORDER_LOGS", data);
 
     return _orderID;
@@ -127,7 +128,7 @@ void TradeStrategy::trade(MSG_TO_TRADE_STRATEGY msg)
     if (msg.msgType == MSG_TRADE_ROLLBACK) {
         if (!_isForecasting(msg.forecastID)) return;
         int orderID = _forecastID2OrderID[msg.forecastID];
-        _cancel(orderID);
+        _cancel(orderID, 2);
         return;
     }
 
@@ -342,7 +343,7 @@ void TradeStrategy::timeout(int orderID)
 
 }
 
-void TradeStrategy::_cancel(int orderID)
+void TradeStrategy::_cancel(int orderID, int type)
 {
     if (!_isTrading(orderID)) return;
     TRADE_DATA order = _tradingInfo[orderID];
@@ -361,6 +362,9 @@ void TradeStrategy::_cancel(int orderID)
     msg.orderID = orderID;
     _tradeSrvClient->send((void *)&msg);
 
+    // save data
+    string data = "klineordercancel_" + Lib::itos(orderID) + "_" + order.instrumnetID + "_" + Lib::itos(order.kIndex) + "_" + Lib::itos(type);
+    _store->push("ORDER_LOGS", data);
 }
 
 void TradeStrategy::_zhuijia(int orderID)
@@ -368,7 +372,7 @@ void TradeStrategy::_zhuijia(int orderID)
     if (!_isTrading(orderID)) return;
     TRADE_DATA order = _tradingInfo[orderID];
 
-    int newOrderID = _initTrade(order.action, order.kIndex, order.total, order.instrumnetID, order.price, order.forecastID, order.isForecast, order.isMain);
+    int newOrderID = _initTrade(order.action, order.kIndex, order.total, order.instrumnetID, order.price, order.forecastID, order.isForecast, order.isMain, true);
 
     // log
     ofstream info;
