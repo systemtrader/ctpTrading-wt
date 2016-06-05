@@ -21,6 +21,11 @@ CREATE TABLE `markov_kline_order` (
   `instrumnet_id` varchar(50) NOT NULL DEFAULT '',
   `order_id` int(11) NOT NULL DEFAULT 0 COMMENT '下单模块生成的自增id',
   `kindex` int(11) NOT NULL DEFAULT 0 COMMENT 'K线索引',
+  `is_forecast` int(11) NOT NULL DEFAULT '0' COMMENT '是否是预测单',
+  `is_main` int(11) NOT NULL DEFAULT '0' COMMENT '是否是主线单',
+  `cancel_type` int(11) NOT NULL DEFAULT '0' COMMENT '撤单类型 1：超时撤单 2：预判撤单',
+  `is_zhuijia` int(11) NOT NULL DEFAULT '0' COMMENT '是否是追加单',
+  `mtime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB CHARSET=utf8;
 
@@ -30,9 +35,11 @@ CREATE TABLE `tick` (
   `time` datetime NOT NULL COMMENT '服务端返回时间',
   `msec` int(11) NOT NULL DEFAULT '0',
   `price` decimal(10,2) NOT NULL DEFAULT '0',
-  `bid_price1` decimal(10,2) NOT NULL DEFAULT '0',
-  `ask_price1` decimal(10,2) NOT NULL DEFAULT '0',
   `volume` int(11) NOT NULL DEFAULT '0',
+  `bid_price1` decimal(10,2) NOT NULL DEFAULT '0',
+  `bid_volume1` int(11) NOT NULL DEFAULT '0',
+  `ask_price1` decimal(10,2) NOT NULL DEFAULT '0',
+  `ask_volume1` int(11) NOT NULL DEFAULT '0',
   `mtime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB CHARSET=utf8;

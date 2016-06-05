@@ -14,6 +14,7 @@ int main(int argc, char const *argv[])
     int tradeStrategySrvID = getOptionToInt("trade_strategy_service_id");
     int tradeSrvID         = getOptionToInt("trade_service_id");
     string logPath         = getOptionToString("log_path");
+    int kLineSrvID  = getOptionToInt("k_line_service_id");
 
     int isDev = getOptionToInt("is_dev");
     int db;
@@ -22,7 +23,7 @@ int main(int argc, char const *argv[])
     } else {
         db = getOptionToInt("rds_db_online");
     }
-    int kLineSrvID  = getOptionToInt("k_line_service_id");
+
     service = new TradeStrategy(tradeSrvID, logPath, db, kLineSrvID);
 
     // 服务化
@@ -51,19 +52,14 @@ bool action(long int msgType, const void * data)
 
     // 下单回馈
     if (msgType == MSG_TRADE_BACK_TRADED) {
-        service->onSuccess(msg.orderID);
+        service->onSuccess(msg.orderID, msg.price);
         return true;
     }
     if (msgType == MSG_TRADE_BACK_CANCELED) {
         service->onCancel(msg.orderID);
         return true;
     }
-    if (msgType == MSG_TRADE_BACK_CANCELEDERR) {
-        service->onCancelErr(msg.orderID);
-        return true;
-    }
-    // 下单操作
-    service->accessAction(msg);
+    service->trade(msg);
     return true;
 }
 

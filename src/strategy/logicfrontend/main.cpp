@@ -28,17 +28,19 @@ int main(int argc, char const *argv[])
     }
 
     string peroidStr = getOptionToString("peroid");
-    string thresholdStr = getOptionToString("threshold");
+    string thresholdStrOpen = getOptionToString("threshold_open");
+    string thresholdStrClose = getOptionToString("threshold_close");
     string iIDs = getOptionToString("instrumnet_id");
     string krs = getOptionToString("k_range");
     std::vector<string> instrumnetIDs = Lib::split(iIDs, "/");
     std::vector<string> peroids = Lib::split(peroidStr, "/");
-    std::vector<string> thresholds = Lib::split(thresholdStr, "/");
+    std::vector<string> thresholdsOpen = Lib::split(thresholdStrOpen, "/");
+    std::vector<string> thresholdsClose = Lib::split(thresholdStrClose, "/");
     std::vector<string> kRanges = Lib::split(krs, "/");
 
     for (int i = 0; i < instrumnetIDs.size(); ++i)
     {
-        TradeLogic * tmp = new TradeLogic(Lib::stoi(peroids[i]), Lib::stod(thresholds[i]), tradeStrategySrvID,
+        TradeLogic * tmp = new TradeLogic(Lib::stoi(peroids[i]), Lib::stod(thresholdsOpen[i]), Lib::stod(thresholdsClose[i]), tradeStrategySrvID,
             logPath, db, stopTradeTime, instrumnetIDs[i], Lib::stoi(kRanges[i]));
         tmp->init();
         services[instrumnetIDs[i]] = tmp;
@@ -52,6 +54,7 @@ int main(int argc, char const *argv[])
     cout << "TradeLogic service stop success!" << endl;
     return 0;
 }
+
 
 bool action(long int msgType, const void * data)
 {

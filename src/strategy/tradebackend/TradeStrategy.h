@@ -10,19 +10,18 @@
 #include <map>
 #include <list>
 
-typedef struct order_data
+typedef struct trade_data
 {
-    int orderID;
-    int groupID;
-    int kIndex;
     int action;
     double price;
     int total;
-    int forecastType;
-    char instrumnetID[7];
-    MSG_TO_TRADE_STRATEGY msg;
-    bool setTimer;
-} ORDER_DATA;
+    int kIndex;
+    int forecastID;
+    bool isForecast;
+    bool isMain;
+    string instrumnetID;
+
+} TRADE_DATA;
 
 class TradeStrategy
 {
@@ -32,32 +31,22 @@ private:
     QClient * _tradeSrvClient;
     QClient * _klineClient;
     string _logPath;
+
     int _orderID;
+    std::map<int, TRADE_DATA> _tradingInfo; // orderID -> tradeInfo
+    bool _isTrading(int);
+    std::map<int, int> _forecastID2OrderID;
+    bool _isForecasting(int);
 
-    ORDER_DATA _makeOrderData(MSG_TO_TRADE_STRATEGY);
+    std::list<MSG_TO_TRADE_STRATEGY> _waitList;
 
-    std::vector<MSG_TO_TRADE_STRATEGY> _waitingList; // 等待预测结束的暂存
-    std::map<int, ORDER_DATA> _allOrders; // 全部订单信息
-    std::map<int, std::vector<int> > _gid2OrderIDs; // 操作组
-    std::vector<int> _openOrderIDList;
-    std::vector<int> _closeOrderIDList;
-    std::vector<int> _cancelOrderIDList;
+    int _initTrade(int, int, int, string, double, int, bool, bool); // 初始化交易
+    void _clearTradeInfo(int);
 
-    void _findOrder2Send(bool = false); // 从List中寻找可以发送的订单并发送
-    void _initTrade(MSG_TO_TRADE_STRATEGY, bool = false); // 初始化订单
-    void _clearTrade(int); // 清空订单
-    void _clearOpen();
+    void _tradeAction(MSG_TO_TRADE_STRATEGY);
+    void _zhuijia(int); // 追价
+    void _cancel(int); // 撤销
 
-    void _open(ORDER_DATA);
-    void _close(ORDER_DATA);
-    void _cancel(int);
-    void _zhuijia(ORDER_DATA);
-
-    void _dealForecast();
-    void _dealRealCome();
-    void _rollback(int);
-
-    void _showData();
     int _getStatus(string);
     void _setStatus(int, string);
     TickData _getTick(string);
@@ -67,8 +56,8 @@ public:
     TradeStrategy(int, string, int, int);
     ~TradeStrategy();
 
-    void accessAction(MSG_TO_TRADE_STRATEGY);
-    void onSuccess(int);
+    void trade(MSG_TO_TRADE_STRATEGY);
+    void onSuccess(int, double);
     void onCancel(int);
     void onCancelErr(int);
     void timeout(int);

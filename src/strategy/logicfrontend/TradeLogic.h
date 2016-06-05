@@ -29,15 +29,16 @@ private:
     string _instrumnetID; // 合约代码
     std::vector<TRADE_HM> _timeHM; // 停止交易时间
 
-    // 算法参数
-    int _peroid; // 周期
-    double _threshold; // 阈值
+    int _forecastID;
+    int _rollbackOpenUpID;
+    int _rollbackOpenDownID;
+    int _rollbackCloseID;
     int _kRange;
 
-    // 订单组id
-    int _groupID;
-    int _forecastUp;
-    int _forecastDown;
+    // 算法参数
+    int _peroid; // 周期
+    double _threshold_open; // 阈值
+    double _threshold_close;
 
     // 计算辅助变量
     int _kIndex;
@@ -56,29 +57,22 @@ private:
     double _pDown2Down;
     void _calculateDown(double, double);
 
-    bool _isCurrentUp();
+    void _tick(TickData); // 处理tick信息
 
-    // 预测开仓、平仓
+    bool _isCurrentUp();
+    void _rollback();
     void _forecastNothing(TickData);
     void _forecastSellOpened(TickData);
     void _forecastBuyOpened(TickData);
 
-    // 撤单操作
-    void _rollbackAll();
-    void _rollbackUp();
-    void _rollbackDown();
-
-    void _tick(TickData); // 处理tick信息
+    void _sendRollBack(int);
 
     // 判断仓位状态
     int _getStatus();
-    void _setStatus(int);
-    void _sendMsg(int, double = 0, int = 0);
-    void _sendRollBack(int);
-    void _sendRealCome(int);
+    void _sendMsg(int, double = 0, bool = false, int = 0, bool = false);
 
 public:
-    TradeLogic(int, double, int, string, int, string, string, int);
+    TradeLogic(int, double, double, int, string, int, string, string, int);
     ~TradeLogic();
 
     void init(); // 初始化历史K线
@@ -88,3 +82,4 @@ public:
 };
 
 #endif
+
