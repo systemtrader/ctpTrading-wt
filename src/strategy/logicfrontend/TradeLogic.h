@@ -40,8 +40,8 @@ private:
 
     // 算法参数
     int _peroid; // 周期
-    double _threshold_open; // 阈值
-    double _threshold_close;
+    double _thresholdTrend; // 阈值
+    double _thresholdVibrate;
 
     // 计算辅助变量
     int _kIndex;

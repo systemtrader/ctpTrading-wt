@@ -1,14 +1,14 @@
 #include "TradeLogic.h"
 
-TradeLogic::TradeLogic(int peroid, double threshold_open, double threshold_close,
+TradeLogic::TradeLogic(int peroid, double thresholdTrend, double thresholdVibrate,
     int serviceID, string logPath, int db,
     string stopTradeTime, string instrumnetID, int kRange)
 {
     _instrumnetID = instrumnetID;
 
     _peroid = peroid;
-    _threshold_open = threshold_open;
-    _threshold_close = threshold_close;
+    _thresholdTrend = thresholdTrend;
+    _thresholdVibrate = thresholdVibrate;
 
     _logPath = logPath;
     _forecastID = 0;
@@ -204,14 +204,14 @@ void TradeLogic::_forecastNothing(TickData tick)
     if (_isCurrentUp()) { // 当前是up
 
         _calculateDown(_countDown2Up, _countDown2Down);
-        if (_pDown2Up > _threshold_open) {
+        if (_pDown2Up > _thresholdVibrate) {
             _forecastID++;
             _rollbackOpenUDID = _forecastID;
             _sendMsg(MSG_TRADE_BUYOPEN, tick.price - _kRange, true, _forecastID, true);
         }
 
         _calculateUp(_countUp2Down, _countUp2Up + 1);
-        if (_pUp2Down > _threshold_open) {
+        if (_pUp2Down > _thresholdVibrate) {
             _forecastID++;
             _rollbackOpenUUID = _forecastID;
             _sendMsg(MSG_TRADE_SELLOPEN, tick.price + _kRange, true, _forecastID, true);
@@ -220,14 +220,14 @@ void TradeLogic::_forecastNothing(TickData tick)
     } else { // 当前是down
 
         _calculateDown(_countDown2Up, _countDown2Down + 1);
-        if (_pDown2Up > _threshold_open) {
+        if (_pDown2Up > _thresholdVibrate) {
             _forecastID++;
             _rollbackOpenDDID = _forecastID;
             _sendMsg(MSG_TRADE_BUYOPEN, tick.price - _kRange, true, _forecastID, true);
         }
 
         _calculateUp(_countUp2Down, _countUp2Up);
-        if (_pUp2Down > _threshold_open) {
+        if (_pUp2Down > _thresholdVibrate) {
             _forecastID++;
             _rollbackOpenDUID = _forecastID;
             _sendMsg(MSG_TRADE_SELLOPEN, tick.price + _kRange, true, _forecastID, true);
@@ -241,7 +241,7 @@ void TradeLogic::_forecastBuyOpened(TickData tick)
     if (_isCurrentUp()) { // 当前是up
 
         _calculateUp(_countUp2Down, _countUp2Up + 1);
-        if (_pUp2Up <= _threshold_close) {
+        if (_pUp2Up <= _thresholdTrend) {
             _forecastID++;
             _rollbackCloseUID = _forecastID;
             isCloseMain = true;
@@ -258,7 +258,7 @@ void TradeLogic::_forecastBuyOpened(TickData tick)
     } else { // 当前是down
 
         _calculateUp(_countUp2Down, _countUp2Up);
-        if (_pUp2Up <= _threshold_close) {
+        if (_pUp2Up <= _thresholdTrend) {
             _forecastID++;
             _rollbackCloseDID = _forecastID;
             isCloseMain = true;
@@ -281,7 +281,7 @@ void TradeLogic::_forecastSellOpened(TickData tick)
     if (_isCurrentUp()) { // 当前是up
 
         _calculateDown(_countDown2Up, _countDown2Down);
-        if (_pDown2Down <= _threshold_close) {
+        if (_pDown2Down <= _thresholdTrend) {
             _forecastID++;
             _rollbackCloseUID = _forecastID;
             isCloseMain = true;
@@ -298,7 +298,7 @@ void TradeLogic::_forecastSellOpened(TickData tick)
     } else { // 当前是down
 
         _calculateDown(_countDown2Up, _countDown2Down + 1);
-        if (_pDown2Down <= _threshold_close) {
+        if (_pDown2Down <= _thresholdTrend) {
             _forecastID++;
             _rollbackCloseDID = _forecastID;
             isCloseMain = true;
@@ -368,12 +368,12 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
 
             if (_isCurrentUp()) {
                 _calculateUp(_countUp2Down, _countUp2Up);
-                if (_pUp2Down <= _threshold_close) {
+                if (_pUp2Down <= _thresholdVibrate) {
                     _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, true);
                 }
             } else {
                 _calculateDown(_countDown2Up, _countDown2Down);
-                if (_pDown2Down <= _threshold_close) {
+                if (_pDown2Down <= _thresholdTrend) {
                     _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, true);
                 }
             }
@@ -384,13 +384,13 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
 
             if (_isCurrentUp()) {
                 _calculateUp(_countUp2Down, _countUp2Up);
-                if (_pUp2Up <= _threshold_close ) { // 不满足买开，平仓
+                if (_pUp2Up <= _thresholdTrend ) { // 不满足买开，平仓
                     _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, true);
                 }
 
             } else {
                 _calculateDown(_countDown2Up, _countDown2Down);
-                if (_pDown2Up <= _threshold_close) { // 不满足买开，平
+                if (_pDown2Up <= _thresholdVibrate) { // 不满足买开，平
                     _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, true);
                 }
             }
@@ -403,12 +403,12 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
         case TRADE_STATUS_NOTHING:
             if (_isCurrentUp()) {
                 _calculateUp(_countUp2Down, _countUp2Up);
-                if (_pUp2Up > _threshold_open) { // 买开
+                if (_pUp2Up > _thresholdTrend) { // 买开
                     _sendMsg(MSG_TRADE_BUYOPEN, tick.price + 10, false, 0, true);
                 }
             } else {
                 _calculateDown(_countDown2Up, _countDown2Down);
-                if (_pDown2Down > _threshold_open) { // 卖开
+                if (_pDown2Down > _thresholdTrend) { // 卖开
                     _sendMsg(MSG_TRADE_SELLOPEN, tick.price - 10, false, 0, true);
                 }
             }
