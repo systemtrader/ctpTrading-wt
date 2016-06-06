@@ -30,9 +30,12 @@ private:
     std::vector<TRADE_HM> _timeHM; // 停止交易时间
 
     int _forecastID;
-    int _rollbackOpenUpID;
-    int _rollbackOpenDownID;
-    int _rollbackCloseID;
+    int _rollbackOpenUUID;
+    int _rollbackOpenUDID;
+    int _rollbackOpenDDID;
+    int _rollbackOpenDUID;
+    int _rollbackCloseUID;
+    int _rollbackCloseDID;
     int _kRange;
 
     // 算法参数

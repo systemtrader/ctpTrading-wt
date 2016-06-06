@@ -29,12 +29,12 @@ CREATE TABLE `markov_kline_order` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB CHARSET=utf8;
 
-alert table `markov_kline_order` 
-  add column `is_forecast` int(11) NOT NULL DEFAULT '0' COMMENT '是否是预测单',
-  add column `is_main` int(11) NOT NULL DEFAULT '0' COMMENT '是否是主线单',
-  add column `cancel_type` int(11) NOT NULL DEFAULT '0' COMMENT '撤单类型 1：超时撤单 2：预判撤单',
-  add column `is_zhuijia` int(11) NOT NULL DEFAULT '0' COMMENT '是否是追加单',
-  add column `mtime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+alter table `markov_kline_order`
+  add `is_forecast` int(11) NOT NULL DEFAULT '0' COMMENT '是否是预测单',
+  add `is_main` int(11) NOT NULL DEFAULT '0' COMMENT '是否是主线单',
+  add `cancel_type` int(11) NOT NULL DEFAULT '0' COMMENT '撤单类型 1：超时撤单 2：预判撤单',
+  add `is_zhuijia` int(11) NOT NULL DEFAULT '0' COMMENT '是否是追加单',
+  add `mtime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
 
 
 CREATE TABLE `tick` (
@@ -195,3 +195,13 @@ FROM
             l
     ) tmp3;
 
+SELECT
+  m.order_id, m.is_forecast, m.is_main, m.cancel_type, m.is_zhuijia,
+  o.price, o.real_price, o.is_buy, o.is_open, o.status, o.mtime
+FROM
+  markov_kline_order as m,
+  `order` as o
+WHERE
+  m.order_id = o.order_id
+  and m.id > 41769
+  and o.id > 4260;

@@ -67,13 +67,16 @@ int TradeStrategy::_initTrade(int action, int kIndex, int total, string instrumn
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeStrategySrv[initTrade]";
     info << "|orderID|" << _orderID;
+    info << "|forecastID|" << forecastID;
+    info << "|isMain|" << isMain;
+    info << "|isForecast|" << isForecast;
     info << "|iID|" << instrumnetID;
     info << "|kIndex|" << kIndex;
     info << endl;
     info.close();
 
     // save data
-    string data = "klineorder_" + Lib::itos(kIndex) + "_" + Lib::itos(_orderID) + "_" + instrumnetID + "_" + Lib::itos(isForecast) 
+    string data = "klineorder_" + Lib::itos(kIndex) + "_" + Lib::itos(_orderID) + "_" + instrumnetID + "_" + Lib::itos(isForecast)
                 + "_" + Lib::itos(isMain) + "_" + Lib::itos(isZhuijia);
     _store->push("ORDER_LOGS", data);
 
@@ -124,7 +127,7 @@ void TradeStrategy::trade(MSG_TO_TRADE_STRATEGY msg)
     info << endl;
     info.close();
 
-    // 撤单直接发送 
+    // 撤单直接发送
     if (msg.msgType == MSG_TRADE_ROLLBACK) {
         if (!_isForecasting(msg.forecastID)) return;
         int orderID = _forecastID2OrderID[msg.forecastID];
@@ -240,28 +243,30 @@ void TradeStrategy::onSuccess(int orderID, double price)
                     break;
             }
 
-            // 生成一个Tick，发送给K线系统
-            MSG_TO_KLINE msg = {0};
-            msg.msgType = MSG_TICK;
-            msg.tick.price = price;
-            msg.tick.bidPrice1 = price;
-            msg.tick.askPrice1 = price;
-            strcpy(msg.tick.instrumnetID, order.instrumnetID.c_str());
-            _klineClient->send((void *)&msg);
+            if (order.isForecast) {
+                // 生成一个Tick，发送给K线系统
+                MSG_TO_KLINE msg = {0};
+                msg.msgType = MSG_TICK;
+                msg.tick.price = price;
+                msg.tick.bidPrice1 = price;
+                msg.tick.askPrice1 = price;
+                strcpy(msg.tick.instrumnetID, order.instrumnetID.c_str());
+                _klineClient->send((void *)&msg);
 
-            // 将数据放入队列，以便存入DB
-            string tickStr = Lib::tickData2String(msg.tick);
-            string keyQ = "MARKET_TICK_Q";
-            string keyD = "CURRENT_TICK_" + string(order.instrumnetID);
-            _store->set(keyD, tickStr); // tick数据，供全局使用
-            _store->push(keyQ, tickStr);
+                // 将数据放入队列，以便存入DB
+                string tickStr = Lib::tickData2String(msg.tick);
+                string keyQ = "MARKET_TICK_Q";
+                string keyD = "CURRENT_TICK_" + string(order.instrumnetID);
+                _store->set(keyD, tickStr); // tick数据，供全局使用
+                _store->push(keyQ, tickStr);
+            }
 
         } else {
 
             MSG_TO_TRADE_STRATEGY msg = _waitList.front();
             _waitList.pop_front();
             _tradeAction(msg);
-            
+
         }
     }
 }
@@ -270,7 +275,7 @@ void TradeStrategy::onCancel(int orderID)
 {
     if (!_isTrading(orderID)) return;
     TRADE_DATA order = _tradingInfo[orderID];
-
+    int status = _getStatus(order.instrumnetID);
     // log
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
@@ -284,9 +289,9 @@ void TradeStrategy::onCancel(int orderID)
     info.close();
 
     // 非预测单的平仓需要追价
-    if ((order.action == TRADE_ACTION_SELLCLOSE || 
+    if ((order.action == TRADE_ACTION_SELLCLOSE ||
          order.action == TRADE_ACTION_BUYCLOSE) &&
-        !order.isForecast) 
+        !order.isForecast)
     {
         _zhuijia(orderID);
         _clearTradeInfo(orderID);
@@ -299,13 +304,16 @@ void TradeStrategy::onCancel(int orderID)
             switch (order.action) {
                 case TRADE_ACTION_BUYOPEN:
                 case TRADE_ACTION_SELLOPEN:
-                    _setStatus(TRADE_STATUS_NOTHING, order.instrumnetID);
+                    if (status == TRADE_STATUS_BUYOPENING || status == TRADE_STATUS_SELLOPENING)
+                        _setStatus(TRADE_STATUS_NOTHING, order.instrumnetID);
                     break;
                 case TRADE_ACTION_BUYCLOSE:
-                    _setStatus(TRADE_STATUS_SELLOPENED, order.instrumnetID);
+                    if (status == TRADE_STATUS_BUYCLOSING)
+                        _setStatus(TRADE_STATUS_SELLOPENED, order.instrumnetID);
                     break;
                 case TRADE_ACTION_SELLCLOSE:
-                    _setStatus(TRADE_STATUS_BUYOPENED, order.instrumnetID);
+                    if (status == TRADE_STATUS_SELLCLOSING)
+                        _setStatus(TRADE_STATUS_BUYOPENED, order.instrumnetID);
                     break;
                 default:
                     break;
