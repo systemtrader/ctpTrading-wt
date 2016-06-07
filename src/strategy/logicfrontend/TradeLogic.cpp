@@ -458,8 +458,6 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
 
         case TRADE_STATUS_BUYOPENING:
         case TRADE_STATUS_SELLOPENING:
-            // _rollback();
-            break;
         case TRADE_STATUS_NOTHING:
             if (_isCurrentUp()) {
                 _calculateUp(_countUp2Down, _countUp2Up);
