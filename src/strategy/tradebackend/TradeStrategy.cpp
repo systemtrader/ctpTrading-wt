@@ -35,7 +35,6 @@ TradeStrategy::TradeStrategy(int serviceID, string logPath, int db, int serviceI
     _store = new Redis("127.0.0.1", 6379, db);
     _tradeSrvClient = new QClient(serviceID, sizeof(MSG_TO_TRADE));
     _klineClient = new QClient(serviceIDK, sizeof(MSG_TO_KLINE));
-
 }
 
 TradeStrategy::~TradeStrategy()
@@ -47,6 +46,11 @@ TradeStrategy::~TradeStrategy()
 
 int TradeStrategy::_initTrade(int action, int kIndex, int total, string instrumnetID, double price, int forecastID, bool isForecast, bool isMain, bool isZhuijia)
 {
+    if (_orderID == 0) {
+        string idStr = _store->get("ORDER_ID_MAX_" + instrumnetID);
+        if (idStr.length() > 0)
+            _orderID = Lib::stoi(idStr);
+    }
     _orderID++;
 
     TRADE_DATA order = {0};

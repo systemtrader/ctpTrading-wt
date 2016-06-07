@@ -32,7 +32,20 @@ class InitSys
             $this->initKLine($iID, $rds, $db);
             $this->initTradeStatus($iID, $rds);
             $this->initKLineTick($iID, $rds, $db);
+            $this->initOrderID($iID, $rds, $db);
         }
+    }
+
+    private function initOrderID($iID, $rds, $db)
+    {
+        $key = 'ORDER_ID_MAX_' . $iID;
+        $rds->set($key, 0);
+        $sql = "SELECT max(`order_id`) as m FROM `markov_kline_order` WHERE `instrumnet_id` = '{$iID}'";
+        $st = $db->prepare($sql);
+        $st->execute([]);
+        $res = $st->fetchAll(PDO::FETCH_ASSOC);
+        $maxID = $res[0]['m'] ?: 0;
+        $rds->set($key, $maxID);
     }
 
     private function initKLine($iID, $rds, $db)
