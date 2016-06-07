@@ -36,6 +36,7 @@ private:
     int _rollbackOpenDUID;
     int _rollbackCloseUID;
     int _rollbackCloseDID;
+    void _setRollbackID(int, int);
     int _kRange;
 
     // 算法参数

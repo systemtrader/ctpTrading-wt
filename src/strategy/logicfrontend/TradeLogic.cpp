@@ -1,5 +1,13 @@
 #include "TradeLogic.h"
 
+#define OUU 0
+#define OUD 1
+#define ODU 2
+#define ODD 3
+#define CU 4
+#define CD 5
+
+
 TradeLogic::TradeLogic(int peroid, double thresholdTrend, double thresholdVibrate,
     int serviceID, string logPath, int db,
     string stopTradeTime, string instrumnetID, int kRange)
@@ -169,32 +177,70 @@ bool TradeLogic::_isCurrentUp()
     return isUp;
 }
 
+void TradeLogic::_setRollbackID(int type, int id)
+{
+    switch (type) {
+        case OUU:
+            _rollbackOpenUUID = id;
+            _store->set("OUU_" + _instrumnetID, Lib::itos(id));
+            break;
+        case OUD:
+            _rollbackOpenUDID = id;
+            _store->set("OUD_" + _instrumnetID, Lib::itos(id));
+            break;
+        case ODU:
+            _rollbackOpenDUID = id;
+            _store->set("ODU_" + _instrumnetID, Lib::itos(id));
+            break;
+        case ODD:
+            _rollbackOpenUUID = id;
+            _store->set("ODD_" + _instrumnetID, Lib::itos(id));
+            break;
+        case CU:
+            _rollbackCloseUID = id;
+            _store->set("CU_" + _instrumnetID, Lib::itos(id));
+            break;
+        case CD:
+            _rollbackCloseDID = id;
+            _store->set("CD_" + _instrumnetID, Lib::itos(id));
+            break;
+        default:
+            break;
+    }
+}
+
 void TradeLogic::_rollback()
 {
     if (_rollbackOpenUUID > 0) {
         _sendRollBack(_rollbackOpenUUID);
-        _rollbackOpenUUID = 0;
+        // _rollbackOpenUUID = 0;
+        _setRollbackID(OUU, 0);
     }
     if (_rollbackOpenUDID > 0) {
         _sendRollBack(_rollbackOpenUDID);
-        _rollbackOpenUDID = 0;
+        // _rollbackOpenUDID = 0;
+        _setRollbackID(OUD, 0);
     }
     if (_rollbackOpenDUID > 0) {
         _sendRollBack(_rollbackOpenDUID);
-        _rollbackOpenDUID = 0;
+        // _rollbackOpenDUID = 0;
+        _setRollbackID(ODU, 0);
     }
     if (_rollbackOpenDDID > 0) {
         _sendRollBack(_rollbackOpenDDID);
-        _rollbackOpenDDID = 0;
+        // _rollbackOpenDDID = 0;
+        _setRollbackID(ODD, 0);
     }
 
     if (_rollbackCloseUID > 0) {
         _sendRollBack(_rollbackCloseUID);
-        _rollbackCloseUID = 0;
+        // _rollbackCloseUID = 0;
+        _setRollbackID(CU, 0);
     }
     if (_rollbackCloseDID > 0) {
         _sendRollBack(_rollbackCloseDID);
-        _rollbackCloseDID = 0;
+        // _rollbackCloseDID = 0;
+        _setRollbackID(CD, 0);
     }
 }
 
@@ -206,14 +252,16 @@ void TradeLogic::_forecastNothing(TickData tick)
         _calculateDown(_countDown2Up, _countDown2Down);
         if (_pDown2Up > _thresholdVibrate) {
             _forecastID++;
-            _rollbackOpenUDID = _forecastID;
+            // _rollbackOpenUDID = _forecastID;
+            _setRollbackID(OUD, _forecastID);
             _sendMsg(MSG_TRADE_BUYOPEN, tick.price - _kRange, true, _forecastID, true);
         }
 
         _calculateUp(_countUp2Down, _countUp2Up + 1);
         if (_pUp2Down > _thresholdVibrate) {
             _forecastID++;
-            _rollbackOpenUUID = _forecastID;
+            // _rollbackOpenUUID = _forecastID;
+            _setRollbackID(OUU, _forecastID);
             _sendMsg(MSG_TRADE_SELLOPEN, tick.price + _kRange, true, _forecastID, true);
         }
 
@@ -222,14 +270,16 @@ void TradeLogic::_forecastNothing(TickData tick)
         _calculateDown(_countDown2Up, _countDown2Down + 1);
         if (_pDown2Up > _thresholdVibrate) {
             _forecastID++;
-            _rollbackOpenDDID = _forecastID;
+            // _rollbackOpenDDID = _forecastID;
+            _setRollbackID(ODD, _forecastID);
             _sendMsg(MSG_TRADE_BUYOPEN, tick.price - _kRange, true, _forecastID, true);
         }
 
         _calculateUp(_countUp2Down, _countUp2Up);
         if (_pUp2Down > _thresholdVibrate) {
             _forecastID++;
-            _rollbackOpenDUID = _forecastID;
+            // _rollbackOpenDUID = _forecastID;
+            _setRollbackID(ODU, _forecastID);
             _sendMsg(MSG_TRADE_SELLOPEN, tick.price + _kRange, true, _forecastID, true);
         }
     }
@@ -243,7 +293,8 @@ void TradeLogic::_forecastBuyOpened(TickData tick)
         _calculateUp(_countUp2Down, _countUp2Up + 1);
         if (_pUp2Up <= _thresholdTrend) {
             _forecastID++;
-            _rollbackCloseUID = _forecastID;
+            // _rollbackCloseUID = _forecastID;
+            _setRollbackID(CU, _forecastID);
             isCloseMain = true;
             // if (_pUp2Down > _threshold_open) {
             //     _forecastID++;
@@ -260,7 +311,8 @@ void TradeLogic::_forecastBuyOpened(TickData tick)
         _calculateUp(_countUp2Down, _countUp2Up);
         if (_pUp2Up <= _thresholdTrend) {
             _forecastID++;
-            _rollbackCloseDID = _forecastID;
+            // _rollbackCloseDID = _forecastID;
+            _setRollbackID(CD, _forecastID);
             isCloseMain = true;
             // if (_pUp2Down > _threshold_open) {
             //     _forecastID++;
@@ -283,7 +335,8 @@ void TradeLogic::_forecastSellOpened(TickData tick)
         _calculateDown(_countDown2Up, _countDown2Down);
         if (_pDown2Down <= _thresholdTrend) {
             _forecastID++;
-            _rollbackCloseUID = _forecastID;
+            // _rollbackCloseUID = _forecastID;
+            _setRollbackID(CU, _forecastID);
             isCloseMain = true;
             // if (_pDown2Up > _threshold_open) {
             //     _forecastID++;
@@ -300,7 +353,8 @@ void TradeLogic::_forecastSellOpened(TickData tick)
         _calculateDown(_countDown2Up, _countDown2Down + 1);
         if (_pDown2Down <= _thresholdTrend) {
             _forecastID++;
-            _rollbackCloseDID = _forecastID;
+            // _rollbackCloseDID = _forecastID;
+            _setRollbackID(CD, _forecastID);
             isCloseMain = true;
             // if (_pDown2Up > _threshold_open) {
             //     _forecastID++;
@@ -331,8 +385,14 @@ void TradeLogic::onKLineOpen(KLineBlock block, TickData tick)
     info << endl;
     info.close();
 
-    _rollbackOpenUUID = _rollbackOpenUDID = _rollbackOpenDDID = _rollbackOpenDUID = 0;
-    _rollbackCloseDID = _rollbackCloseUID = 0;
+    // _rollbackOpenUUID = _rollbackOpenUDID = _rollbackOpenDDID = _rollbackOpenDUID = 0;
+    // _rollbackCloseDID = _rollbackCloseUID = 0;
+    _setRollbackID(OUU, 0);
+    _setRollbackID(OUD, 0);
+    _setRollbackID(ODD, 0);
+    _setRollbackID(ODU, 0);
+    _setRollbackID(CU, 0);
+    _setRollbackID(CD, 0);
     switch (status) {
         case TRADE_STATUS_NOTHING:
             _forecastNothing(tick);
