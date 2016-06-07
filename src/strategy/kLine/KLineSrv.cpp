@@ -17,6 +17,9 @@ KLineSrv::KLineSrv(int kRange, int serviceID, string logPath, int db, string ins
         _currentBlock = new KLineBlock();
         _currentBlock->setVal(currentStr, instrumnetID);
         _index = _currentBlock->getIndex() + 1;
+    } else {
+        string iStr = _store->get("CURRENT_BLOCK_INDEX_" + instrumnetID);
+        _index = Lib::stoi(iStr);
     }
 }
 
@@ -83,7 +86,7 @@ void KLineSrv::_updateBlock(TickData tick)
 
 void KLineSrv::_closeBlock(TickData tick)
 {
-    
+
     _currentBlock->close();
     string keyQ = "K_LINE_Q";
     string strData = _currentBlock->exportString();
@@ -100,7 +103,7 @@ void KLineSrv::_closeBlock(TickData tick)
     info << "|close|" << blockData.close;
     info << endl;
     info.close();
-    
+
     // 发送消息
     MSG_TO_TRADE_LOGIC msg = {0};
     msg.msgType = MSG_KLINE_CLOSE;

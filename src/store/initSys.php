@@ -49,6 +49,8 @@ class InitSys
         $last = null;
         if (count($res) > 0) $last = $res[0];
         if (!$last) return;
+        $index = $last['index'];
+        $rds->set("CURRENT_BLOCK_INDEX_" . $iID, $index);
 
         // 判断K线计算状态
         $tickTime = $last['close_time'];
