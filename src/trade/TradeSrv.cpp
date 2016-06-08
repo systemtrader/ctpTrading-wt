@@ -376,7 +376,7 @@ void TradeSrv::onCancel(CThostFtdcOrderField * const rsp)
     _store->push("ORDER_LOGS", data);
 }
 
-void TradeSrv::onCancelErr(CThostFtdcInputOrderActionField * const rsp)
+void TradeSrv::onCancelErr(CThostFtdcInputOrderActionField * const rsp, CThostFtdcRspInfoField * const errInfo)
 {
 
     ofstream info;
@@ -403,6 +403,7 @@ void TradeSrv::onCancelErr(CThostFtdcInputOrderActionField * const rsp)
 
     info << "|orderID|" << orderID;
     info << "|OrderRef|" << rsp->OrderRef;
+    info << "|errorNo|" << errInfo->ErrorID;
     info << "|OrderActionRef|" << rsp->OrderActionRef;
     info << "|SessionID|" << rsp->SessionID;
     info << "|OrderSysID|" << rsp->OrderSysID;
@@ -411,8 +412,50 @@ void TradeSrv::onCancelErr(CThostFtdcInputOrderActionField * const rsp)
 
     // 对于撤单失败，不再撤，原则上是该单已成
     MSG_TO_TRADE_STRATEGY msg = {0};
-    msg.msgType = MSG_TRADE_BACK_CANCELEDERR;
+    msg.msgType = MSG_TRADE_BACK_ERR;
     msg.orderID = orderID;
+    msg.err = errInfo->ErrorID;
+    _tradeStrategySrvClient->send((void *)&msg);
+
+    _clearOrderByRef(orderRef);
+}
+
+void TradeSrv::onOrderErr(CThostFtdcInputOrderField * const rsp, CThostFtdcRspInfoField * const errInfo)
+{
+
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info);
+    info << "TradeSrv[onOrderErr]";
+
+    if (!rsp) {
+        info << endl;
+        info.close();
+        return;
+    }
+    int orderRef = atoi(rsp->OrderRef);
+    if (orderRef <= 0) {
+        info << endl;
+        info.close();
+        return;
+    }
+    int orderID = _getOrderIDByRef(orderRef);
+    if (orderID <= 0) {
+        info << endl;
+        info.close();
+        return;
+    }
+
+    info << "|orderID|" << orderID;
+    info << "|OrderRef|" << rsp->OrderRef;
+    info << "|errorNo|" << errInfo->ErrorID;
+    info << endl;
+    info.close();
+
+    // 对于撤单失败，不再撤，原则上是该单已成
+    MSG_TO_TRADE_STRATEGY msg = {0};
+    msg.msgType = MSG_TRADE_BACK_ERR;
+    msg.orderID = orderID;
+    msg.err = errInfo->ErrorID;
     _tradeStrategySrvClient->send((void *)&msg);
 
     _clearOrderByRef(orderRef);

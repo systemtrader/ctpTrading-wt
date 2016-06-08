@@ -81,6 +81,7 @@ void TraderSpi::OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder,
     CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
     Lib::sysErrLog(_logPath, "TradeSpi[onOrderInsert]", pRspInfo, nRequestID, bIsLast);
+    _service->onOrderErr(pInputOrder, pRspInfo);
 }
 
 void TraderSpi::OnRtnOrder(CThostFtdcOrderField *pOrder)
@@ -102,7 +103,7 @@ void TraderSpi::OnRspOrderAction(CThostFtdcInputOrderActionField *pInputOrderAct
         CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
     Lib::sysErrLog(_logPath, "TradeSpi[onOrderAction]", pRspInfo, nRequestID, bIsLast);
-    _service->onCancelErr(pInputOrderAction);
+    _service->onCancelErr(pInputOrderAction, pRspInfo);
 }
 
 void TraderSpi::OnErrRtnOrderInsert(CThostFtdcInputOrderField *pInputOrder,

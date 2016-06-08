@@ -72,10 +72,11 @@ public:
     void trade(double, int, bool, bool, int, string);
     void onTraded(CThostFtdcTradeField * const);
     void onOrderRtn(CThostFtdcOrderField * const);
+    void onOrderErr(CThostFtdcInputOrderField * const, CThostFtdcRspInfoField * const);
 
     void cancel(int);
     void onCancel(CThostFtdcOrderField * const);
-    void onCancelErr(CThostFtdcInputOrderActionField * const);
+    void onCancelErr(CThostFtdcInputOrderActionField * const, CThostFtdcRspInfoField * const);
 
 };
 

@@ -38,7 +38,7 @@ typedef struct msg_k_line
 
 #define MSG_TRADE_BACK_TRADED   10
 #define MSG_TRADE_BACK_CANCELED 11
-#define MSG_TRADE_BACK_CANCELEDERR 17
+#define MSG_TRADE_BACK_ERR 17
 
 typedef struct msg_trade_data
 {
@@ -53,6 +53,7 @@ typedef struct msg_trade_data
     int orderID; // 下单模块生成，下单系统反馈时使用
     // int forecastType;
     char instrumnetID[7];
+    int err;
 
 } MSG_TO_TRADE_STRATEGY;
 

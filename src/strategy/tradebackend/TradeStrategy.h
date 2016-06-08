@@ -19,6 +19,7 @@ typedef struct trade_data
     int forecastID;
     bool isForecast;
     bool isMain;
+    int beforeStatus;
     string instrumnetID;
 
 } TRADE_DATA;
@@ -40,7 +41,7 @@ private:
 
     std::list<MSG_TO_TRADE_STRATEGY> _waitList;
 
-    int _initTrade(int, int, int, string, double, int, bool, bool, bool = false); // 初始化交易
+    int _initTrade(int, int, int, string, double, int, bool, bool, int, bool = false); // 初始化交易
     void _clearTradeInfo(int);
 
     void _tradeAction(MSG_TO_TRADE_STRATEGY);
@@ -49,6 +50,7 @@ private:
 
     int _getStatus(string);
     void _setStatus(int, string);
+    void _setSecondStatus(int, string);
     TickData _getTick(string);
     void _sendMsg(double, int, bool, bool, int);
 
@@ -59,7 +61,7 @@ public:
     void trade(MSG_TO_TRADE_STRATEGY);
     void onSuccess(int, double);
     void onCancel(int);
-    void onCancelErr(int);
+    void onErr(int, int);
     void timeout(int);
 
 };
