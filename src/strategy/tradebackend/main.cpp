@@ -59,6 +59,10 @@ bool action(long int msgType, const void * data)
         service->onCancel(msg.orderID);
         return true;
     }
+    if (msgType == MSG_TRADE_BACK_ERR) {
+        service->onErr(msg.orderID, msg.err);
+        return true;
+    }
     service->trade(msg);
     return true;
 }

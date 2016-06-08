@@ -73,6 +73,7 @@ private:
 
     // 判断仓位状态
     int _getStatus();
+    int _getSecondStatus();
     void _sendMsg(int, double = 0, bool = false, int = 0, bool = false);
 
 public:

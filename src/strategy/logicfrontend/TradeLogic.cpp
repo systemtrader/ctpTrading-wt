@@ -213,34 +213,22 @@ void TradeLogic::_rollback()
 {
     if (_rollbackOpenUUID > 0) {
         _sendRollBack(_rollbackOpenUUID);
-        // _rollbackOpenUUID = 0;
-        _setRollbackID(OUU, 0);
     }
     if (_rollbackOpenUDID > 0) {
         _sendRollBack(_rollbackOpenUDID);
-        // _rollbackOpenUDID = 0;
-        _setRollbackID(OUD, 0);
     }
     if (_rollbackOpenDUID > 0) {
         _sendRollBack(_rollbackOpenDUID);
-        // _rollbackOpenDUID = 0;
-        _setRollbackID(ODU, 0);
     }
     if (_rollbackOpenDDID > 0) {
         _sendRollBack(_rollbackOpenDDID);
-        // _rollbackOpenDDID = 0;
-        _setRollbackID(ODD, 0);
     }
 
     if (_rollbackCloseUID > 0) {
         _sendRollBack(_rollbackCloseUID);
-        // _rollbackCloseUID = 0;
-        _setRollbackID(CU, 0);
     }
     if (_rollbackCloseDID > 0) {
         _sendRollBack(_rollbackCloseDID);
-        // _rollbackCloseDID = 0;
-        _setRollbackID(CD, 0);
     }
 }
 
@@ -296,11 +284,12 @@ void TradeLogic::_forecastBuyOpened(TickData tick)
             // _rollbackCloseUID = _forecastID;
             _setRollbackID(CU, _forecastID);
             isCloseMain = true;
-            // if (_pUp2Down > _threshold_open) {
-            //     _forecastID++;
-            //     _rollbackOpenUUID = _forecastID;
-            //     isCloseMain = false;
-            // }
+            if (_pUp2Down > _thresholdVibrate) {
+                _forecastID++;
+                // _rollbackOpenUUID = _forecastID;
+                _setRollbackID(OUU, _forecastID);
+                isCloseMain = false;
+            }
             _sendMsg(MSG_TRADE_SELLCLOSE, tick.price + _kRange, true, _rollbackCloseUID, isCloseMain);
             if (!isCloseMain)
                 _sendMsg(MSG_TRADE_SELLOPEN, tick.price + _kRange, true, _rollbackOpenUUID, true);
@@ -314,11 +303,12 @@ void TradeLogic::_forecastBuyOpened(TickData tick)
             // _rollbackCloseDID = _forecastID;
             _setRollbackID(CD, _forecastID);
             isCloseMain = true;
-            // if (_pUp2Down > _threshold_open) {
-            //     _forecastID++;
-            //     _rollbackOpenDUID = _forecastID;
-            //     isCloseMain = false;
-            // }
+            if (_pUp2Down > _thresholdVibrate) {
+                _forecastID++;
+                // _rollbackOpenDUID = _forecastID;
+                _setRollbackID(ODU, _forecastID);
+                isCloseMain = false;
+            }
             _sendMsg(MSG_TRADE_SELLCLOSE, tick.price + _kRange, true, _rollbackCloseDID, isCloseMain);
             if (!isCloseMain)
                 _sendMsg(MSG_TRADE_SELLOPEN, tick.price + _kRange, true, _rollbackOpenDUID, true);
@@ -338,11 +328,12 @@ void TradeLogic::_forecastSellOpened(TickData tick)
             // _rollbackCloseUID = _forecastID;
             _setRollbackID(CU, _forecastID);
             isCloseMain = true;
-            // if (_pDown2Up > _threshold_open) {
-            //     _forecastID++;
-            //     _rollbackOpenUDID = _forecastID;
-            //     isCloseMain = false;
-            // }
+            if (_pDown2Up > _thresholdVibrate) {
+                _forecastID++;
+                // _rollbackOpenUDID = _forecastID;
+                _setRollbackID(OUD, _forecastID);
+                isCloseMain = false;
+            }
             _sendMsg(MSG_TRADE_BUYCLOSE, tick.price - _kRange, true, _rollbackCloseUID, isCloseMain);
             if (!isCloseMain)
                 _sendMsg(MSG_TRADE_BUYOPEN, tick.price - _kRange, true, _rollbackOpenUDID, true);
@@ -356,11 +347,12 @@ void TradeLogic::_forecastSellOpened(TickData tick)
             // _rollbackCloseDID = _forecastID;
             _setRollbackID(CD, _forecastID);
             isCloseMain = true;
-            // if (_pDown2Up > _threshold_open) {
-            //     _forecastID++;
-            //     _rollbackOpenDDID = _forecastID;
-            //     isCloseMain = false;
-            // }
+            if (_pDown2Up > _thresholdVibrate) {
+                _forecastID++;
+                // _rollbackOpenDDID = _forecastID;
+                _setRollbackID(ODD, _forecastID);
+                isCloseMain = false;
+            }
             _sendMsg(MSG_TRADE_BUYCLOSE, tick.price - _kRange, true, _rollbackCloseDID, isCloseMain);
             if (!isCloseMain)
                 _sendMsg(MSG_TRADE_BUYOPEN, tick.price - _kRange, true, _rollbackOpenDDID, true);
@@ -412,6 +404,7 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
 {
     _tick(tick);
     int status = _getStatus();
+    int secondStatus = _getSecondStatus();
     //log
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
@@ -423,8 +416,18 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
     _rollback();
     switch (status) {
 
-        case TRADE_STATUS_BUYCLOSING: // 预测单未成，回滚然后再下单，对于不是预测单导致的，忽略
         case TRADE_STATUS_SELLOPENED:
+            // if (_rollbackOpenUUID > 0 || _rollbackOpenDUID > 0) break; // 预测导致的卖开，相当于刚开仓，直接过
+            if (_rollbackOpenUUID > 0 || _rollbackOpenDUID > 0) {
+                if (_rollbackCloseUID > 0 || _rollbackCloseDID > 0) { // 有平仓，属于平开预测
+                    if (secondStatus != TRADE_STATUS_NOTHING) { // 没平掉，强平
+                        _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, true);
+                    }
+                }
+                break;
+            }
+
+        case TRADE_STATUS_BUYCLOSING: // 只有预测平仓
 
             if (_isCurrentUp()) {
                 _calculateUp(_countUp2Down, _countUp2Up);
@@ -439,8 +442,19 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
             }
             break;
 
-        case TRADE_STATUS_SELLCLOSING:
         case TRADE_STATUS_BUYOPENED:
+
+            // if (_rollbackOpenUDID > 0 || _rollbackOpenDDID > 0) break;
+            if (_rollbackOpenUDID > 0 || _rollbackOpenDDID > 0) {
+                if (_rollbackCloseUID > 0 || _rollbackCloseDID > 0) { // 有平仓，属于平开预测
+                    if (secondStatus != TRADE_STATUS_NOTHING) { // 没平掉，强平
+                        _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, true);
+                    }
+                }
+                break;
+            }
+
+        case TRADE_STATUS_SELLCLOSING:
 
             if (_isCurrentUp()) {
                 _calculateUp(_countUp2Down, _countUp2Up);
@@ -457,8 +471,46 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
             break;
 
         case TRADE_STATUS_BUYOPENING:
+
+            if (_rollbackCloseUID > 0 || _rollbackCloseDID > 0) { // 有平仓，属于平开预测
+                if (secondStatus != TRADE_STATUS_NOTHING) { // 没平掉，判断是否继续平
+                    if (_isCurrentUp()) {
+                        _calculateUp(_countUp2Down, _countUp2Up);
+                        if (_pUp2Down <= _thresholdVibrate) {
+                            _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, true);
+                        }
+                    } else {
+                        _calculateDown(_countDown2Up, _countDown2Down);
+                        if (_pDown2Down <= _thresholdTrend) {
+                            _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, true);
+                        }
+                    }
+                    break;
+                }
+            }
+
         case TRADE_STATUS_SELLOPENING:
+
+            if (_rollbackCloseUID > 0 || _rollbackCloseDID > 0) { // 有平仓，属于平开预测
+                if (secondStatus != TRADE_STATUS_NOTHING) { // 没平掉，判断是否继续平
+                    if (_isCurrentUp()) {
+                        _calculateUp(_countUp2Down, _countUp2Up);
+                        if (_pUp2Up <= _thresholdTrend ) { // 不满足买开，平仓
+                            _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, true);
+                        }
+
+                    } else {
+                        _calculateDown(_countDown2Up, _countDown2Down);
+                        if (_pDown2Up <= _thresholdVibrate) { // 不满足买开，平
+                            _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, true);
+                        }
+                    }
+                    break;
+                }
+            }
+
         case TRADE_STATUS_NOTHING:
+
             if (_isCurrentUp()) {
                 _calculateUp(_countUp2Down, _countUp2Up);
                 if (_pUp2Up > _thresholdTrend) { // 买开
@@ -481,6 +533,12 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
 int TradeLogic::_getStatus()
 {
     string status = _store->get("TRADE_STATUS_" + _instrumnetID);
+    return Lib::stoi(status);
+}
+
+int TradeLogic::_getSecondStatus()
+{
+    string status = _store->get("TRADE_SECOND_STATUS_" + _instrumnetID);
     return Lib::stoi(status);
 }
 
