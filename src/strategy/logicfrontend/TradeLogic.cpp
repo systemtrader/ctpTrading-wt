@@ -141,7 +141,6 @@ void TradeLogic::_calculateUp(double u2d, double u2u)
     info << "|pUp2Up|" << _pUp2Up;
     info << "|pUp2Down|" << _pUp2Down;
     info << "|UU_UD_DU_DD|" << u2u << "," << u2d << "," << _countDown2Up << "," << _countDown2Down;
-    info << "|kIndex|" << _kIndex;
     info << endl;
     info.close();
 }
@@ -161,7 +160,6 @@ void TradeLogic::_calculateDown(double d2u, double d2d)
     info << "|pDown2Up|" << _pDown2Up;
     info << "|pDown2Down|" << _pDown2Down;
     info << "|UU_UD_DU_DD|" << _countUp2Up << "," << _countUp2Down << "," << d2u << "," << d2d;
-    info << "|kIndex|" << _kIndex;
     info << endl;
     info.close();
 }
@@ -193,7 +191,7 @@ void TradeLogic::_setRollbackID(int type, int id)
             _store->set("ODU_" + _instrumnetID, Lib::itos(id));
             break;
         case ODD:
-            _rollbackOpenUUID = id;
+            _rollbackOpenDDID = id;
             _store->set("ODD_" + _instrumnetID, Lib::itos(id));
             break;
         case CU:
@@ -304,7 +302,6 @@ void TradeLogic::_forecastBuyOpened(TickData tick)
                 _forecastID++;
                 // _rollbackOpenDUID = _forecastID;
                 _setRollbackID(ODU, _forecastID);
-                _setRollbackID(OUU, _forecastID);
                 _sendMsg(MSG_TRADE_SELLCLOSE, tick.price + _kRange, true, _rollbackCloseDID, 3);
                 _sendMsg(MSG_TRADE_SELLOPEN, tick.price + _kRange, true, _rollbackOpenDUID, 1);
             } else {
@@ -347,7 +344,6 @@ void TradeLogic::_forecastSellOpened(TickData tick)
                 _forecastID++;
                 // _rollbackOpenDDID = _forecastID;
                 _setRollbackID(ODD, _forecastID);
-                _setRollbackID(OUD, _forecastID);
                 _sendMsg(MSG_TRADE_BUYCLOSE, tick.price - _kRange, true, _rollbackCloseDID, 3);
                 _sendMsg(MSG_TRADE_BUYOPEN, tick.price - _kRange, true, _rollbackOpenDDID, 1);
             } else {
@@ -809,7 +805,8 @@ void TradeLogic::_sendMsg(int msgType, double price, bool isForecast, int foreca
             return;
         }
     }
-
+    int kIndex = _kIndex;
+    if (isForecast) kIndex++;
     //log
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
@@ -821,13 +818,13 @@ void TradeLogic::_sendMsg(int msgType, double price, bool isForecast, int foreca
     info << "|isFok|" << isFok;
     info << "|action|" << msgType;
     info << "|price|" << price;
-    info << "|kIndex|" << _kIndex << endl;
+    info << "|kIndex|" << kIndex << endl;
     info.close();
 
     MSG_TO_TRADE_STRATEGY msg = {0};
     msg.msgType = msgType;
     msg.price = price;
-    msg.kIndex = _kIndex;
+    msg.kIndex = kIndex;
     msg.total = 1;
     msg.isForecast = isForecast;
     if (isForecast) msg.forecastID = forecastID;
