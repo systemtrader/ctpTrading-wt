@@ -142,9 +142,6 @@ void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int order
 
 void TradeSrv::onTraded(CThostFtdcTradeField * const rsp)
 {
-    ofstream info;
-    Lib::initInfoLogHandle(_logPath, info);
-    info << "TradeSrv[onTraded]";
 
     if (!rsp) {
         info << endl;
@@ -160,6 +157,9 @@ void TradeSrv::onTraded(CThostFtdcTradeField * const rsp)
     }
 
     int orderID = _getOrderIDByRef(orderRef);
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info);
+    info << "TradeSrv[onTraded]";
     info << "|orderID|" << orderID;
     if (orderID <= 0) {
         info << endl;
@@ -209,9 +209,6 @@ void TradeSrv::onTraded(CThostFtdcTradeField * const rsp)
 
 void TradeSrv::onOrderRtn(CThostFtdcOrderField * const rsp)
 {
-    ofstream info;
-    Lib::initInfoLogHandle(_logPath, info);
-    info << "TradeSrv[onOrderRtn]";
 
     if (!rsp) {
         info << endl;
@@ -237,6 +234,9 @@ void TradeSrv::onOrderRtn(CThostFtdcOrderField * const rsp)
         return;
     }
 
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info);
+    info << "TradeSrv[onOrderRtn]";
     info << "|orderID|" << orderID;
     info << "|OrderRef|" << rsp->OrderRef;
     info << "|iID|" << rsp->InstrumentID;
