@@ -144,15 +144,11 @@ void TradeSrv::onTraded(CThostFtdcTradeField * const rsp)
 {
 
     if (!rsp) {
-        info << endl;
-        info.close();
         return;
     }
 
     int orderRef = atoi(rsp->OrderRef);
     if (orderRef <= 0) {
-        info << endl;
-        info.close();
         return;
     }
 
@@ -211,26 +207,18 @@ void TradeSrv::onOrderRtn(CThostFtdcOrderField * const rsp)
 {
 
     if (!rsp) {
-        info << endl;
-        info.close();
         return;
     }
     if (rsp->SessionID != _sessionID) {
-        info << endl;
-        info.close();
         return;
     }
 
     int orderRef = atoi(rsp->OrderRef);
     if (orderRef <= 0) {
-        info << endl;
-        info.close();
         return;
     }
     int orderID = _getOrderIDByRef(orderRef);
     if (orderID <= 0) {
-        info << endl;
-        info.close();
         return;
     }
 
