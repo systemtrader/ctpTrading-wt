@@ -102,7 +102,9 @@ class InitSys
 
     private function initTradeStatus($iID, $rds)
     {
-        $rds->set("TRADE_STATUS_" . $iID, 0);
+        $rds->set("TRADE_STATUS_1_" . $iID, 0);
+        $rds->set("TRADE_STATUS_2_" . $iID, 0);
+        $rds->set("TRADE_STATUS_3_" . $iID, 0);
     }
 
     private function initKLineTick($iID, $rds, $db)

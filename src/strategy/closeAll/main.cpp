@@ -49,7 +49,6 @@ void sendRollBack(int forecastID, string iID)
     MSG_TO_TRADE_STRATEGY msg = {0};
     msg.msgType = MSG_TRADE_ROLLBACK;
     msg.forecastID = forecastID;
-    msg.isMain = true;
     msg.isForecast = false;
     strcpy(msg.instrumnetID, Lib::stoc(iID));
     tradeStrategySrvClient->send((void *)&msg);
@@ -148,7 +147,7 @@ void rollback(string iID)
 
 bool check(string iID)
 {
-    string s = store->get("TRADE_STATUS_" + iID);
+    string s = store->get("TRADE_STATUS_1_" + iID);
     int status = Lib::stoi(s);
 
     string tickStr = store->get("CURRENT_TICK_" + iID);

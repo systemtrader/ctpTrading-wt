@@ -54,7 +54,7 @@ bool action(long int msgType, const void * data)
     }
     if (msgType == MSG_TICK) {
         TickData tick = ((MSG_TO_KLINE*)data)->tick;
-        services[string(tick.instrumnetID)]->onTickCome(tick);
+        services[string(tick.instrumnetID)]->onTickCome(tick, ((MSG_TO_KLINE*)data)->isMy);
     }
     return true;
 }

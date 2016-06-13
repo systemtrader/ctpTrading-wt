@@ -78,7 +78,7 @@ void TradeSrv::onLogin(CThostFtdcRspUserLoginField * const rsp)
     _maxOrderRef = atoi(rsp->MaxOrderRef);
 }
 
-void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int orderID, string instrumnetID)
+void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int orderID, string instrumnetID, bool isFok)
 {
     if (_isOrderDealed(orderID)) return;
     _initOrder(orderID, instrumnetID);
@@ -103,6 +103,13 @@ void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int order
     //         break;
     // }
 
+    TThostFtdcTimeConditionType timeCondition = THOST_FTDC_TC_GFD;
+    TThostFtdcVolumeConditionType volumeCondition = THOST_FTDC_VC_AV;
+    if (isFok) {
+        timeCondition = THOST_FTDC_TC_IOC;
+        volumeCondition = THOST_FTDC_VC_CV;
+    }
+
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeSrv[trade]";
@@ -113,7 +120,7 @@ void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int order
     info.close();
 
     CThostFtdcInputOrderField order = _createOrder(instrumnetID, isBuy, total, price, flag,
-            THOST_FTDC_HFEN_Speculation, THOST_FTDC_OPT_LimitPrice, THOST_FTDC_TC_GFD, THOST_FTDC_VC_AV, condition);
+            THOST_FTDC_HFEN_Speculation, THOST_FTDC_OPT_LimitPrice, timeCondition, volumeCondition, condition);
 
 
     int res = _tradeApi->ReqOrderInsert(&order, _maxOrderRef);
@@ -189,6 +196,8 @@ void TradeSrv::onTraded(CThostFtdcTradeField * const rsp)
     msg.msgType = MSG_TRADE_BACK_TRADED;
     msg.orderID = orderID;
     msg.price = rsp->Price;
+    strcpy(msg.date, rsp->TradeDate);
+    strcpy(msg.time, rsp->TradeTime);
     _tradeStrategySrvClient->send((void *)&msg);
 
     // save data

@@ -11,6 +11,7 @@ typedef struct msg_tick
 {
     long int msgType;
     TickData tick;
+    bool isMy;
 
 } MSG_TO_KLINE;
 
@@ -18,11 +19,15 @@ typedef struct msg_tick
 // kLineSrv->tradeLogicSrv
 #define MSG_KLINE_OPEN  3
 #define MSG_KLINE_CLOSE 4
+#define MSG_KLINE_CLOSE_BY_ME 21
+#define MSG_LOGIC_ROLLBACK 20
+#define MSG_LOGIC_REALBACK 22
 typedef struct msg_k_line
 {
     long int msgType;
     KLineBlockData block;
     TickData tick;
+    int forecastID;
 
 } MSG_TO_TRADE_LOGIC;
 
@@ -48,12 +53,16 @@ typedef struct msg_trade_data
     int kIndex;
     bool isForecast; // 是否是预测单
     int forecastID; // 预测id
-    bool isMain;
+    int statusWay;
+    bool isFok;
     // int groupID; // 逻辑模块生成
     int orderID; // 下单模块生成，下单系统反馈时使用
     // int forecastType;
     char instrumnetID[7];
     int err;
+    TThostFtdcDateType date;
+    TThostFtdcTimeType time;
+
 
 } MSG_TO_TRADE_STRATEGY;
 
@@ -70,6 +79,7 @@ typedef struct msg_trade
     int orderID;
     int forecastType;
     char instrumnetID[7];
+    bool isFok;
 
 } MSG_TO_TRADE;
 

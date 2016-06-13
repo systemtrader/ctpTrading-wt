@@ -25,12 +25,12 @@ private:
     bool _checkBlockClose(TickData);
     void _initBlock(TickData);
     void _updateBlock(TickData);
-    void _closeBlock(TickData);
+    void _closeBlock(TickData, bool);
 
 public:
     KLineSrv(int, int, string, int, string);
     ~KLineSrv();
 
-    void onTickCome(TickData);
+    void onTickCome(TickData, bool);
 };
 #endif

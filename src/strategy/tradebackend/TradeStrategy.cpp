@@ -28,13 +28,14 @@ void setTimer(int orderID)
     timer_settime(timer, 0, &ts, NULL);
 }
 
-TradeStrategy::TradeStrategy(int serviceID, string logPath, int db, int serviceIDK)
+TradeStrategy::TradeStrategy(int serviceID, string logPath, int db, int serviceIDK, int serviceIDL)
 {
     _orderID = 0;
     _logPath = logPath;
     _store = new Redis("127.0.0.1", 6379, db);
     _tradeSrvClient = new QClient(serviceID, sizeof(MSG_TO_TRADE));
     _klineClient = new QClient(serviceIDK, sizeof(MSG_TO_KLINE));
+    _tradeLogicSrvClient = new QClient(serviceIDL, sizeof(MSG_TO_TRADE_LOGIC));
 }
 
 TradeStrategy::~TradeStrategy()
@@ -44,7 +45,8 @@ TradeStrategy::~TradeStrategy()
     cout << "~TradeStrategy" << endl;
 }
 
-int TradeStrategy::_initTrade(int action, int kIndex, int total, string instrumnetID, double price, int forecastID, bool isForecast, bool isMain, int beforeStatus, bool isZhuijia)
+int TradeStrategy::_initTrade(int action, int kIndex, int total, string instrumnetID,
+    double price, int forecastID, bool isForecast, int statusWay, bool isZhuijia)
 {
     if (_orderID == 0) {
         string idStr = _store->get("ORDER_ID_MAX_" + instrumnetID);
@@ -61,8 +63,7 @@ int TradeStrategy::_initTrade(int action, int kIndex, int total, string instrumn
     order.instrumnetID = instrumnetID;
     order.forecastID = forecastID;
     order.isForecast = isForecast;
-    order.isMain = isMain;
-    order.beforeStatus = beforeStatus;
+    order.statusWay = statusWay;
     _tradingInfo[_orderID] = order;
 
     _forecastID2OrderID[forecastID] = _orderID;
@@ -73,8 +74,8 @@ int TradeStrategy::_initTrade(int action, int kIndex, int total, string instrumn
     info << "TradeStrategySrv[initTrade]";
     info << "|orderID|" << _orderID;
     info << "|forecastID|" << forecastID;
-    info << "|isMain|" << isMain;
     info << "|isForecast|" << isForecast;
+    info << "|statusWay|" << statusWay;
     info << "|iID|" << instrumnetID;
     info << "|kIndex|" << kIndex;
     info << endl;
@@ -82,10 +83,22 @@ int TradeStrategy::_initTrade(int action, int kIndex, int total, string instrumn
 
     // save data
     string data = "klineorder_" + Lib::itos(kIndex) + "_" + Lib::itos(_orderID) + "_" + instrumnetID + "_" + Lib::itos(isForecast)
-                + "_" + Lib::itos(isMain) + "_" + Lib::itos(isZhuijia);
+                 + "_" + Lib::itos(isZhuijia);
     _store->push("ORDER_LOGS", data);
 
     return _orderID;
+}
+
+bool TradeStrategy::_isRollback(int orderID)
+{
+    std::map<int, int>::iterator i = _rollbackID.find(orderID);
+    return i == _rollbackID.end() ? false : true;
+}
+
+void TradeStrategy::_clearRollbackID(int orderID)
+{
+    std::map<int, int>::iterator j = _rollbackID.find(orderID);
+    if (j != _rollbackID.end()) _rollbackID.erase(j);
 }
 
 void TradeStrategy::_clearTradeInfo(int orderID)
@@ -122,13 +135,16 @@ bool TradeStrategy::_isForecasting(int forecastID)
 
 void TradeStrategy::trade(MSG_TO_TRADE_STRATEGY msg)
 {
-    int status = _getStatus(string(msg.instrumnetID));
+    int status1 = _getStatus(1, string(msg.instrumnetID));
+    int status2 = _getStatus(2, string(msg.instrumnetID));
+    int status3 = _getStatus(3, string(msg.instrumnetID));
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeStrategySrv[tradeCome]";
     info << "|iID|" << msg.instrumnetID;
-    info << "|kIndex|" << msg.kIndex;
-    info << "|status|" << status;
+    info << "|status1|" << status1;
+    info << "|status2|" << status2;
+    info << "|status3|" << status3;
     info << endl;
     info.close();
 
@@ -136,21 +152,22 @@ void TradeStrategy::trade(MSG_TO_TRADE_STRATEGY msg)
     if (msg.msgType == MSG_TRADE_ROLLBACK) {
         if (!_isForecasting(msg.forecastID)) return;
         int orderID = _forecastID2OrderID[msg.forecastID];
+        _rollbackID[orderID] = 1; // 记录rollback的orderID
         _cancel(orderID, 2);
         return;
     }
 
-    // 非主线单、预测单，直接发送
-    if (!msg.isMain || msg.isForecast) {
+    // 预测单，直接发送
+    if (msg.isForecast) {
         _tradeAction(msg);
         return;
     }
 
-    // 剩下的请求，需要串行处理，所以处理中的状态要讲请求入队列
-    if (status == TRADE_STATUS_BUYOPENING ||
-        status == TRADE_STATUS_BUYCLOSING ||
-        status == TRADE_STATUS_SELLOPENING ||
-        status == TRADE_STATUS_SELLCLOSING)
+    // 通道1的请求可能出现排队
+    if (status1 == TRADE_STATUS_BUYOPENING ||
+        status1 == TRADE_STATUS_BUYCLOSING ||
+        status1 == TRADE_STATUS_SELLOPENING ||
+        status1 == TRADE_STATUS_SELLCLOSING)
     {
         _waitList.push_back(msg);
         return;
@@ -179,45 +196,40 @@ void TradeStrategy::_tradeAction(MSG_TO_TRADE_STRATEGY msg)
     if (msg.msgType == MSG_TRADE_BUYCLOSE) {
         action = TRADE_ACTION_BUYCLOSE;
     }
-    int status = _getStatus(instrumnetID);
-    int orderID = _initTrade(action, kIndex, total, instrumnetID, price, forecastID, msg.isForecast, msg.isMain, status);
+
+    int orderID = _initTrade(action, kIndex, total, instrumnetID, price, forecastID, msg.isForecast, msg.statusWay);
     switch (action) {
 
         case TRADE_ACTION_BUYOPEN:
-            _setStatus(TRADE_STATUS_BUYOPENING, instrumnetID);
-            _sendMsg(price, total, true, true, orderID);
+            _setStatus(msg.statusWay, TRADE_STATUS_BUYOPENING, instrumnetID);
+            _sendMsg(price, total, true, true, orderID, msg.isFok);
             break;
 
         case TRADE_ACTION_SELLOPEN:
-            _setStatus(TRADE_STATUS_SELLOPENING, instrumnetID);
-            _sendMsg(price, total, false, true, orderID);
+            _setStatus(msg.statusWay, TRADE_STATUS_SELLOPENING, instrumnetID);
+            _sendMsg(price, total, false, true, orderID, msg.isFok);
             break;
 
         case TRADE_ACTION_BUYCLOSE:
-            if (msg.isMain)
-                _setStatus(TRADE_STATUS_BUYCLOSING, instrumnetID);
-            else
-                _setSecondStatus(TRADE_STATUS_BUYCLOSING, instrumnetID);
+            _setStatus(msg.statusWay, TRADE_STATUS_BUYCLOSING, instrumnetID);
             _sendMsg(price, total, true, false, orderID);
             break;
 
         case TRADE_ACTION_SELLCLOSE:
-            if (msg.isMain)
-                _setStatus(TRADE_STATUS_SELLCLOSING, instrumnetID);
-            else
-                _setSecondStatus(TRADE_STATUS_SELLCLOSING, instrumnetID);
+            _setStatus(msg.statusWay, TRADE_STATUS_SELLCLOSING, instrumnetID);
             _sendMsg(price, total, false, false, orderID);
             break;
 
         default:
             break;
     }
-    if (!msg.isForecast)
+    if (!msg.isForecast && (action == TRADE_ACTION_BUYCLOSE || action == TRADE_ACTION_SELLCLOSE))
         setTimer(orderID);
 }
 
-void TradeStrategy::onSuccess(int orderID, double price)
+void TradeStrategy::onSuccess(MSG_TO_TRADE_STRATEGY rsp)
 {
+    int orderID = rsp.orderID;
     if (!_isTrading(orderID)) return;
     TRADE_DATA order = _tradingInfo[orderID];
 
@@ -226,7 +238,7 @@ void TradeStrategy::onSuccess(int orderID, double price)
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeStrategySrv[successBack]";
     info << "|orderID|" << orderID;
-    info << "|isMain|" << order.isMain;
+    info << "|statusWay|" << order.statusWay;
     info << "|isForecast|" << order.isForecast;
     info << "|waitingSize|" << _waitList.size();
     info << "|iID|" << order.instrumnetID;
@@ -235,33 +247,44 @@ void TradeStrategy::onSuccess(int orderID, double price)
 
     _clearTradeInfo(orderID);
 
-    // 只有主线单有机会更改状态
-    if (order.isMain) {
-        if (_waitList.size() == 0) {
+    // 主线单更改主状态
+    if (_waitList.size() == 0) {
 
-            switch (order.action) {
-                case TRADE_ACTION_BUYOPEN:
-                    _setStatus(TRADE_STATUS_BUYOPENED, order.instrumnetID);
-                    break;
-                case TRADE_ACTION_SELLOPEN:
-                    _setStatus(TRADE_STATUS_SELLOPENED, order.instrumnetID);
-                    break;
-                case TRADE_ACTION_BUYCLOSE:
-                case TRADE_ACTION_SELLCLOSE:
-                    _setStatus(TRADE_STATUS_NOTHING, order.instrumnetID);
-                    break;
-                default:
-                    break;
+        switch (order.action) {
+            case TRADE_ACTION_BUYOPEN:
+                _setStatus(order.statusWay, TRADE_STATUS_BUYOPENED, order.instrumnetID);
+                break;
+            case TRADE_ACTION_SELLOPEN:
+                _setStatus(order.statusWay, TRADE_STATUS_SELLOPENED, order.instrumnetID);
+                break;
+            case TRADE_ACTION_BUYCLOSE:
+            case TRADE_ACTION_SELLCLOSE:
+                _setStatus(order.statusWay, TRADE_STATUS_NOTHING, order.instrumnetID);
+                break;
+            default:
+                break;
+        }
+
+        if (_isRollback(orderID)) { // 回滚的订单成交了
+            _clearRollbackID(orderID);
+            if (_rollbackID.size() == 0) { // 全部都回滚了
+                MSG_TO_TRADE_LOGIC msg = {0};
+                msg.msgType = MSG_LOGIC_ROLLBACK;
+                strcpy(msg.tick.instrumnetID, order.instrumnetID.c_str());
+                _tradeLogicSrvClient->send((void *)&msg);
             }
-
-            if (order.isForecast) {
+        } else if (order.isForecast) {
+            if (order.statusWay == 1 || order.statusWay == 2) {
                 // 生成一个Tick，发送给K线系统
                 MSG_TO_KLINE msg = {0};
                 msg.msgType = MSG_TICK;
-                msg.tick.price = price;
-                msg.tick.bidPrice1 = price;
-                msg.tick.askPrice1 = price;
+                msg.tick.price = rsp.price;
+                msg.tick.bidPrice1 = rsp.price;
+                msg.tick.askPrice1 = rsp.price;
+                strcpy(msg.tick.date, rsp.date);
+                strcpy(msg.tick.time, rsp.time);
                 strcpy(msg.tick.instrumnetID, order.instrumnetID.c_str());
+                msg.isMy = true;
                 _klineClient->send((void *)&msg);
 
                 // 将数据放入队列，以便存入DB
@@ -273,22 +296,18 @@ void TradeStrategy::onSuccess(int orderID, double price)
             }
 
         } else {
-
-            MSG_TO_TRADE_STRATEGY msg = _waitList.front();
-            _waitList.pop_front();
-            _tradeAction(msg);
-
+            MSG_TO_TRADE_LOGIC msg = {0};
+            msg.msgType = MSG_LOGIC_REALBACK;
+            strcpy(msg.tick.instrumnetID, order.instrumnetID.c_str());
+            _tradeLogicSrvClient->send((void *)&msg);
         }
+
     } else {
-        switch (order.action) {
 
-            case TRADE_ACTION_BUYCLOSE:
-            case TRADE_ACTION_SELLCLOSE:
-                _setSecondStatus(TRADE_STATUS_NOTHING, order.instrumnetID);
-                break;
-            default:
-                break;
-        }
+        MSG_TO_TRADE_STRATEGY msg = _waitList.front();
+        _waitList.pop_front();
+        _tradeAction(msg);
+
     }
 }
 
@@ -296,13 +315,13 @@ void TradeStrategy::onCancel(int orderID)
 {
     if (!_isTrading(orderID)) return;
     TRADE_DATA order = _tradingInfo[orderID];
-    int status = _getStatus(order.instrumnetID);
+
     // log
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info);
     info << "TradeStrategySrv[cancelBack]";
     info << "|orderID|" << orderID;
-    info << "|isMain|" << order.isMain;
+    info << "|statusWay|" << order.statusWay;
     info << "|isForecast|" << order.isForecast;
     info << "|waitingSize|" << _waitList.size();
     info << "|iID|" << order.instrumnetID;
@@ -320,30 +339,38 @@ void TradeStrategy::onCancel(int orderID)
     }
 
     // 主线单有机会改状态
-    if (order.isMain) {
-        if (_waitList.size() == 0) {
-            switch (order.action) {
-                case TRADE_ACTION_BUYOPEN:
-                case TRADE_ACTION_SELLOPEN:
-                    if (status == TRADE_STATUS_BUYOPENING || status == TRADE_STATUS_SELLOPENING)
-                        _setStatus(order.beforeStatus, order.instrumnetID);
-                    break;
-                case TRADE_ACTION_BUYCLOSE:
-                    if (status == TRADE_STATUS_BUYCLOSING)
-                        _setStatus(order.beforeStatus, order.instrumnetID);
-                    break;
-                case TRADE_ACTION_SELLCLOSE:
-                    if (status == TRADE_STATUS_SELLCLOSING)
-                        _setStatus(order.beforeStatus, order.instrumnetID);
-                    break;
-                default:
-                    break;
-            }
-        } else {
-            MSG_TO_TRADE_STRATEGY msg = _waitList.front();
-            _waitList.pop_front();
-            _tradeAction(msg);
+    if (_waitList.size() == 0) {
+        switch (order.action) {
+            case TRADE_ACTION_BUYOPEN:
+            case TRADE_ACTION_SELLOPEN:
+                _setStatus(order.statusWay, TRADE_STATUS_NOTHING, order.instrumnetID);
+                break;
+            case TRADE_ACTION_BUYCLOSE:
+                _setStatus(order.statusWay, TRADE_STATUS_SELLOPENED, order.instrumnetID);
+                break;
+            case TRADE_ACTION_SELLCLOSE:
+                _setStatus(order.statusWay, TRADE_STATUS_BUYOPENED, order.instrumnetID);
+                break;
+            default:
+                break;
         }
+
+        if (_isRollback(orderID)) { // 回滚的订单成交了
+            _clearRollbackID(orderID);
+            if (_rollbackID.size() == 0) { // 全部都回滚了
+                MSG_TO_TRADE_LOGIC msg = {0};
+                msg.msgType = MSG_LOGIC_ROLLBACK;
+                strcpy(msg.tick.instrumnetID, order.instrumnetID.c_str());
+                _tradeLogicSrvClient->send((void *)&msg);
+            }
+        }
+
+
+    } else {
+
+        MSG_TO_TRADE_STRATEGY msg = _waitList.front();
+        _waitList.pop_front();
+        _tradeAction(msg);
     }
     _clearTradeInfo(orderID);
 
@@ -356,7 +383,7 @@ void TradeStrategy::onErr(int orderID, int errNo)
     TRADE_DATA order = _tradingInfo[orderID];
     if (errNo == 50) {
         _clearTradeInfo(orderID);
-        _setStatus(TRADE_STATUS_NOTHING, order.instrumnetID);
+        _setStatus(order.statusWay, TRADE_STATUS_NOTHING, order.instrumnetID);
     }
 }
 
@@ -406,7 +433,7 @@ void TradeStrategy::_zhuijia(int orderID)
     if (!_isTrading(orderID)) return;
     TRADE_DATA order = _tradingInfo[orderID];
 
-    int newOrderID = _initTrade(order.action, order.kIndex, order.total, order.instrumnetID, order.price, order.forecastID, order.isForecast, order.isMain, order.beforeStatus, true);
+    int newOrderID = _initTrade(order.action, order.kIndex, order.total, order.instrumnetID, order.price, order.forecastID, order.isForecast, order.statusWay, true);
 
     // log
     ofstream info;
@@ -436,7 +463,7 @@ void TradeStrategy::_zhuijia(int orderID)
     setTimer(newOrderID);
 }
 
-void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen, int orderID)
+void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen, int orderID, bool isFok)
 {
     usleep(1000);
     TRADE_DATA order = _tradingInfo[orderID];
@@ -447,6 +474,7 @@ void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen, i
     msg.isBuy = isBuy;
     msg.total = total;
     msg.isOpen = isOpen;
+    msg.isFok = isFok;
     msg.orderID = orderID;
     strcpy(msg.instrumnetID, Lib::stoc(order.instrumnetID));
     _tradeSrvClient->send((void *)&msg);
@@ -471,18 +499,13 @@ TickData TradeStrategy::_getTick(string iID)
     return Lib::string2TickData(tickStr);
 }
 
-int TradeStrategy::_getStatus(string instrumnetID)
+int TradeStrategy::_getStatus(int way, string instrumnetID)
 {
-    string status = _store->get("TRADE_STATUS_" + instrumnetID);
+    string status = _store->get("TRADE_STATUS_" + Lib::itos(way) + "_" + instrumnetID);
     return Lib::stoi(status);
 }
 
-void TradeStrategy::_setStatus(int status, string instrumnetID)
+void TradeStrategy::_setStatus(int way, int status, string instrumnetID)
 {
-    _store->set("TRADE_STATUS_" + instrumnetID, Lib::itos(status));
-}
-
-void TradeStrategy::_setSecondStatus(int status, string instrumnetID)
-{
-    _store->set("TRADE_SECOND_STATUS_" + instrumnetID, Lib::itos(status));
+    _store->set("TRADE_STATUS_" + Lib::itos(way) + "_" + instrumnetID, Lib::itos(status));
 }

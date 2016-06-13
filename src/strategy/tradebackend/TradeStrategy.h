@@ -18,8 +18,7 @@ typedef struct trade_data
     int kIndex;
     int forecastID;
     bool isForecast;
-    bool isMain;
-    int beforeStatus;
+    int statusWay;
     string instrumnetID;
 
 } TRADE_DATA;
@@ -31,7 +30,12 @@ private:
     Redis * _store;
     QClient * _tradeSrvClient;
     QClient * _klineClient;
+    QClient * _tradeLogicSrvClient;
     string _logPath;
+
+    std::map<int, int> _rollbackID;
+    bool _isRollback(int);
+    void _clearRollbackID(int);
 
     int _orderID;
     std::map<int, TRADE_DATA> _tradingInfo; // orderID -> tradeInfo
@@ -41,25 +45,24 @@ private:
 
     std::list<MSG_TO_TRADE_STRATEGY> _waitList;
 
-    int _initTrade(int, int, int, string, double, int, bool, bool, int, bool = false); // 初始化交易
+    int _initTrade(int, int, int, string, double, int, bool, int, bool = false); // 初始化交易
     void _clearTradeInfo(int);
 
     void _tradeAction(MSG_TO_TRADE_STRATEGY);
     void _zhuijia(int); // 追价
     void _cancel(int, int = 1); // 撤销
 
-    int _getStatus(string);
-    void _setStatus(int, string);
-    void _setSecondStatus(int, string);
+    int _getStatus(int, string);
+    void _setStatus(int, int, string);
     TickData _getTick(string);
-    void _sendMsg(double, int, bool, bool, int);
+    void _sendMsg(double, int, bool, bool, int, bool = false);
 
 public:
-    TradeStrategy(int, string, int, int);
+    TradeStrategy(int, string, int, int, int);
     ~TradeStrategy();
 
     void trade(MSG_TO_TRADE_STRATEGY);
-    void onSuccess(int, double);
+    void onSuccess(MSG_TO_TRADE_STRATEGY);
     void onCancel(int);
     void onErr(int, int);
     void timeout(int);

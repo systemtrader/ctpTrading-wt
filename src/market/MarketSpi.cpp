@@ -106,7 +106,7 @@ void MarketSpi::_saveMarketData(CThostFtdcDepthMarketDataField *data)
     msg.tick.volume = data->Volume;
     msg.tick.bidPrice1 = data->BidPrice1;
     msg.tick.askPrice1 = data->AskPrice1;
-    strcpy(msg.tick.date, data->TradingDay);
+    strcpy(msg.tick.date, data->ActionDay);
     strcpy(msg.tick.time, data->UpdateTime);
     strcpy(msg.tick.instrumnetID, data->InstrumentID);
     msg.tick.msec = data->UpdateMillisec;

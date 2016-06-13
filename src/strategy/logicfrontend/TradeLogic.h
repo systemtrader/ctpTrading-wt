@@ -6,16 +6,45 @@
 #include "../../libs/Redis.h"
 #include "../../protos/KLineBlock.h"
 #include <list>
+#include <map>
 
 #define TRANS_TYPE_UP2UP     0
 #define TRANS_TYPE_UP2DOWN   1
 #define TRANS_TYPE_DOWN2UP   2
 #define TRANS_TYPE_DOWN2DOWN 3
 
+
+#define STATUS_TYPE_CLOSE_NO 0
+#define STATUS_TYPE_CLOSE_BOED 1
+#define STATUS_TYPE_CLOSE_SOED 2
+#define STATUS_TYPE_CLOSE_BOING 3
+#define STATUS_TYPE_CLOSE_SOING 4
+#define STATUS_TYPE_CLOSE_BOING_SOING 5
+
+#define STATUS_TYPE_CLOSE_SCING 6
+#define STATUS_TYPE_CLOSE_BCING 7
+#define STATUS_TYPE_CLOSE_SOING_SCING 8
+#define STATUS_TYPE_CLOSE_SOING_NO 9
+#define STATUS_TYPE_CLOSE_BOING_BCING 10
+#define STATUS_TYPE_CLOSE_BOING_NO 11
+
+#define STATUS_TYPE_MYCLOSE_BOED 12
+#define STATUS_TYPE_MYCLOSE_SOED 13
+#define STATUS_TYPE_MYCLOSE_BOED_SOING 14
+#define STATUS_TYPE_MYCLOSE_BOING_SOED 15
+
+#define STATUS_TYPE_MYCLOSE_NO 16
+#define STATUS_TYPE_MYCLOSE_SOED_SCING 17
+#define STATUS_TYPE_MYCLOSE_SOED_NO 18
+#define STATUS_TYPE_MYCLOSE_BOED_BCING 19
+#define STATUS_TYPE_MYCLOSE_BOED_NO 20
+
+
 typedef struct trade_hm
 {
     int hour;
     int min;
+
 } TRADE_HM;
 
 class TradeLogic
@@ -37,7 +66,7 @@ private:
     int _rollbackCloseUID;
     int _rollbackCloseDID;
     void _setRollbackID(int, int);
-    int _kRange;
+    int _kRange; // 放弃
 
     // 算法参数
     int _peroid; // 周期
@@ -64,17 +93,24 @@ private:
     void _tick(TickData); // 处理tick信息
 
     bool _isCurrentUp();
+
+    int _statusType;
     void _rollback();
+
+    TickData _closeTick;
+    void _forecast(TickData);
     void _forecastNothing(TickData);
     void _forecastSellOpened(TickData);
     void _forecastBuyOpened(TickData);
-
+    void _realAction(TickData);
+    void _onKLineCloseDo(TickData);
     void _sendRollBack(int);
 
     // 判断仓位状态
-    int _getStatus();
-    int _getSecondStatus();
-    void _sendMsg(int, double = 0, bool = false, int = 0, bool = false);
+    TickData _getTick();
+    int _getStatus(int);
+    void _setStatus(int, int);
+    void _sendMsg(int, double, bool, int, int, bool = false);
 
 public:
     TradeLogic(int, double, double, int, string, int, string, string, int);
@@ -83,7 +119,10 @@ public:
     void init(); // 初始化历史K线
 
     void onKLineClose(KLineBlock, TickData);
-    void onKLineOpen(KLineBlock, TickData);
+    // void onKLineOpen(KLineBlock, TickData);
+    void onKLineCloseByMe(KLineBlock, TickData);
+    void onRollback();
+    void onRealActionBack();
 };
 
 #endif

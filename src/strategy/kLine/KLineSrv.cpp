@@ -29,12 +29,12 @@ KLineSrv::~KLineSrv()
     cout << "~KLineSrv" << endl;
 }
 
-void KLineSrv::onTickCome(TickData tick)
+void KLineSrv::onTickCome(TickData tick, bool isMy)
 {
     if (_isBlockExist()) {
         _updateBlock(tick);
         if (_checkBlockClose(tick)) {
-            _closeBlock(tick);
+            _closeBlock(tick, isMy);
             _initBlock(tick);// 两根K线的开闭共享一个tick
         }
     } else {
@@ -61,12 +61,12 @@ void KLineSrv::_initBlock(TickData tick)
     info << "|index|" << _index << endl;
     info.close();
 
-    // 发送消息
-    MSG_TO_TRADE_LOGIC msg = {0};
-    msg.msgType = MSG_KLINE_OPEN;
-    msg.block = _currentBlock->exportData();
-    msg.tick = tick;
-    _tradeLogicSrvClient->send((void *)&msg);
+    // // 发送消息
+    // MSG_TO_TRADE_LOGIC msg = {0};
+    // msg.msgType = MSG_KLINE_OPEN;
+    // msg.block = _currentBlock->exportData();
+    // msg.tick = tick;
+    // _tradeLogicSrvClient->send((void *)&msg);
 
     _index++;
 }
@@ -84,7 +84,7 @@ void KLineSrv::_updateBlock(TickData tick)
     _currentBlock->update(tick);
 }
 
-void KLineSrv::_closeBlock(TickData tick)
+void KLineSrv::_closeBlock(TickData tick, bool isMy)
 {
 
     _currentBlock->close();
@@ -101,12 +101,19 @@ void KLineSrv::_closeBlock(TickData tick)
     info << "|index|" << blockData.index;
     info << "|open|" << blockData.open;
     info << "|close|" << blockData.close;
+    info << "|isMy|" << isMy;
+    info << endl;
+    info << endl;
     info << endl;
     info.close();
 
     // 发送消息
     MSG_TO_TRADE_LOGIC msg = {0};
-    msg.msgType = MSG_KLINE_CLOSE;
+    if (isMy) {
+        msg.msgType = MSG_KLINE_CLOSE_BY_ME;
+    } else {
+        msg.msgType = MSG_KLINE_CLOSE;
+    }
     msg.block = blockData;
     msg.tick = tick;
     _tradeLogicSrvClient->send((void *)&msg);

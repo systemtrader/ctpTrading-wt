@@ -73,10 +73,26 @@ bool action(long int msgType, const void * data)
         services[string(tick.instrumnetID)]->onKLineClose(block, tick);
     }
 
-    if (msgType == MSG_KLINE_OPEN) {
+    if (msgType == MSG_KLINE_CLOSE_BY_ME) {
         KLineBlock block = KLineBlock::makeViaData(((MSG_TO_TRADE_LOGIC*)data)->block);
         TickData tick = ((MSG_TO_TRADE_LOGIC*)data)->tick;
-        services[string(tick.instrumnetID)]->onKLineOpen(block, tick);
+        services[string(tick.instrumnetID)]->onKLineCloseByMe(block, tick);
+    }
+
+    // if (msgType == MSG_KLINE_OPEN) {
+    //     KLineBlock block = KLineBlock::makeViaData(((MSG_TO_TRADE_LOGIC*)data)->block);
+    //     TickData tick = ((MSG_TO_TRADE_LOGIC*)data)->tick;
+    //     services[string(tick.instrumnetID)]->onKLineOpen(block, tick);
+    // }
+
+    if (msgType == MSG_LOGIC_ROLLBACK) {
+        TickData tick = ((MSG_TO_TRADE_LOGIC*)data)->tick;
+        services[string(tick.instrumnetID)]->onRollback();
+    }
+
+    if (msgType == MSG_LOGIC_REALBACK) {
+        TickData tick = ((MSG_TO_TRADE_LOGIC*)data)->tick;
+        services[string(tick.instrumnetID)]->onRealActionBack();
     }
 
     return true;
