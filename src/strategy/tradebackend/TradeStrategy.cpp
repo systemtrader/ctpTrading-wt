@@ -364,6 +364,16 @@ void TradeStrategy::onCancel(int orderID)
                 _tradeLogicSrvClient->send((void *)&msg);
             }
         }
+        if (!order.isForecast) { // 实时单，对于开仓，撤销以后给反馈
+            if (order.action == TRADE_ACTION_BUYOPEN || 
+                order.action == TRADE_ACTION_SELLOPEN)
+            {
+                MSG_TO_TRADE_LOGIC msg = {0};
+                msg.msgType = MSG_LOGIC_REALBACK;
+                strcpy(msg.tick.instrumnetID, order.instrumnetID.c_str());
+                _tradeLogicSrvClient->send((void *)&msg);
+            }
+        }
 
 
     } else {
