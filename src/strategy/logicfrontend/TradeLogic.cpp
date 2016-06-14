@@ -705,7 +705,7 @@ void TradeLogic::onRollback()
             if (status2 == TRADE_STATUS_NOTHING && status1 == TRADE_STATUS_BUYOPENED) {
                 _forecast(_closeTick);
             }
-
+            break;
 
         case STATUS_TYPE_CLOSE_SCING:
         case STATUS_TYPE_CLOSE_BCING:
@@ -738,6 +738,7 @@ void TradeLogic::onRollback()
             if (status1 == TRADE_STATUS_SELLOPENED && status3 == TRADE_STATUS_NOTHING) {
                 _forecast(_closeTick);
             }
+            break;
 
         case STATUS_TYPE_CLOSE_BOING_BCING:
             if (status1 == TRADE_STATUS_NOTHING && status3 == TRADE_STATUS_SELLOPENED) {
@@ -753,6 +754,7 @@ void TradeLogic::onRollback()
             if (status1 == TRADE_STATUS_BUYOPENED && status3 == TRADE_STATUS_NOTHING) {
                 _forecast(_closeTick);
             }
+            break;
         default:
             break;
     }
