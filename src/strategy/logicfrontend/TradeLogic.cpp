@@ -427,8 +427,8 @@ void TradeLogic::_realAction(TickData tick)
 
             if (_isCurrentUp()) {
                 _calculateUp(_countUp2Down, _countUp2Up);
-                if (_pUp2Up <= _thresholdTrend ) { // 不满足买开，平仓
-                    if (_pUp2Down > _thresholdVibrate) {
+                if (_pUp2Down <= _thresholdVibrate) { // 不满足买开，平仓
+                    if (_pUp2Up > _thresholdTrend) {
                         _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 1);
                         _sendMsg(MSG_TRADE_BUYOPEN, tick.price, false, 0, 1, true);
                     } else {
@@ -440,8 +440,8 @@ void TradeLogic::_realAction(TickData tick)
 
             } else {
                 _calculateDown(_countDown2Up, _countDown2Down);
-                if (_pDown2Up <= _thresholdVibrate) { // 不满足买开，平
-                    if (_pDown2Down > _thresholdTrend) {
+                if (_pDown2Down <= _thresholdTrend) { // 不满足买开，平
+                    if (_pDown2Up > _thresholdVibrate) {
                         _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 1);
                         _sendMsg(MSG_TRADE_BUYOPEN, tick.price, false, 0, 1, true);
                     } else {
