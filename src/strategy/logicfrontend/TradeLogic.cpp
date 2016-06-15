@@ -395,6 +395,10 @@ void TradeLogic::_forecast(TickData tick)
 
 void TradeLogic::_realAction(TickData tick)
 {
+    if (_transTypeList.size() < _peroid - 1) {
+        return; // 计算概率条件不足，不做操作
+    }
+
     int status1 = _getStatus(1);
 
     ofstream info;
