@@ -36,7 +36,6 @@ void KLineSrv::onTickCome(TickData tick, bool isMy)
         Lib::initInfoLogHandle(_logPath, info);
         info << "KLineSrv[onMyTick]";
         info << "|iID|" << _instrumnetID;
-        info << "|index|" << _index;
         info << "|open|" << _currentBlock->getOpenPrice();
         info << "|price|" << tick.price;
         info << "|range|" << _kRange;
@@ -45,7 +44,7 @@ void KLineSrv::onTickCome(TickData tick, bool isMy)
     }
     if (_isBlockExist()) {
         _updateBlock(tick);
-        if (_checkBlockClose(tick)) {
+        if (_checkBlockClose(tick, isMy)) {
             _closeBlock(tick, isMy);
             _initBlock(tick);// 两根K线的开闭共享一个tick
         }
@@ -85,9 +84,21 @@ void KLineSrv::_initBlock(TickData tick)
     _index++;
 }
 
-bool KLineSrv::_checkBlockClose(TickData tick)
+bool KLineSrv::_checkBlockClose(TickData tick, bool isMy)
 {
-    if (abs(_currentBlock->getOpenPrice() - tick.price) >= _kRange) {
+    if (isMy) {
+        ofstream info;
+        Lib::initInfoLogHandle(_logPath, info);
+        info << "KLineSrv[checkBlockClose]";
+        info << "|iID|" << _instrumnetID;
+        info << "|abc|" << abs(_currentBlock->getOpenPrice() - tick.price);
+        info << "|open|" << _currentBlock->getOpenPrice();
+        info << "|price|" << tick.price;
+        info << "|range|" << _kRange;
+        info << endl;
+        info.close();
+    }
+    if ((int)abs(_currentBlock->getOpenPrice() - tick.price) >= _kRange) {
         return true;
     }
     return false;

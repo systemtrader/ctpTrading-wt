@@ -22,7 +22,7 @@ private:
     string _logPath;
 
     bool _isBlockExist();
-    bool _checkBlockClose(TickData);
+    bool _checkBlockClose(TickData, bool);
     void _initBlock(TickData);
     void _updateBlock(TickData);
     void _closeBlock(TickData, bool);
