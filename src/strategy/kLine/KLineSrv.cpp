@@ -31,6 +31,18 @@ KLineSrv::~KLineSrv()
 
 void KLineSrv::onTickCome(TickData tick, bool isMy)
 {
+    if (isMy) {
+        ofstream info;
+        Lib::initInfoLogHandle(_logPath, info);
+        info << "KLineSrv[onMyTick]";
+        info << "|iID|" << _instrumnetID;
+        info << "|index|" << _index;
+        info << "|open|" << _currentBlock->getOpenPrice();
+        info << "|price|" << tick.price;
+        info << "|range|" << _kRange;
+        info << endl;
+        info.close();
+    }
     if (_isBlockExist()) {
         _updateBlock(tick);
         if (_checkBlockClose(tick)) {
@@ -58,7 +70,9 @@ void KLineSrv::_initBlock(TickData tick)
     Lib::initInfoLogHandle(_logPath, info);
     info << "KLineSrv[open]";
     info << "|iID|" << _instrumnetID;
-    info << "|index|" << _index << endl;
+    info << "|index|" << _index;
+    info << "|open|" << _currentBlock->getOpenPrice();
+    info << endl;
     info.close();
 
     // // 发送消息
