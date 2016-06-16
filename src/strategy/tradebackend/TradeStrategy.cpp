@@ -107,7 +107,6 @@ void TradeStrategy::_clearRollbackID(int orderID)
     info << endl;
     info.close();
 }
-}
 
 void TradeStrategy::_clearTradeInfo(int orderID)
 {
