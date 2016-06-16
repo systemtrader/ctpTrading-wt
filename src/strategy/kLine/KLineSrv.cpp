@@ -98,7 +98,7 @@ bool KLineSrv::_checkBlockClose(TickData tick, bool isMy)
         info << endl;
         info.close();
     }
-    if ((int)abs(_currentBlock->getOpenPrice() - tick.price) >= _kRange) {
+    if (abs(_currentBlock->getOpenPrice() - tick.price) >= (double)_kRange - 0.1) {
         return true;
     }
     return false;
