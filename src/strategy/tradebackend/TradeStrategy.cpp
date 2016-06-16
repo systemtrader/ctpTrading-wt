@@ -99,6 +99,14 @@ void TradeStrategy::_clearRollbackID(int orderID)
 {
     std::map<int, int>::iterator j = _rollbackID.find(orderID);
     if (j != _rollbackID.end()) _rollbackID.erase(j);
+    // log
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info);
+    info << "TradeStrategySrv[clearRollbackID]";
+    info << "|orderID|" << orderID;
+    info << endl;
+    info.close();
+}
 }
 
 void TradeStrategy::_clearTradeInfo(int orderID)
@@ -275,6 +283,18 @@ void TradeStrategy::onSuccess(MSG_TO_TRADE_STRATEGY rsp)
             }
         } else if (order.isForecast) {
             if (order.statusWay == 1 || order.statusWay == 2) {
+
+                Lib::initInfoLogHandle(_logPath, info);
+                info << "TradeStrategySrv[sendMyTick]";
+                info << "|orderID|" << orderID;
+                info << "|statusWay|" << order.statusWay;
+                info << "|iID|" << order.instrumnetID;
+                info << "|price|" << rsp.price;
+                info << "|date|" << rsp.date;
+                info << "|time|" << rsp.time;
+                info << endl;
+                info.close();
+
                 // 生成一个Tick，发送给K线系统
                 MSG_TO_KLINE msg = {0};
                 msg.msgType = MSG_TICK;
@@ -365,7 +385,7 @@ void TradeStrategy::onCancel(int orderID)
             }
         }
         if (!order.isForecast) { // 实时单，对于开仓，撤销以后给反馈
-            if (order.action == TRADE_ACTION_BUYOPEN || 
+            if (order.action == TRADE_ACTION_BUYOPEN ||
                 order.action == TRADE_ACTION_SELLOPEN)
             {
                 MSG_TO_TRADE_LOGIC msg = {0};

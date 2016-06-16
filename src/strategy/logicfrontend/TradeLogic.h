@@ -58,6 +58,8 @@ private:
     string _instrumnetID; // 合约代码
     std::vector<TRADE_HM> _timeHM; // 停止交易时间
 
+    bool _isLock;
+
     int _forecastID;
     int _rollbackOpenUUID;
     int _rollbackOpenUDID;

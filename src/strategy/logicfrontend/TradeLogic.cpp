@@ -12,6 +12,7 @@ TradeLogic::TradeLogic(int peroid, double thresholdTrend, double thresholdVibrat
     int serviceID, string logPath, int db,
     string stopTradeTime, string instrumnetID, int kRange)
 {
+    _isLock = false;
     _instrumnetID = instrumnetID;
 
     _peroid = peroid;
@@ -391,6 +392,7 @@ void TradeLogic::_forecast(TickData tick)
         default:
             break;
     }
+    _isLock = false;
 }
 
 void TradeLogic::_realAction(TickData tick)
@@ -505,8 +507,14 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
     info << "|status1|" << status1;
     info << "|status2|" << status2;
     info << "|status3|" << status3;
+    info << "|isLock|" << _isLock;
     info << endl;
     info.close();
+
+    if (_isLock) {
+        return;
+    }
+    _isLock = true;
 
     switch (status1) {
 
