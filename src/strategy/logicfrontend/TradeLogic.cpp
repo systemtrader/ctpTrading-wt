@@ -621,6 +621,9 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
 
         case TRADE_STATUS_NOTHING:
             _statusType = STATUS_TYPE_CLOSE_NO;
+            if (status2 == TRADE_STATUS_SELLOPENING) {
+                _statusType = STATUS_TYPE_CLOSE_NO_SOING;
+            }
             break;
         case TRADE_STATUS_SELLOPENED:
             _statusType = STATUS_TYPE_CLOSE_SOED;
@@ -635,6 +638,9 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
 
             if (status2 == TRADE_STATUS_SELLOPENING) {
                 _statusType = STATUS_TYPE_CLOSE_BOING_SOING;
+            }
+            if (status2 == TRADE_STATUS_NOTHING) {
+                _statusType = STATUS_TYPE_CLOSE_BOING_NO;
             }
 
             if (status3 == TRADE_STATUS_BUYCLOSING) {
@@ -697,6 +703,9 @@ void TradeLogic::onKLineCloseByMe(KLineBlock block, TickData tick)
 
         case TRADE_STATUS_NOTHING:
             _statusType = STATUS_TYPE_MYCLOSE_NO;
+            if (status2 == TRADE_STATUS_SELLOPENED) {
+                _statusType = STATUS_TYPE_MYCLOSE_NO_SOED;
+            }
             break;
 
         case TRADE_STATUS_BUYOPENING: // 同时开两仓 buy是1通道 sell是2通道
@@ -726,6 +735,9 @@ void TradeLogic::onKLineCloseByMe(KLineBlock block, TickData tick)
             if (status2 == TRADE_STATUS_SELLOPENING) {
                 _statusType = STATUS_TYPE_MYCLOSE_BOED_SOING;
             }
+            if (status2 == TRADE_STATUS_NOTHING) {
+                _statusType = STATUS_TYPE_MYCLOSE_NO_SOED;
+            }
             break;
 
         default:
@@ -748,6 +760,7 @@ void TradeLogic::_onKLineCloseDo(TickData tick)
         case STATUS_TYPE_MYCLOSE_NO:
         case STATUS_TYPE_MYCLOSE_SOED_NO:
         case STATUS_TYPE_MYCLOSE_BOED_NO:
+        case STATUS_TYPE_MYCLOSE_NO_SOED:
             _forecast(tick);
             break;
         case STATUS_TYPE_CLOSE_BOING:
@@ -763,6 +776,7 @@ void TradeLogic::_onKLineCloseDo(TickData tick)
         case STATUS_TYPE_MYCLOSE_BOING_SOED:
         case STATUS_TYPE_MYCLOSE_SOED_SCING:
         case STATUS_TYPE_MYCLOSE_BOED_BCING:
+        case STATUS_TYPE_CLOSE_NO_SOING:
             _rollback();
             break;
         default:
