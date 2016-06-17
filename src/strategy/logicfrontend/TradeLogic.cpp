@@ -10,7 +10,7 @@
 
 TradeLogic::TradeLogic(int peroid, double thresholdTrend, double thresholdVibrate,
     int serviceID, string logPath, int db,
-    string stopTradeTime, string instrumnetID, int kRange)
+    string stopTradeTime, string startTradeTime, string instrumnetID, int kRange)
 {
     _isLock = false;
     _instrumnetID = instrumnetID;
@@ -22,6 +22,7 @@ TradeLogic::TradeLogic(int peroid, double thresholdTrend, double thresholdVibrat
     _logPath = logPath;
     _forecastID = 0;
     _kRange = kRange;
+    _isTradeEnd = false;
 
     // 初始化模型参数
     _pUp2Up = _pUp2Down = _pDown2Up = _pDown2Down = 0;
@@ -37,7 +38,17 @@ TradeLogic::TradeLogic(int peroid, double thresholdTrend, double thresholdVibrat
         hm = Lib::split(times[i], ":");
         tmp.hour = Lib::stoi(hm[0]);
         tmp.min = Lib::stoi(hm[1]);
-        _timeHM.push_back(tmp);
+        _stopHM.push_back(tmp);
+    }
+
+    times = Lib::split(startTradeTime, "/");
+    for (i = 0; i < times.size(); ++i)
+    {
+        TRADE_HM tmp = {0};
+        hm = Lib::split(times[i], ":");
+        tmp.hour = Lib::stoi(hm[0]);
+        tmp.min = Lib::stoi(hm[1]);
+        _startHM.push_back(tmp);
     }
 
     _store = new Redis("127.0.0.1", 6379, db);
@@ -61,6 +72,28 @@ void TradeLogic::init()
         tick.price = Lib::stod(ticks[i]);
         _tick(tick);
     }
+}
+
+bool TradeLogic::_isTradingTime(TickData tick)
+{
+    string now = string(tick.time);
+    now = now.substr(0, 5);
+    std::vector<string> nowHM = Lib::split(now, ":");
+    int i;
+    for (i = 0; i < _stopHM.size(); ++i)
+    {
+        if (_stopHM[i].hour == Lib::stoi(nowHM[0]) && Lib::stoi(nowHM[1]) >= _stopHM[i].min) {
+            _isTradeEnd = true;
+            return false;
+        }
+    }
+    for (i = 0; i < _startHM.size(); ++i)
+    {
+        if (_startHM[i].hour == Lib::stoi(nowHM[0]) && Lib::stoi(nowHM[1]) < _startHM[i].min) {
+            return false;
+        }
+    }
+    return true;
 }
 
 void TradeLogic::_tick(TickData tick)
@@ -208,27 +241,35 @@ void TradeLogic::_setRollbackID(int type, int id)
     }
 }
 
-void TradeLogic::_rollback()
+bool TradeLogic::_rollback()
 {
+    bool flg = false;
     if (_rollbackOpenUUID > 0) {
+        flg = true;
         _sendRollBack(_rollbackOpenUUID);
     }
     if (_rollbackOpenUDID > 0) {
+        flg = true;
         _sendRollBack(_rollbackOpenUDID);
     }
     if (_rollbackOpenDUID > 0) {
+        flg = true;
         _sendRollBack(_rollbackOpenDUID);
     }
     if (_rollbackOpenDDID > 0) {
+        flg = true;
         _sendRollBack(_rollbackOpenDDID);
     }
 
     if (_rollbackCloseUID > 0) {
+        flg = true;
         _sendRollBack(_rollbackCloseUID);
     }
     if (_rollbackCloseDID > 0) {
+        flg = true;
         _sendRollBack(_rollbackCloseDID);
     }
+    return flg;
 }
 
 void TradeLogic::_forecastNothing(TickData tick)
@@ -491,9 +532,69 @@ void TradeLogic::_realAction(TickData tick)
     }
 }
 
+void TradeLogic::_endClose()
+{
+    int status1 = _getStatus(1);
+    int status2 = _getStatus(2);
+    int status3 = _getStatus(3);
+
+    //log
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info);
+    info << "TradeLogicSrv[endClose]";
+    info << "|status1|" << status1;
+    info << "|status2|" << status2;
+    info << "|status3|" << status3;
+    info << endl;
+    info.close();
+
+    TickData tick = _getTick();
+
+    if (status1 != TRADE_STATUS_NOTHING)
+    {
+        _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 1);
+        _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 1);
+    }
+
+    if (status2 != TRADE_STATUS_NOTHING)
+    {
+        _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 2);
+        _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 2);
+    }
+
+    if (status3 != TRADE_STATUS_NOTHING)
+    {
+        _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 3);
+        _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 3);
+    }
+
+}
+
+void TradeLogic::onTradeEnd()
+{
+    //log
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info);
+    info << "TradeLogicSrv[onTradeEnd]";
+    info << endl;
+    info.close();
+
+    bool flg = _rollback();
+    _isTradeEnd = true;
+
+    _setRollbackID(OUU, 0);
+    _setRollbackID(OUD, 0);
+    _setRollbackID(ODD, 0);
+    _setRollbackID(ODU, 0);
+    _setRollbackID(CU, 0);
+    _setRollbackID(CD, 0);
+
+    _endClose();
+}
 
 void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
 {
+    if (!_isTradingTime(tick)) return;
     _kIndex = block.getIndex();
     _tick(tick);
     int status1 = _getStatus(1);
@@ -573,6 +674,7 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
 
 void TradeLogic::onKLineCloseByMe(KLineBlock block, TickData tick)
 {
+    if (!_isTradingTime(tick)) return;
     _kIndex = block.getIndex();
     _tick(tick);
     int status1 = _getStatus(1);
@@ -588,6 +690,8 @@ void TradeLogic::onKLineCloseByMe(KLineBlock block, TickData tick)
     info << "|status3|" << status3;
     info << endl;
     info.close();
+
+    _isLock = true;
 
     switch (status1) {
 
@@ -684,6 +788,11 @@ void TradeLogic::onRollback()
     info.close();
 
     TickData tick = _getTick();
+
+    if (_isTradeEnd) {
+        _endClose();
+        return;
+    }
 
     switch (_statusType) {
         case STATUS_TYPE_CLOSE_BOING:
@@ -811,14 +920,7 @@ void TradeLogic::_setStatus(int way, int status)
 
 void TradeLogic::_sendMsg(int msgType, double price, bool isForecast, int forecastID, int statusWay, bool isFok)
 {
-    string now = Lib::getDate("%H:%M");
-    std::vector<string> nowHM = Lib::split(now, ":");
-    for (int i = 0; i < _timeHM.size(); ++i)
-    {
-        if (_timeHM[i].hour == Lib::stoi(nowHM[0]) && Lib::stoi(nowHM[1]) > _timeHM[i].min) {
-            return;
-        }
-    }
+
     int kIndex = _kIndex;
     if (isForecast) kIndex++;
     //log

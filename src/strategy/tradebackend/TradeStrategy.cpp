@@ -106,6 +106,7 @@ void TradeStrategy::_clearRollbackID(int orderID)
     info << "|orderID|" << orderID;
     info << endl;
     info.close();
+
 }
 
 void TradeStrategy::_clearTradeInfo(int orderID)
@@ -494,7 +495,7 @@ void TradeStrategy::_zhuijia(int orderID)
 
 void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen, int orderID, bool isFok)
 {
-    usleep(1000);
+    usleep(1500);
     TRADE_DATA order = _tradingInfo[orderID];
 
     MSG_TO_TRADE msg = {0};

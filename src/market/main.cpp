@@ -36,6 +36,8 @@ int main(int argc, char const *argv[])
     } else {
         db = getOptionToInt("rds_db_online");
     }
+    string stopTradeTime = getOptionToString("stop_trade_time");
+    int tradeLogicSrvID = getOptionToInt("trade_logic_service_id");
 
     signal(30, shutdown);
     ofstream pid;
@@ -45,7 +47,7 @@ int main(int argc, char const *argv[])
 
     // 初始化交易接口
     mApi = CThostFtdcMdApi::CreateFtdcMdApi(flowPath.c_str());
-    MarketSpi mSpi(mApi, logPath, kLineSrvID, bid, userID, password, instrumnetIDs, db); // 初始化回调实例
+    MarketSpi mSpi(mApi, logPath, kLineSrvID, bid, userID, password, instrumnetIDs, db, stopTradeTime, tradeLogicSrvID); // 初始化回调实例
     mApi->RegisterSpi(&mSpi);
     mApi->RegisterFront(Lib::stoc(mURL));
     mApi->Init();

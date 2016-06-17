@@ -4,7 +4,8 @@ using namespace std;
 
 MarketSpi::MarketSpi(CThostFtdcMdApi * mdApi, string logPath,
     int serviceID,
-    string brokerID, string userID, string password, string instrumnetIDs, int db)
+    string brokerID, string userID, string password, string instrumnetIDs, int db,
+    string stopTradeTime, int serviceIDT)
 {
     _mdApi = mdApi;
     _logPath = logPath;
@@ -16,7 +17,21 @@ MarketSpi::MarketSpi(CThostFtdcMdApi * mdApi, string logPath,
     _instrumnetIDs = Lib::split(instrumnetIDs, "/");
 
     _klineClient = new QClient(serviceID, sizeof(MSG_TO_KLINE));
+    _tradeLogicSrvClient = new QClient(serviceIDT, sizeof(MSG_TO_TRADE_LOGIC));
     _store = new Redis("127.0.0.1", 6379, db);
+
+    // 初始化停止交易时间
+    std::vector<string> times = Lib::split(stopTradeTime, "/");
+    std::vector<string> hm;
+    int i;
+    for (i = 0; i < times.size(); ++i)
+    {
+        TRADE_HM tmp = {0};
+        hm = Lib::split(times[i], ":");
+        tmp.hour = Lib::stoi(hm[0]);
+        tmp.min = Lib::stoi(hm[1]);
+        _stopHM.push_back(tmp);
+    }
 
 }
 
@@ -119,6 +134,20 @@ void MarketSpi::_saveMarketData(CThostFtdcDepthMarketDataField *data)
     string keyD = "CURRENT_TICK_" + string(data->InstrumentID);
     _store->set(keyD, tickStr); // tick数据，供全局使用
     _store->push(keyQ, tickStr);
+
+    string now = string(msg.tick.time);
+    std::vector<string> nowHMS = Lib::split(now, ":");
+    int i;
+    for (i = 0; i < _stopHM.size(); ++i)
+    {
+        if (_stopHM[i].hour == Lib::stoi(nowHMS[0]) && Lib::stoi(nowHMS[1]) == _stopHM[i].min && Lib::stoi(nowHMS[2]) >= 5) {
+            MSG_TO_TRADE_LOGIC msg2 = {0};
+            msg2.msgType = MSG_TRADE_END;
+            msg2.tick = msg.tick;
+            _tradeLogicSrvClient->send((void *)&msg2);
+            return;
+        }
+    }
 
 }
 

@@ -22,13 +22,13 @@ typedef struct msg_tick
 #define MSG_KLINE_CLOSE_BY_ME 21
 #define MSG_LOGIC_ROLLBACK 20
 #define MSG_LOGIC_REALBACK 22
+#define MSG_TRADE_END 23
 typedef struct msg_k_line
 {
     long int msgType;
     KLineBlockData block;
     TickData tick;
     int forecastID;
-
 } MSG_TO_TRADE_LOGIC;
 
 // tradeLogicSrv->tradeStrategySrv

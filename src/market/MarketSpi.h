@@ -8,13 +8,23 @@
 
 using namespace std;
 
+typedef struct trade_hm
+{
+    int hour;
+    int min;
+
+} TRADE_HM;
+
 class MarketSpi : public CThostFtdcMdSpi
 {
 private:
 
     CThostFtdcMdApi * _mdApi;
     QClient * _klineClient;
+    QClient * _tradeLogicSrvClient;
     Redis * _store;
+
+    std::vector<TRADE_HM> _stopHM; // 停止交易时间
 
     string _brokerID;
     string _userID;
@@ -27,7 +37,7 @@ private:
 
 public:
 
-    MarketSpi(CThostFtdcMdApi *, string, int, string, string, string, string, int);
+    MarketSpi(CThostFtdcMdApi *, string, int, string, string, string, string, int, string, int);
     ~MarketSpi();
 
     void OnFrontConnected();

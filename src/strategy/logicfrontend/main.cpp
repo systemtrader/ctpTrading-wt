@@ -18,6 +18,8 @@ int main(int argc, char const *argv[])
     string logPath = getOptionToString("log_path");
 
     string stopTradeTime = getOptionToString("stop_trade_time");
+    string startTradeTime = getOptionToString("start_trade_time");
+
 
     int isDev = getOptionToInt("is_dev");
     int db;
@@ -41,7 +43,7 @@ int main(int argc, char const *argv[])
     for (int i = 0; i < instrumnetIDs.size(); ++i)
     {
         TradeLogic * tmp = new TradeLogic(Lib::stoi(peroids[i]), Lib::stod(thresholdsT[i]), Lib::stod(thresholdsV[i]), tradeStrategySrvID,
-            logPath, db, stopTradeTime, instrumnetIDs[i], Lib::stoi(kRanges[i]));
+            logPath, db, stopTradeTime, startTradeTime, instrumnetIDs[i], Lib::stoi(kRanges[i]));
         tmp->init();
         services[instrumnetIDs[i]] = tmp;
     }
@@ -93,6 +95,11 @@ bool action(long int msgType, const void * data)
     if (msgType == MSG_LOGIC_REALBACK) {
         TickData tick = ((MSG_TO_TRADE_LOGIC*)data)->tick;
         services[string(tick.instrumnetID)]->onRealActionBack();
+    }
+
+    if (msgType == MSG_TRADE_END) {
+        TickData tick = ((MSG_TO_TRADE_LOGIC*)data)->tick;
+        services[string(tick.instrumnetID)]->onTradeEnd();
     }
 
     return true;

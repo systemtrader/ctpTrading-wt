@@ -56,7 +56,8 @@ private:
     string _logPath;
 
     string _instrumnetID; // 合约代码
-    std::vector<TRADE_HM> _timeHM; // 停止交易时间
+    std::vector<TRADE_HM> _stopHM; // 停止交易时间
+    std::vector<TRADE_HM> _startHM; // 停止交易时间
 
     bool _isLock;
 
@@ -69,6 +70,7 @@ private:
     int _rollbackCloseDID;
     void _setRollbackID(int, int);
     int _kRange; // 放弃
+    bool _isTradeEnd;
 
     // 算法参数
     int _peroid; // 周期
@@ -97,7 +99,7 @@ private:
     bool _isCurrentUp();
 
     int _statusType;
-    void _rollback();
+    bool _rollback();
 
     TickData _closeTick;
     void _forecast(TickData);
@@ -108,6 +110,10 @@ private:
     void _onKLineCloseDo(TickData);
     void _sendRollBack(int);
 
+    void _endClose();
+
+    bool _isTradingTime(TickData);
+
     // 判断仓位状态
     TickData _getTick();
     int _getStatus(int);
@@ -115,7 +121,7 @@ private:
     void _sendMsg(int, double, bool, int, int, bool = false);
 
 public:
-    TradeLogic(int, double, double, int, string, int, string, string, int);
+    TradeLogic(int, double, double, int, string, int, string, string, string, int);
     ~TradeLogic();
 
     void init(); // 初始化历史K线
@@ -125,6 +131,7 @@ public:
     void onKLineCloseByMe(KLineBlock, TickData);
     void onRollback();
     void onRealActionBack();
+    void onTradeEnd();
 };
 
 #endif
