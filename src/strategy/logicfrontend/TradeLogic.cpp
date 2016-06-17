@@ -702,6 +702,7 @@ void TradeLogic::onKLineCloseByMe(KLineBlock block, TickData tick)
         case TRADE_STATUS_NOTHING:
             _statusType = STATUS_TYPE_MYCLOSE_NO;
             if (status2 == TRADE_STATUS_SELLOPENED) {
+                _setStatus(1, TRADE_STATUS_SELLOPENED);
                 _statusType = STATUS_TYPE_MYCLOSE_NO_SOED;
             }
             break;
@@ -734,7 +735,7 @@ void TradeLogic::onKLineCloseByMe(KLineBlock block, TickData tick)
                 _statusType = STATUS_TYPE_MYCLOSE_BOED_SOING;
             }
             if (status2 == TRADE_STATUS_NOTHING) {
-                _statusType = STATUS_TYPE_MYCLOSE_NO_SOED;
+                _statusType = STATUS_TYPE_MYCLOSE_BOED_NO;
             }
             break;
 
