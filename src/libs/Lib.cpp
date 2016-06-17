@@ -87,9 +87,13 @@ void Lib::sysReqLog(string logPath, string logName, int code)
 }
 
 
-void Lib::initInfoLogHandle(string logPath, ofstream & infoHandle)
+void Lib::initInfoLogHandle(string logPath, ofstream & infoHandle, string iID)
 {
-    logPath = logPath + getDate("%Y%m%d") + ".log";
+    if (iID.length() > 0) {
+        logPath = logPath + getDate("%Y%m%d") + "_" + iID + ".log";
+    } else {
+        logPath = logPath + getDate("%Y%m%d") + ".log";
+    }
     infoHandle.open(logPath.c_str(), ios::app);
     infoHandle << getDate("%Y%m%d-%H:%M:%S", true) << "|";
     infoHandle << "[INFO]" << "|";

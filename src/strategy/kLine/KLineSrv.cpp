@@ -33,9 +33,8 @@ void KLineSrv::onTickCome(TickData tick, bool isMy)
 {
     if (isMy) {
         ofstream info;
-        Lib::initInfoLogHandle(_logPath, info);
+        Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
         info << "KLineSrv[onMyTick]";
-        info << "|iID|" << _instrumnetID;
         info << "|open|" << _currentBlock->getOpenPrice();
         info << "|price|" << tick.price;
         info << "|range|" << _kRange;
@@ -66,9 +65,8 @@ void KLineSrv::_initBlock(TickData tick)
 
 
     ofstream info;
-    Lib::initInfoLogHandle(_logPath, info);
+    Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
     info << "KLineSrv[open]";
-    info << "|iID|" << _instrumnetID;
     info << "|index|" << _index;
     info << "|open|" << _currentBlock->getOpenPrice();
     info << endl;
@@ -88,9 +86,8 @@ bool KLineSrv::_checkBlockClose(TickData tick, bool isMy)
 {
     if (isMy) {
         ofstream info;
-        Lib::initInfoLogHandle(_logPath, info);
+        Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
         info << "KLineSrv[checkBlockClose]";
-        info << "|iID|" << _instrumnetID;
         info << "|abc|" << abs(_currentBlock->getOpenPrice() - tick.price);
         info << "|open|" << _currentBlock->getOpenPrice();
         info << "|price|" << tick.price;
@@ -120,9 +117,8 @@ void KLineSrv::_closeBlock(TickData tick, bool isMy)
     _currentBlock = NULL;
 
     ofstream info;
-    Lib::initInfoLogHandle(_logPath, info);
+    Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
     info << "KLineSrv[close]";
-    info << "|iID|" << _instrumnetID;
     info << "|index|" << blockData.index;
     info << "|open|" << blockData.open;
     info << "|close|" << blockData.close;

@@ -169,9 +169,8 @@ void TradeLogic::_calculateUp(double u2d, double u2u)
     }
     //log
     ofstream info;
-    Lib::initInfoLogHandle(_logPath, info);
+    Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
     info << "TradeLogicSrv[calculateUp]";
-    info << "|iID|" << _instrumnetID;
     info << "|pUp2Up|" << _pUp2Up;
     info << "|pUp2Down|" << _pUp2Down;
     info << "|UU_UD_DU_DD|" << u2u << "," << u2d << "," << _countDown2Up << "," << _countDown2Down;
@@ -188,9 +187,8 @@ void TradeLogic::_calculateDown(double d2u, double d2d)
     }
     //log
     ofstream info;
-    Lib::initInfoLogHandle(_logPath, info);
+    Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
     info << "TradeLogicSrv[calculateDown]";
-    info << "|iID|" << _instrumnetID;
     info << "|pDown2Up|" << _pDown2Up;
     info << "|pDown2Down|" << _pDown2Down;
     info << "|UU_UD_DU_DD|" << _countUp2Up << "," << _countUp2Down << "," << d2u << "," << d2d;
@@ -404,7 +402,7 @@ void TradeLogic::_forecast(TickData tick)
     int status1 = _getStatus(1);
 
     ofstream info;
-    Lib::initInfoLogHandle(_logPath, info);
+    Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
     info << "TradeLogicSrv[forecastBegin]";
     info << "|status1|" << status1;
     info << endl;
@@ -445,7 +443,7 @@ void TradeLogic::_realAction(TickData tick)
     int status1 = _getStatus(1);
 
     ofstream info;
-    Lib::initInfoLogHandle(_logPath, info);
+    Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
     info << "TradeLogicSrv[realAction]";
     info << "|status1|" << status1;
     info << endl;
@@ -540,7 +538,7 @@ void TradeLogic::_endClose()
 
     //log
     ofstream info;
-    Lib::initInfoLogHandle(_logPath, info);
+    Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
     info << "TradeLogicSrv[endClose]";
     info << "|status1|" << status1;
     info << "|status2|" << status2;
@@ -574,7 +572,7 @@ void TradeLogic::onTradeEnd()
 {
     //log
     ofstream info;
-    Lib::initInfoLogHandle(_logPath, info);
+    Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
     info << "TradeLogicSrv[onTradeEnd]";
     info << endl;
     info.close();
@@ -603,7 +601,7 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
 
     //log
     ofstream info;
-    Lib::initInfoLogHandle(_logPath, info);
+    Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
     info << "TradeLogicSrv[onKLineClose]";
     info << "|status1|" << status1;
     info << "|status2|" << status2;
@@ -689,7 +687,7 @@ void TradeLogic::onKLineCloseByMe(KLineBlock block, TickData tick)
 
     //log
     ofstream info;
-    Lib::initInfoLogHandle(_logPath, info);
+    Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
     info << "TradeLogicSrv[onKLineCloseByMe]";
     info << "|status1|" << status1;
     info << "|status2|" << status2;
@@ -792,7 +790,7 @@ void TradeLogic::onRollback()
     int status3 = _getStatus(3);
     //log
     ofstream info;
-    Lib::initInfoLogHandle(_logPath, info);
+    Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
     info << "TradeLogicSrv[onRollback]";
     info << "|statusType|" << _statusType;
     info << "|status1|" << status1;
@@ -903,7 +901,7 @@ void TradeLogic::onRealActionBack()
     int status3 = _getStatus(3);
     //log
     ofstream info;
-    Lib::initInfoLogHandle(_logPath, info);
+    Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
     info << "TradeLogicSrv[onRealActionBack]";
     info << "|status1|" << status1;
     info << "|status2|" << status2;
@@ -939,9 +937,8 @@ void TradeLogic::_sendMsg(int msgType, double price, bool isForecast, int foreca
     if (isForecast) kIndex++;
     //log
     ofstream info;
-    Lib::initInfoLogHandle(_logPath, info);
+    Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
     info << "TradeLogicSrv[sendMsg]";
-    info << "|iID|" << _instrumnetID;
     info << "|forecastID|" << forecastID;
     info << "|isForecast|" << isForecast;
     info << "|statusWay|" << statusWay;
@@ -969,9 +966,8 @@ void TradeLogic::_sendRollBack(int forecastID)
 {
     //log
     ofstream info;
-    Lib::initInfoLogHandle(_logPath, info);
+    Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
     info << "TradeLogicSrv[sendRollBack]";
-    info << "|iID|" << _instrumnetID;
     info << "|forecastID|" << forecastID;
     info << endl;
     info.close();

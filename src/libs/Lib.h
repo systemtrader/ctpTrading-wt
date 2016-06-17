@@ -31,7 +31,7 @@ public:
     static void sysErrLog(string logPath, string logName, CThostFtdcRspInfoField *info, int id, int isLast);
     static void sysReqLog(string logPath, string logName, int code);
 
-    static void initInfoLogHandle(string logPath, ofstream & infoHandle);
+    static void initInfoLogHandle(string logPath, ofstream & infoHandle, string iID = "");
     static void initMarketLogHandle(string logPath, ofstream & handle);
 
     static vector<string> split(const string& s, const string& delim);

@@ -111,7 +111,7 @@ void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int order
     }
 
     ofstream info;
-    Lib::initInfoLogHandle(_logPath, info);
+    Lib::initInfoLogHandle(_logPath, info, instrumnetID);
     info << "TradeSrv[trade]";
     info << "|orderID|" << orderID;
     info << "|orderRef|" << _maxOrderRef;
@@ -154,7 +154,7 @@ void TradeSrv::onTraded(CThostFtdcTradeField * const rsp)
 
     int orderID = _getOrderIDByRef(orderRef);
     ofstream info;
-    Lib::initInfoLogHandle(_logPath, info);
+    Lib::initInfoLogHandle(_logPath, info, string(rsp->InstrumentID));
     info << "TradeSrv[onTraded]";
     info << "|orderID|" << orderID;
     if (orderID <= 0) {
@@ -176,7 +176,6 @@ void TradeSrv::onTraded(CThostFtdcTradeField * const rsp)
     info << "|orderID|" << orderID;
     info << "|OrderRef|" << rsp->OrderRef;
     info << "|Price|" << rsp->Price;
-    info << "|iID|" << rsp->InstrumentID;
     info << "|TradeID|" << rsp->TradeID;
     info << "|OrderSysID|" << rsp->OrderSysID;
     info << "|OrderLocalID|" << rsp->OrderLocalID;
@@ -223,11 +222,10 @@ void TradeSrv::onOrderRtn(CThostFtdcOrderField * const rsp)
     }
 
     ofstream info;
-    Lib::initInfoLogHandle(_logPath, info);
+    Lib::initInfoLogHandle(_logPath, info, string(rsp->InstrumentID));
     info << "TradeSrv[onOrderRtn]";
     info << "|orderID|" << orderID;
     info << "|OrderRef|" << rsp->OrderRef;
-    info << "|iID|" << rsp->InstrumentID;
     info << "|FrontID|" << rsp->FrontID;
     info << "|SessionID|" << rsp->SessionID;
     info << "|OrderSysID|" << rsp->OrderSysID;
@@ -255,19 +253,17 @@ void TradeSrv::cancel(int orderID)
 {
     if (_isOrderCanceled(orderID)) return;
 
-    ofstream info;
-    Lib::initInfoLogHandle(_logPath, info);
-    info << "TradeSrv[cancel]";
 
     int orderRef = _getOrderRefByID(orderID);
     if (orderRef <= 0) {
-        info << endl;
-        info.close();
         return;
     }
 
     CThostFtdcOrderField orderInfo = _getOrderInfoByRef(orderRef);
 
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info, string(orderInfo.InstrumentID));
+    info << "TradeSrv[cancel]";
     info << "|orderID|" << orderID;
     info << "|orderRef|" << orderRef;
     info << "|FrontID|" << orderInfo.FrontID;
@@ -313,7 +309,7 @@ void TradeSrv::cancel(int orderID)
 void TradeSrv::onCancel(CThostFtdcOrderField * const rsp)
 {
     ofstream info;
-    Lib::initInfoLogHandle(_logPath, info);
+    Lib::initInfoLogHandle(_logPath, info, string(rsp->InstrumentID));
     info << "TradeSrv[onCancel]";
 
     if (!rsp) {
@@ -343,7 +339,6 @@ void TradeSrv::onCancel(CThostFtdcOrderField * const rsp)
 
     info << "|orderID|" << orderID;
     info << "|OrderRef|" << rsp->OrderRef;
-    info << "|iID|" << rsp->InstrumentID;
     info << "|FrontID|" << rsp->FrontID;
     info << "|SessionID|" << rsp->SessionID;
     info << "|OrderSysID|" << rsp->OrderSysID;
@@ -377,7 +372,7 @@ void TradeSrv::onCancelErr(CThostFtdcInputOrderActionField * const rsp, CThostFt
 {
 
     ofstream info;
-    Lib::initInfoLogHandle(_logPath, info);
+    Lib::initInfoLogHandle(_logPath, info, string(rsp->InstrumentID));
     info << "TradeSrv[onCancelErr]";
 
     if (!rsp) {
@@ -421,7 +416,7 @@ void TradeSrv::onOrderErr(CThostFtdcInputOrderField * const rsp, CThostFtdcRspIn
 {
 
     ofstream info;
-    Lib::initInfoLogHandle(_logPath, info);
+    Lib::initInfoLogHandle(_logPath, info, string(rsp->InstrumentID));
     info << "TradeSrv[onOrderErr]";
 
     if (!rsp) {
@@ -461,7 +456,7 @@ void TradeSrv::onOrderErr(CThostFtdcInputOrderField * const rsp, CThostFtdcRspIn
 void TradeSrv::_initOrder(int orderID, string iID)
 {
     ofstream info;
-    Lib::initInfoLogHandle(_logPath, info);
+    Lib::initInfoLogHandle(_logPath, info, iID);
     info << "TradeSrv[initOrder]";
     info << "|orderID|" << orderID;
 
@@ -481,20 +476,12 @@ void TradeSrv::_initOrder(int orderID, string iID)
     strcpy(data.InvestorID, _userID.c_str());
 
     _orderRef2Info[_maxOrderRef] = data;
-    _showData();
+    // _showData();
 }
 
 void TradeSrv::_clearOrderByRef(int orderRef)
 {
-    ofstream info;
-    Lib::initInfoLogHandle(_logPath, info);
-    info << "TradeSrv[clearOrderByRef]";
-
     int orderID = _getOrderIDByRef(orderRef);
-    info << "|orderID|" << orderID;
-    info << "|orderRef|" << orderRef;
-    info << endl;
-    info.close();
 
     std::map<int, int>::iterator i2i;
     i2i = _orderRef2ID.find(orderRef);
@@ -506,7 +493,7 @@ void TradeSrv::_clearOrderByRef(int orderRef)
     i2O = _orderRef2Info.find(orderRef);
     if (i2O != _orderRef2Info.end()) _orderRef2Info.erase(i2O);
 
-    _showData();
+    // _showData();
 }
 
 int TradeSrv::_getOrderIDByRef(int orderRef)
