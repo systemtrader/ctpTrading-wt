@@ -632,8 +632,6 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
 
         case TRADE_STATUS_BUYOPENING:
 
-            _statusType = STATUS_TYPE_CLOSE_BOING;
-
             if (status2 == TRADE_STATUS_SELLOPENING) {
                 _statusType = STATUS_TYPE_CLOSE_BOING_SOING;
             }
@@ -642,23 +640,21 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
             }
 
             if (status3 == TRADE_STATUS_BUYCLOSING) {
-                _statusType = STATUS_TYPE_CLOSE_BOING_BCING;
+                _statusType = STATUS_TYPE_CLOSE_BOING__BCING;
             }
             if (status3 == TRADE_STATUS_NOTHING) {
-                _statusType = STATUS_TYPE_CLOSE_BOING_NO;
+                _statusType = STATUS_TYPE_CLOSE_BOING__NO;
             }
             break;
 
         case TRADE_STATUS_SELLOPENING:
 
-            _statusType = STATUS_TYPE_CLOSE_SOING;
-
             if (status3 == TRADE_STATUS_SELLCLOSING) {
-                _statusType = STATUS_TYPE_CLOSE_SOING_SCING;
+                _statusType = STATUS_TYPE_CLOSE_SOING__SCING;
             }
 
             if (status3 == TRADE_STATUS_NOTHING) {
-                _statusType = STATUS_TYPE_CLOSE_SOING_NO;
+                _statusType = STATUS_TYPE_CLOSE_BOING__NO;
             }
             break;
 
@@ -707,29 +703,27 @@ void TradeLogic::onKLineCloseByMe(KLineBlock block, TickData tick)
             }
             break;
 
-        case TRADE_STATUS_BUYOPENING: // 同时开两仓 buy是1通道 sell是2通道
+        case TRADE_STATUS_BUYOPENING: 
             if (status2 == TRADE_STATUS_SELLOPENED) {
                 _statusType = STATUS_TYPE_MYCLOSE_BOING_SOED;
             }
             break;
 
         case TRADE_STATUS_SELLOPENED:
-            _statusType = STATUS_TYPE_MYCLOSE_SOED;
             if (status3 == TRADE_STATUS_NOTHING) {
-                _statusType = STATUS_TYPE_MYCLOSE_SOED_NO;
+                _statusType = STATUS_TYPE_MYCLOSE_SOED__NO;
             }
             if (status3 == TRADE_STATUS_SELLCLOSING) {
-                _statusType = STATUS_TYPE_MYCLOSE_SOED_SCING;
+                _statusType = STATUS_TYPE_MYCLOSE_SOED__SCING;
             }
             break;
 
         case TRADE_STATUS_BUYOPENED:
-            _statusType = STATUS_TYPE_MYCLOSE_BOED;
             if (status3 == TRADE_STATUS_NOTHING) {
-                _statusType = STATUS_TYPE_MYCLOSE_BOED_NO;
+                _statusType = STATUS_TYPE_MYCLOSE_BOED__NO;
             }
             if (status3 == TRADE_STATUS_BUYCLOSING) {
-                _statusType = STATUS_TYPE_MYCLOSE_BOED_BCING;
+                _statusType = STATUS_TYPE_MYCLOSE_BOED__BCING;
             }
             if (status2 == TRADE_STATUS_SELLOPENING) {
                 _statusType = STATUS_TYPE_MYCLOSE_BOED_SOING;
@@ -754,28 +748,26 @@ void TradeLogic::_onKLineCloseDo(TickData tick)
         case STATUS_TYPE_CLOSE_SOED:
             _realAction(tick);
             break;
-        case STATUS_TYPE_MYCLOSE_BOED:
-        case STATUS_TYPE_MYCLOSE_SOED:
-        case STATUS_TYPE_MYCLOSE_NO:
-        case STATUS_TYPE_MYCLOSE_SOED_NO:
-        case STATUS_TYPE_MYCLOSE_BOED_NO:
         case STATUS_TYPE_MYCLOSE_NO_SOED:
+        case STATUS_TYPE_MYCLOSE_BOED_NO:
+        case STATUS_TYPE_MYCLOSE_NO:
+        case STATUS_TYPE_MYCLOSE_SOED__NO:
+        case STATUS_TYPE_MYCLOSE_BOED__NO:
             _forecast(tick);
             break;
-        case STATUS_TYPE_CLOSE_BOING:
-        case STATUS_TYPE_CLOSE_SOING:
         case STATUS_TYPE_CLOSE_BOING_SOING:
+        case STATUS_TYPE_CLOSE_NO_SOING:
+        case STATUS_TYPE_CLOSE_BOING_NO:
         case STATUS_TYPE_CLOSE_SCING:
         case STATUS_TYPE_CLOSE_BCING:
-        case STATUS_TYPE_CLOSE_SOING_SCING:
-        case STATUS_TYPE_CLOSE_BOING_BCING:
-        case STATUS_TYPE_CLOSE_SOING_NO:
-        case STATUS_TYPE_CLOSE_BOING_NO:
+        case STATUS_TYPE_CLOSE_SOING__SCING:
+        case STATUS_TYPE_CLOSE_SOING__NO:
+        case STATUS_TYPE_CLOSE_BOING__BCING:
+        case STATUS_TYPE_CLOSE_BOING__NO:
         case STATUS_TYPE_MYCLOSE_BOED_SOING:
         case STATUS_TYPE_MYCLOSE_BOING_SOED:
-        case STATUS_TYPE_MYCLOSE_SOED_SCING:
-        case STATUS_TYPE_MYCLOSE_BOED_BCING:
-        case STATUS_TYPE_CLOSE_NO_SOING:
+        case STATUS_TYPE_MYCLOSE_SOED__SCING:
+        case STATUS_TYPE_MYCLOSE_BOED__BCING:
             _rollback();
             break;
         default:
@@ -808,24 +800,44 @@ void TradeLogic::onRollback()
     }
 
     switch (_statusType) {
-        case STATUS_TYPE_CLOSE_BOING:
-        case STATUS_TYPE_CLOSE_SOING:
-        case STATUS_TYPE_CLOSE_SOING_NO:
-        case STATUS_TYPE_CLOSE_BOING_NO:
+        case STATUS_TYPE_CLOSE_SOING__NO:
+        case STATUS_TYPE_CLOSE_BOING__NO:
             if (status1 == TRADE_STATUS_NOTHING) {
                 _realAction(_closeTick);
             } else {
                 _forecast(_closeTick);
             }
             break;
+        case STATUS_TYPE_CLOSE_NO_SOING:
+            if (status2 == TRADE_STATUS_NOTHING) {
+                _realAction(_closeTick);
+            } else {
+                _setStatus(1, TRADE_STATUS_SELLOPENED);
+                _forecast(_closeTick);
+            }
+            break;
+        case STATUS_TYPE_CLOSE_BOING_NO:
+            if (status1 == TRADE_STATUS_NOTHING) {
+                _realAction(_closeTick);
+            } else {
+                _forecast(_closeTick);
+            }
 
         case STATUS_TYPE_MYCLOSE_BOING_SOED:
-            _setStatus(1, TRADE_STATUS_SELLOPENED);
-            _forecast(_closeTick);
+            if (status1 == TRADE_STATUS_NOTHING) {
+                _setStatus(1, TRADE_STATUS_SELLOPENED);
+                _forecast(_closeTick);
+            } else {
+                // 不知道怎么办。。。                
+            }
             break;
 
         case STATUS_TYPE_MYCLOSE_BOED_SOING:
-            _forecast(_closeTick);
+            if (status2 == TRADE_STATUS_NOTHING) {
+                _forecast(_closeTick);
+            } else {
+                // 不知道怎么办。。。
+            }
             break;
 
         case STATUS_TYPE_CLOSE_BOING_SOING:
@@ -839,6 +851,9 @@ void TradeLogic::onRollback()
             if (status2 == TRADE_STATUS_NOTHING && status1 == TRADE_STATUS_BUYOPENED) {
                 _forecast(_closeTick);
             }
+            if (status1 == TRADE_STATUS_BUYOPENED && status2 == TRADE_STATUS_SELLOPENED) {
+                // 不知道怎么处理 TODO
+            }
             break;
 
         case STATUS_TYPE_CLOSE_SCING:
@@ -850,15 +865,23 @@ void TradeLogic::onRollback()
             }
             break;
 
-        case STATUS_TYPE_MYCLOSE_SOED_SCING:
-            _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 1);
+        case STATUS_TYPE_MYCLOSE_SOED__SCING:
+            if (status3 == TRADE_STATUS_BUYOPENED) {
+                _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 3);
+            } else {
+                _forecast(_closeTick);
+            }
             break;
 
-        case STATUS_TYPE_MYCLOSE_BOED_BCING:
-            _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 1);
+        case STATUS_TYPE_MYCLOSE_BOED__BCING:
+            if (status3 == TRADE_STATUS_SELLOPENED) {
+                _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 3);
+            } else {
+                _forecast(_closeTick);
+            }
             break;
 
-        case STATUS_TYPE_CLOSE_SOING_SCING:
+        case STATUS_TYPE_CLOSE_SOING__SCING:
             if (status1 == TRADE_STATUS_NOTHING && status3 == TRADE_STATUS_BUYOPENED) {
                 _setStatus(1, TRADE_STATUS_BUYOPENED);
                 _realAction(_closeTick);
@@ -867,14 +890,14 @@ void TradeLogic::onRollback()
                 _realAction(_closeTick);
             }
             if (status1 == TRADE_STATUS_SELLOPENED && status3 == TRADE_STATUS_BUYOPENED) {
-                _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 1);
+                _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 3);
             }
             if (status1 == TRADE_STATUS_SELLOPENED && status3 == TRADE_STATUS_NOTHING) {
                 _forecast(_closeTick);
             }
             break;
 
-        case STATUS_TYPE_CLOSE_BOING_BCING:
+        case STATUS_TYPE_CLOSE_BOING__BCING:
             if (status1 == TRADE_STATUS_NOTHING && status3 == TRADE_STATUS_SELLOPENED) {
                 _setStatus(1, TRADE_STATUS_SELLOPENED);
                 _realAction(_closeTick);
@@ -883,7 +906,7 @@ void TradeLogic::onRollback()
                 _realAction(_closeTick);
             }
             if (status1 == TRADE_STATUS_BUYOPENED && status3 == TRADE_STATUS_SELLOPENED) {
-                _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 1);
+                _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 3);
             }
             if (status1 == TRADE_STATUS_BUYOPENED && status3 == TRADE_STATUS_NOTHING) {
                 _forecast(_closeTick);

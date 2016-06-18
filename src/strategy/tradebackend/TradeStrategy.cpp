@@ -132,10 +132,11 @@ void TradeStrategy::trade(MSG_TO_TRADE_STRATEGY msg)
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info, string(msg.instrumnetID));
     info << "TradeStrategySrv[tradeCome]";
-    info << "|iID|" << msg.instrumnetID;
     info << "|status1|" << status1;
     info << "|status2|" << status2;
     info << "|status3|" << status3;
+    info << "|msgType|" << msg.msgType;
+    info << "|forecastID|" << msg.forecastID;
     info << endl;
     info.close();
 
