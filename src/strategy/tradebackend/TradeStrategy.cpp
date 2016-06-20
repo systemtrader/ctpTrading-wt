@@ -395,6 +395,11 @@ void TradeStrategy::onErr(int orderID, int errNo)
     if (errNo == 50) {
         _clearTradeInfo(orderID);
         _setStatus(order.statusWay, TRADE_STATUS_NOTHING, order.instrumnetID);
+        if (_waitList.size() > 0) {
+            MSG_TO_TRADE_STRATEGY msg = _waitList.front();
+            _waitList.pop_front();
+            _tradeAction(msg);
+        }
     }
 }
 

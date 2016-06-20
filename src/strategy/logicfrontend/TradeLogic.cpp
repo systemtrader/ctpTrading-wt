@@ -80,9 +80,19 @@ bool TradeLogic::_isTradingTime(TickData tick)
     now = now.substr(0, 5);
     std::vector<string> nowHM = Lib::split(now, ":");
     int i;
+    ofstream info;
     for (i = 0; i < _stopHM.size(); ++i)
     {
         if (_stopHM[i].hour == Lib::stoi(nowHM[0]) && Lib::stoi(nowHM[1]) >= _stopHM[i].min) {
+            //log
+            Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
+            info << "TradeLogicSrv[stopTrade]";
+            info << "|nowH|" << nowHM[0];
+            info << "|nowM|" << nowHM[1];
+            info << "|stopH|" << _stopHM[i].hour;
+            info << "|stopM|" << _stopHM[i].min;
+            info << endl;
+            info.close();
             _isTradeEnd = true;
             return false;
         }
@@ -90,9 +100,19 @@ bool TradeLogic::_isTradingTime(TickData tick)
     for (i = 0; i < _startHM.size(); ++i)
     {
         if (_startHM[i].hour == Lib::stoi(nowHM[0]) && Lib::stoi(nowHM[1]) < _startHM[i].min) {
+            //log
+            Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
+            info << "TradeLogicSrv[stopTrade]";
+            info << "|nowH|" << nowHM[0];
+            info << "|nowM|" << nowHM[1];
+            info << "|stopH|" << _startHM[i].hour;
+            info << "|stopM|" << _startHM[i].min;
+            info << endl;
+            info.close();
             return false;
         }
     }
+    _isTradeEnd = false;
     return true;
 }
 
@@ -396,7 +416,6 @@ void TradeLogic::_forecastSellOpened(TickData tick)
 void TradeLogic::_forecast(TickData tick)
 {
     if (_transTypeList.size() < _peroid - 1) {
-        _isLock = false;
         return; // 计算概率条件不足，不做操作
     }
 
@@ -438,7 +457,6 @@ void TradeLogic::_forecast(TickData tick)
 void TradeLogic::_realAction(TickData tick)
 {
     if (_transTypeList.size() < _peroid - 1) {
-        _isLock = false;
         return; // 计算概率条件不足，不做操作
     }
 
@@ -579,8 +597,8 @@ void TradeLogic::onTradeEnd()
     info << endl;
     info.close();
 
-    bool flg = _rollback();
     _isTradeEnd = true;
+    _rollback();
 
     _setRollbackID(OUU, 0);
     _setRollbackID(OUD, 0);
