@@ -112,7 +112,6 @@ bool TradeLogic::_isTradingTime(TickData tick)
             return false;
         }
     }
-    _isTradeEnd = false;
     return true;
 }
 

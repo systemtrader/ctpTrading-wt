@@ -1,6 +1,6 @@
 #include "TradeStrategy.h"
 
-TradeStrategy * service;
+std::map<string, TradeStrategy* > services;
 int timeoutSec;
 
 bool action(long int, const void *);
@@ -25,7 +25,13 @@ int main(int argc, char const *argv[])
         db = getOptionToInt("rds_db_online");
     }
 
-    service = new TradeStrategy(tradeSrvID, logPath, db, kLineSrvID, tradeLogicSrvID);
+    string iIDs = getOptionToString("instrumnet_id");
+    std::vector<string> instrumnetIDs = Lib::split(iIDs, "/");
+    for (int i = 0; i < instrumnetIDs.size(); ++i)
+    {
+        services[instrumnetIDs[i]] = new TradeStrategy(tradeSrvID, logPath, db, kLineSrvID, tradeLogicSrvID);
+    }
+
 
     // 服务化
     QService Qsrv(tradeStrategySrvID, sizeof(MSG_TO_TRADE_STRATEGY));
@@ -41,10 +47,16 @@ bool action(long int msgType, const void * data)
     // cout << "MSG|" <<  msgType;
     if (msgType == MSG_SHUTDOWN) {
         // cout << endl;
-        if (service) delete service;
+        // if (service) delete service;
+
+        map<string, TradeStrategy*>::iterator it;
+        for(it = services.begin(); it != services.end(); ++it) {
+            delete it->second;
+        }
         return false;
     }
     MSG_TO_TRADE_STRATEGY msg = *((MSG_TO_TRADE_STRATEGY*)data);
+    string iID = string(msg.instrumnetID);
     // cout << "|PRICE|" << msg.price << "|KINDEX|"  << msg.kIndex << endl;
 
     // if (msgType == MSG_TRADE_CANCEL) {
@@ -53,18 +65,18 @@ bool action(long int msgType, const void * data)
 
     // 下单回馈
     if (msgType == MSG_TRADE_BACK_TRADED) {
-        service->onSuccess(msg);
+        services[iID]->onSuccess(msg);
         return true;
     }
     if (msgType == MSG_TRADE_BACK_CANCELED) {
-        service->onCancel(msg.orderID);
+        services[iID]->onCancel(msg.orderID);
         return true;
     }
     if (msgType == MSG_TRADE_BACK_ERR) {
-        service->onErr(msg.orderID, msg.err);
+        services[iID]->onErr(msg.orderID, msg.err);
         return true;
     }
-    service->trade(msg);
+    services[iID]->trade(msg);
     return true;
 }
 

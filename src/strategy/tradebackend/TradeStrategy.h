@@ -32,6 +32,7 @@ private:
     QClient * _klineClient;
     QClient * _tradeLogicSrvClient;
     string _logPath;
+    string _iID;
 
     std::map<int, int> _rollbackID;
     bool _isRollback(int);

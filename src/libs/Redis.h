@@ -18,5 +18,6 @@ public:
     string pop(string key);
     void set(string key, string data);
     void setnx(string key, string data);
+    string incr(string key);
     string get(string key);
 };

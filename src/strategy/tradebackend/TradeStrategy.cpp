@@ -2,16 +2,19 @@
 
 timer_t timer;
 extern int timeoutSec;
-extern TradeStrategy * service;
+extern std::map<string, TradeStrategy* > services;
+std::map<int, string> orderID2iID;
 
 void timeout(union sigval v)
 {
-    service->timeout(v.sival_int);
+    string iID = orderID2iID[v.sival_int];
+    services[iID]->timeout(v.sival_int);
     return;
 }
 
-void setTimer(int orderID)
+void setTimer(int orderID, string iID)
 {
+    orderID2iID[orderID] = iID;
     struct sigevent evp;
     struct itimerspec ts;
 
@@ -48,12 +51,7 @@ TradeStrategy::~TradeStrategy()
 int TradeStrategy::_initTrade(int action, int kIndex, int total, string instrumnetID,
     double price, int forecastID, bool isForecast, int statusWay, bool isZhuijia)
 {
-    if (_orderID == 0) {
-        string idStr = _store->get("ORDER_ID_MAX");
-        if (idStr.length() > 0)
-            _orderID = Lib::stoi(idStr);
-    }
-    _orderID++;
+    _orderID = Lib::stoi(_store->incr("ORDER_ID_MAX"));
 
     TRADE_DATA order = {0};
     order.action = action;
@@ -216,7 +214,7 @@ void TradeStrategy::_tradeAction(MSG_TO_TRADE_STRATEGY msg)
             break;
     }
     if (!msg.isForecast && (action == TRADE_ACTION_BUYCLOSE || action == TRADE_ACTION_SELLCLOSE))
-        setTimer(orderID);
+        setTimer(orderID, instrumnetID);
 }
 
 void TradeStrategy::onSuccess(MSG_TO_TRADE_STRATEGY rsp)
@@ -473,7 +471,7 @@ void TradeStrategy::_zhuijia(int orderID)
         default:
             break;
     }
-    setTimer(newOrderID);
+    setTimer(newOrderID, order.instrumnetID);
 }
 
 void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen, int orderID, bool isFok)

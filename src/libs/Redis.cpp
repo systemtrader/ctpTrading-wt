@@ -53,6 +53,12 @@ void Redis::setnx(string key, string data)
     execCmd(cmd);
 }
 
+string Redis::incr(string key)
+{
+    string cmd = "INCR " + key;
+    return execCmd(cmd);
+}
+
 string Redis::get(string key)
 {
     string cmd = "get " + key;
