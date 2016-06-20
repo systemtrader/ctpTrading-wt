@@ -6,7 +6,11 @@
 class Report
 {
 
-    private $title = ['序列号', '订单号', '合约', 'K线索引', '买卖', '开平', '订单类型', '报单时间', '毫秒', '最后成交时间/撤单时间', '毫秒', '报单价格', '成交价格', '报单手数', '未成交手数', '盈亏', '手续费', '系统响应耗时', '订单成交耗时', '详细状态'];
+    private $title = ['序列号', '订单号', '合约', 'K线索引', '买卖', '开平', '订单类型', '报单时间', '最后成交时间/撤单时间', '报单价格', '成交价格', '报单手数', '未成交手数', '盈亏', '手续费', '系统响应耗时', '订单成交耗时', '详细状态'];
+
+    private $commission = [
+        'sn1609' => 1,
+    ];
 
     function __construct($start, $end)
     {
@@ -56,7 +60,8 @@ class Report
         WHERE
             m.order_id = o.order_id
             and o.start_time > '{$this->start}'
-            and o.start_time > '{$this->end}';";
+            and o.start_time < '{$this->end}'
+            and o.status in (1, 2);";
 
         $st = $this->db->prepare($sql);
         $st->execute([]);
@@ -74,7 +79,7 @@ class Report
             $tmp[] = $line['kindex'];
             $tmp[] = $line['is_buy'] ? 'buy' : 'sell';
             $tmp[] = $line['is_open'] ? 'kai' : 'ping';
-            $tmp[] = $line['is_forecast'] ? '预测单' : $line['is_zhuijia'] ? '追价单' : '实时单';
+            $tmp[] = $line['is_forecast'] ? '预测单' : ($line['is_zhuijia'] ? '追价单' : '实时单');
             $tmp[] = $line['start_time'];
             $tmp[] = $line['end_time'];
             $tmp[] = $line['price'];
@@ -86,9 +91,9 @@ class Report
             }
             if (!$line['is_open'] && $line['status'] == 1) {
                 $p = $line['real_price'] - $openPrice;
-                if (!$line['is_buy']) $p *= -1;
-                $tmp[] = $p;
-                $tmp[] = $price0;
+                if ($line['is_buy']) $p *= -1;
+                $tmp[] = $p - $this->commission[$line['instrumnet_id']];
+                $tmp[] = $this->commission[$line['instrumnet_id']];
                 $openPrice = 0;
             } else {
                 $tmp[] = 0;
@@ -99,8 +104,8 @@ class Report
             $firstTime = strtotime($line['first_time']) * 1000000 + $line['first_usec'];
             $endTime = strtotime($line['end_time']) * 1000000 + $line['end_usec'];
 
-            $tmp[] = $firstTime - $startTime;
-            $tmp[] = $endTime - $startTime;
+            $tmp[] = ($firstTime - $startTime)/1000;
+            $tmp[] = ($endTime - $startTime)/1000;
 
             switch ($line['status']) {
                 case 1:
@@ -122,8 +127,7 @@ class Report
         foreach ($res as $key => $line) {
             if ($line['real_price'] == 0) {
                 $lastTime = $line['srv_insert_time'];
-                if ($lastTime == '0000-00-00 00:00:00') continue;
-                $sql = "SELECT * FROM `tick` WHERE `time` = '{$lastTime}'";
+                $sql = "SELECT * FROM `tick` WHERE `time` = '{$lastTime}' AND `instrumnet_id` = '{$line['instrumnet_id']}'";
                 $st = $this->db->prepare($sql);
                 $st->execute([]);
                 $res2 = $st->fetchAll(PDO::FETCH_ASSOC);
@@ -131,7 +135,7 @@ class Report
                 foreach ($res2 as $item) {
                     $tickPrice[] = $item['price'];
                 }
-                $report[$key][10] = $tickPrice;
+                $report[$key][10] = implode(',', array_unique($tickPrice));
             }
         }
 

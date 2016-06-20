@@ -13,7 +13,7 @@ private:
 public:
     Redis(string host, int port, int db);
     ~Redis();
-    string execCmd(string cmd);
+    string execCmd(string cmd, bool = false);
     void push(string key, string data);
     string pop(string key);
     void set(string key, string data);

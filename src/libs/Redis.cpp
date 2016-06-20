@@ -55,8 +55,8 @@ void Redis::setnx(string key, string data)
 
 string Redis::incr(string key)
 {
-    string cmd = "INCR " + key;
-    return execCmd(cmd);
+    string cmd = "incr " + key;
+    return execCmd(cmd, true);
 }
 
 string Redis::get(string key)
@@ -65,12 +65,16 @@ string Redis::get(string key)
     return execCmd(cmd);
 }
 
-string Redis::execCmd(string cmd)
+string Redis::execCmd(string cmd, bool returnInt)
 {
     //redisReply是Redis命令回复对象 redis返回的信息保存在redisReply对象中
     pRedisReply = (redisReply*)redisCommand(pRedisContext, cmd.c_str());  //执行INFO命令
     string res = "";
-    if (pRedisReply->len > 0)
+    if (returnInt) {
+        char s[10];
+        sprintf(s, "%d", pRedisReply->integer);
+        res = string(s);
+    } else if (pRedisReply->len > 0)
         res = pRedisReply->str;
     //当多条Redis命令使用同一个redisReply对象时
     //每一次执行完Redis命令后需要清空redisReply 以免对下一次的Redis操作造成影响

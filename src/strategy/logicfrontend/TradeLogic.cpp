@@ -16,7 +16,7 @@ TradeLogic::TradeLogic(int peroid, double thresholdTrend, double thresholdVibrat
     _instrumnetID = instrumnetID;
 
     _peroid = peroid;
-    _lineRatio = 2 / ((peroid + 3) * (peroid - 3));
+    _lineRatio = 2 / (((double)peroid + 3) * ((double)peroid - 3));
     _thresholdTrend = thresholdTrend;
     _thresholdVibrate = thresholdVibrate;
 
@@ -84,7 +84,9 @@ bool TradeLogic::_isTradingTime(TickData tick)
     ofstream info;
     for (i = 0; i < _stopHM.size(); ++i)
     {
-        if (_stopHM[i].hour == Lib::stoi(nowHM[0]) && Lib::stoi(nowHM[1]) >= _stopHM[i].min) {
+        if ((_stopHM[i].hour == Lib::stoi(nowHM[0]) && Lib::stoi(nowHM[1]) >= _stopHM[i].min) || 
+            Lib::stoi(nowHM[0]) == _stopHM[i].hour + 1) 
+        {
             //log
             Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
             info << "TradeLogicSrv[stopTrade]";
@@ -100,10 +102,12 @@ bool TradeLogic::_isTradingTime(TickData tick)
     }
     for (i = 0; i < _startHM.size(); ++i)
     {
-        if (_startHM[i].hour == Lib::stoi(nowHM[0]) && Lib::stoi(nowHM[1]) < _startHM[i].min) {
+        if ((_startHM[i].hour == Lib::stoi(nowHM[0]) && Lib::stoi(nowHM[1]) < _startHM[i].min) || 
+            Lib::stoi(nowHM[0]) == _startHM[i].hour - 1) // 前一小时也不能交易
+        {
             //log
             Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
-            info << "TradeLogicSrv[stopTrade]";
+            info << "TradeLogicSrv[startTrade]";
             info << "|nowH|" << nowHM[0];
             info << "|nowM|" << nowHM[1];
             info << "|stopH|" << _startHM[i].hour;
@@ -183,8 +187,8 @@ void TradeLogic::_tick(TickData tick)
 
 void TradeLogic::_calculateUp(int type)
 {
-    int u2d = 0;
-    int u2u = 0;
+    double u2d = 0;
+    double u2u = 0;
     list<int>::reverse_iterator i;
     int j = 0;
     for (i = _transTypeList.rbegin(); i != _transTypeList.rend(); ++i)
@@ -220,8 +224,8 @@ void TradeLogic::_calculateUp(int type)
 
 void TradeLogic::_calculateDown(int type)
 {
-    int d2u = 0;
-    int d2d = 0;
+    double d2u = 0;
+    double d2d = 0;
     list<int>::reverse_iterator i;
     int j = 0;
     for (i = _transTypeList.rbegin(); i != _transTypeList.rend(); ++i)

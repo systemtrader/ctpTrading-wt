@@ -60,7 +60,8 @@ private:
     std::vector<TRADE_HM> _startHM; // 停止交易时间
 
     bool _isLock;
-    int _lineRatio;
+    double _lineRatio;
+
 
     int _forecastID;
     int _rollbackOpenUUID;

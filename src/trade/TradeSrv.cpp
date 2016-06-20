@@ -193,6 +193,7 @@ void TradeSrv::onTraded(CThostFtdcTradeField * const rsp)
     msg.price = rsp->Price;
     strcpy(msg.date, rsp->TradeDate);
     strcpy(msg.time, rsp->TradeTime);
+    strcpy(msg.instrumnetID, rsp->InstrumentID);
     _tradeStrategySrvClient->send((void *)&msg);
 
     // save data
@@ -350,6 +351,7 @@ void TradeSrv::onCancel(CThostFtdcOrderField * const rsp)
     MSG_TO_TRADE_STRATEGY msg = {0};
     msg.msgType = MSG_TRADE_BACK_CANCELED;
     msg.orderID = orderID;
+    strcpy(msg.instrumnetID, rsp->InstrumentID);
     _tradeStrategySrvClient->send((void *)&msg);
 
     _clearOrderByRef(orderRef);
@@ -407,6 +409,7 @@ void TradeSrv::onCancelErr(CThostFtdcInputOrderActionField * const rsp, CThostFt
     msg.msgType = MSG_TRADE_BACK_ERR;
     msg.orderID = orderID;
     msg.err = errInfo->ErrorID;
+    strcpy(msg.instrumnetID, rsp->InstrumentID);
     _tradeStrategySrvClient->send((void *)&msg);
 
     _clearOrderByRef(orderRef);
@@ -448,6 +451,7 @@ void TradeSrv::onOrderErr(CThostFtdcInputOrderField * const rsp, CThostFtdcRspIn
     msg.msgType = MSG_TRADE_BACK_ERR;
     msg.orderID = orderID;
     msg.err = errInfo->ErrorID;
+    strcpy(msg.instrumnetID, rsp->InstrumentID);
     _tradeStrategySrvClient->send((void *)&msg);
 
     _clearOrderByRef(orderRef);
