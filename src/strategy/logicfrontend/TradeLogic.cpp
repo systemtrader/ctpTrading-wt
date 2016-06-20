@@ -16,6 +16,7 @@ TradeLogic::TradeLogic(int peroid, double thresholdTrend, double thresholdVibrat
     _instrumnetID = instrumnetID;
 
     _peroid = peroid;
+    _lineRatio = 2 / ((peroid + 3) * (peroid - 3));
     _thresholdTrend = thresholdTrend;
     _thresholdVibrate = thresholdVibrate;
 
@@ -26,7 +27,7 @@ TradeLogic::TradeLogic(int peroid, double thresholdTrend, double thresholdVibrat
 
     // 初始化模型参数
     _pUp2Up = _pUp2Down = _pDown2Up = _pDown2Down = 0;
-    _countUp2Up = _countUp2Down = _countDown2Up = _countDown2Down = 0;
+    // _countUp2Up = _countUp2Down = _countDown2Up = _countDown2Down = 0;
 
     // 初始化停止交易时间
     std::vector<string> times = Lib::split(stopTradeTime, "/");
@@ -141,18 +142,18 @@ void TradeLogic::_tick(TickData tick)
 
     if (t[0].price > t[1].price) {
         if (t[1].price > t[2].price) {
-            _countDown2Down++;
+            // _countDown2Down++;
             _transTypeList.push_front(TRANS_TYPE_DOWN2DOWN);
         } else {
-            _countDown2Up++;
+            // _countDown2Up++;
             _transTypeList.push_front(TRANS_TYPE_DOWN2UP);
         }
     } else {
         if (t[1].price > t[2].price) {
-            _countUp2Down++;
+            // _countUp2Down++;
             _transTypeList.push_front(TRANS_TYPE_UP2DOWN);
         } else {
-            _countUp2Up++;
+            // _countUp2Up++;
             _transTypeList.push_front(TRANS_TYPE_UP2UP);
         }
     }
@@ -161,27 +162,46 @@ void TradeLogic::_tick(TickData tick)
     while (_transTypeList.size() > _peroid) {
         int type = _transTypeList.back();
         _transTypeList.pop_back();
-        switch (type) {
-            case TRANS_TYPE_DOWN2DOWN:
-                _countDown2Down--;
-                break;
-            case TRANS_TYPE_UP2DOWN:
-                _countUp2Down--;
-                break;
-            case TRANS_TYPE_DOWN2UP:
-                _countDown2Up--;
-                break;
-            case TRANS_TYPE_UP2UP:
-                _countUp2Up--;
-                break;
-            default:
-                break;
-        }
+        // switch (type) {
+        //     case TRANS_TYPE_DOWN2DOWN:
+        //         _countDown2Down--;
+        //         break;
+        //     case TRANS_TYPE_UP2DOWN:
+        //         _countUp2Down--;
+        //         break;
+        //     case TRANS_TYPE_DOWN2UP:
+        //         _countDown2Up--;
+        //         break;
+        //     case TRANS_TYPE_UP2UP:
+        //         _countUp2Up--;
+        //         break;
+        //     default:
+        //         break;
+        // }
     }
 }
 
-void TradeLogic::_calculateUp(double u2d, double u2u)
+void TradeLogic::_calculateUp(int type)
 {
+    int u2d = 0;
+    int u2u = 0;
+    list<int>::reverse_iterator i;
+    int j = 0;
+    for (i = _transTypeList.rbegin(); i != _transTypeList.rend(); ++i)
+    {
+        if (type != -1 && i == _transTypeList.rbegin()) continue;
+        j++;
+        if (*i == TRANS_TYPE_UP2UP) u2u = u2u + _lineRatio * j;
+        if (*i == TRANS_TYPE_UP2DOWN) u2d = u2d + _lineRatio * j;
+    }
+    j++;
+    if (type == TRANS_TYPE_UP2UP) {
+        u2u = u2u + _lineRatio * j;
+    }
+    if (type == TRANS_TYPE_UP2DOWN) {
+        u2d = u2d + _lineRatio * j;
+    }
+
     if (u2d + u2u > 0) {
         _pUp2Up = (double)u2u / ((double)u2u + (double)u2d);
         _pUp2Down = 1 - _pUp2Up;
@@ -192,14 +212,33 @@ void TradeLogic::_calculateUp(double u2d, double u2u)
     info << "TradeLogicSrv[calculateUp]";
     info << "|pUp2Up|" << _pUp2Up;
     info << "|pUp2Down|" << _pUp2Down;
-    info << "|UU_UD_DU_DD|" << u2u << "," << u2d << "," << _countDown2Up << "," << _countDown2Down;
+    info << "|UU_UD|" << u2u << "," << u2d;
     info << endl;
     info.close();
 }
 
 
-void TradeLogic::_calculateDown(double d2u, double d2d)
+void TradeLogic::_calculateDown(int type)
 {
+    int d2u = 0;
+    int d2d = 0;
+    list<int>::reverse_iterator i;
+    int j = 0;
+    for (i = _transTypeList.rbegin(); i != _transTypeList.rend(); ++i)
+    {
+        if (type != -1 && i == _transTypeList.rbegin()) continue;
+        j++;
+        if (*i == TRANS_TYPE_DOWN2UP) d2u = d2u + _lineRatio * j;
+        if (*i == TRANS_TYPE_DOWN2DOWN) d2d = d2d + _lineRatio * j;
+    }
+    j++;
+    if (type == TRANS_TYPE_DOWN2UP) {
+        d2u = d2u + _lineRatio * j;
+    }
+    if (type == TRANS_TYPE_DOWN2DOWN) {
+        d2d = d2d + _lineRatio * j;
+    }
+
     if (d2u + d2d > 0) {
         _pDown2Up = (double)d2u / ((double)d2u + (double)d2d);
         _pDown2Down = 1 - _pDown2Up;
@@ -210,7 +249,7 @@ void TradeLogic::_calculateDown(double d2u, double d2d)
     info << "TradeLogicSrv[calculateDown]";
     info << "|pDown2Up|" << _pDown2Up;
     info << "|pDown2Down|" << _pDown2Down;
-    info << "|UU_UD_DU_DD|" << _countUp2Up << "," << _countUp2Down << "," << d2u << "," << d2d;
+    info << "|DU_DD|" << d2u << "," << d2d;
     info << endl;
     info.close();
 }
@@ -294,7 +333,8 @@ void TradeLogic::_forecastNothing(TickData tick)
     // 只发一单
     if (_isCurrentUp()) { // 当前是up
 
-        _calculateDown(_countDown2Up, _countDown2Down);
+        // _calculateDown(_countDown2Up, _countDown2Down);
+        _calculateDown(TRANS_TYPE_UP2DOWN);
         if (_pDown2Up > _thresholdVibrate) {
             _forecastID++;
             // _rollbackOpenUDID = _forecastID;
@@ -302,7 +342,8 @@ void TradeLogic::_forecastNothing(TickData tick)
             _sendMsg(MSG_TRADE_BUYOPEN, tick.price - _kRange, true, _forecastID, 1);
         }
 
-        _calculateUp(_countUp2Down, _countUp2Up + 1);
+        // _calculateUp(_countUp2Down, _countUp2Up + 1);
+        _calculateUp(TRANS_TYPE_UP2UP);
         if (_pUp2Down > _thresholdVibrate) {
             _forecastID++;
             // _rollbackOpenUUID = _forecastID;
@@ -312,7 +353,8 @@ void TradeLogic::_forecastNothing(TickData tick)
 
     } else { // 当前是down
 
-        _calculateDown(_countDown2Up, _countDown2Down + 1);
+        // _calculateDown(_countDown2Up, _countDown2Down + 1);
+        _calculateDown(TRANS_TYPE_DOWN2DOWN);
         if (_pDown2Up > _thresholdVibrate) {
             _forecastID++;
             // _rollbackOpenDDID = _forecastID;
@@ -320,7 +362,8 @@ void TradeLogic::_forecastNothing(TickData tick)
             _sendMsg(MSG_TRADE_BUYOPEN, tick.price - _kRange, true, _forecastID, 1);
         }
 
-        _calculateUp(_countUp2Down, _countUp2Up);
+        // _calculateUp(_countUp2Down, _countUp2Up);
+        _calculateUp(TRANS_TYPE_DOWN2UP);
         if (_pUp2Down > _thresholdVibrate) {
             _forecastID++;
             // _rollbackOpenDUID = _forecastID;
@@ -334,7 +377,8 @@ void TradeLogic::_forecastBuyOpened(TickData tick)
 {
     if (_isCurrentUp()) { // 当前是up
 
-        _calculateUp(_countUp2Down, _countUp2Up + 1);
+        // _calculateUp(_countUp2Down, _countUp2Up + 1);
+        _calculateUp(TRANS_TYPE_UP2UP);
         if (_pUp2Up <= _thresholdTrend) {
             _forecastID++;
             // _rollbackCloseUID = _forecastID;
@@ -352,7 +396,8 @@ void TradeLogic::_forecastBuyOpened(TickData tick)
 
     } else { // 当前是down
 
-        _calculateUp(_countUp2Down, _countUp2Up);
+        // _calculateUp(_countUp2Down, _countUp2Up);
+        _calculateUp(TRANS_TYPE_DOWN2UP);
         if (_pUp2Up <= _thresholdTrend) {
             _forecastID++;
             // _rollbackCloseDID = _forecastID;
@@ -376,7 +421,8 @@ void TradeLogic::_forecastSellOpened(TickData tick)
     bool isCloseMain = true;
     if (_isCurrentUp()) { // 当前是up
 
-        _calculateDown(_countDown2Up, _countDown2Down);
+        // _calculateDown(_countDown2Up, _countDown2Down);
+        _calculateDown(TRANS_TYPE_UP2DOWN);
         if (_pDown2Down <= _thresholdTrend) {
             _forecastID++;
             // _rollbackCloseUID = _forecastID;
@@ -394,7 +440,8 @@ void TradeLogic::_forecastSellOpened(TickData tick)
 
     } else { // 当前是down
 
-        _calculateDown(_countDown2Up, _countDown2Down + 1);
+        // _calculateDown(_countDown2Up, _countDown2Down + 1);
+        _calculateDown(TRANS_TYPE_UP2DOWN);
         if (_pDown2Down <= _thresholdTrend) {
             _forecastID++;
             // _rollbackCloseDID = _forecastID;
@@ -471,14 +518,16 @@ void TradeLogic::_realAction(TickData tick)
     switch (status1) {
         case TRADE_STATUS_NOTHING:
             if (_isCurrentUp()) {
-                _calculateUp(_countUp2Down, _countUp2Up);
+                // _calculateUp(_countUp2Down, _countUp2Up);
+                _calculateUp();
                 if (_pUp2Up > _thresholdTrend) { // 买开
                     _sendMsg(MSG_TRADE_BUYOPEN, tick.price, false, 0, 1, true);
                 } else {
                     _forecast(tick);
                 }
             } else {
-                _calculateDown(_countDown2Up, _countDown2Down);
+                // _calculateDown(_countDown2Up, _countDown2Down);
+                _calculateDown();
                 if (_pDown2Down > _thresholdTrend) { // 卖开
                     _sendMsg(MSG_TRADE_SELLOPEN, tick.price, false, 0, 1, true);
                 } else {
@@ -490,7 +539,8 @@ void TradeLogic::_realAction(TickData tick)
         case TRADE_STATUS_SELLOPENED:
 
             if (_isCurrentUp()) {
-                _calculateUp(_countUp2Down, _countUp2Up);
+                // _calculateUp(_countUp2Down, _countUp2Up);
+                _calculateUp();
                 if (_pUp2Down <= _thresholdVibrate) { // 不满足买开，平仓
                     if (_pUp2Up > _thresholdTrend) {
                         _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 1);
@@ -503,7 +553,8 @@ void TradeLogic::_realAction(TickData tick)
                 }
 
             } else {
-                _calculateDown(_countDown2Up, _countDown2Down);
+                // _calculateDown(_countDown2Up, _countDown2Down);
+                _calculateDown();
                 if (_pDown2Down <= _thresholdTrend) { // 不满足买开，平
                     if (_pDown2Up > _thresholdVibrate) {
                         _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 1);
@@ -520,7 +571,8 @@ void TradeLogic::_realAction(TickData tick)
         case TRADE_STATUS_BUYOPENED:
 
             if (_isCurrentUp()) {
-                _calculateUp(_countUp2Down, _countUp2Up);
+                // _calculateUp(_countUp2Down, _countUp2Up);
+                _calculateUp();
                 if (_pUp2Up <= _thresholdTrend ) { // 不满足买开，平仓
                     if (_pUp2Down > _thresholdVibrate) {
                         _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 1);
@@ -533,7 +585,8 @@ void TradeLogic::_realAction(TickData tick)
                 }
 
             } else {
-                _calculateDown(_countDown2Up, _countDown2Down);
+                // _calculateDown(_countDown2Up, _countDown2Down);
+                _calculateDown();
                 if (_pDown2Up <= _thresholdVibrate) { // 不满足买开，平
                     if (_pDown2Down > _thresholdTrend) {
                         _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 1);

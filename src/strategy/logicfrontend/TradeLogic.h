@@ -60,6 +60,7 @@ private:
     std::vector<TRADE_HM> _startHM; // 停止交易时间
 
     bool _isLock;
+    int _lineRatio;
 
     int _forecastID;
     int _rollbackOpenUUID;
@@ -79,20 +80,20 @@ private:
 
     // 计算辅助变量
     int _kIndex;
-    int _countUp2Up;
-    int _countUp2Down;
-    int _countDown2Up;
-    int _countDown2Down;
+    // int _countUp2Up;
+    // int _countUp2Down;
+    // int _countDown2Up;
+    // int _countDown2Down;
     list<int> _transTypeList; // 保存transType
     list<TickData> _tickGroup; // 保存三个tick数据，满足三个tick则可以计算出一个transType，即可存入transTypeList
 
     double _pUp2Up;
     double _pUp2Down;
-    void _calculateUp(double, double);
+    void _calculateUp(int = -1);
 
     double _pDown2Up;
     double _pDown2Down;
-    void _calculateDown(double, double);
+    void _calculateDown(int = -1);
 
     void _tick(TickData); // 处理tick信息
 
