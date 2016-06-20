@@ -5,12 +5,6 @@
 */
 class Report
 {
-    private $conf = [
-        1130 => ['21:00', '02:30'],
-        1500 => ['09:00', '11:30'],
-        2359 => ['13:30', '15:00'],
-        230  => ['13:30', '15:00'],
-    ];
 
     private $title = ['序列号', '订单号', '合约', 'K线索引', '买卖', '开平', '订单类型', '报单时间', '毫秒', '最后成交时间/撤单时间', '毫秒', '报单价格', '成交价格', '报单手数', '未成交手数', '盈亏', '手续费', '系统响应耗时', '订单成交耗时', '详细状态'];
 
@@ -67,7 +61,7 @@ class Report
         $st = $this->db->prepare($sql);
         $st->execute([]);
         $res = $st->fetchAll(PDO::FETCH_ASSOC);
-        
+
         $report = [];
         $no = 1;
         // 初步处理
@@ -116,7 +110,7 @@ class Report
                 case 2:
                     $tmp[] = '撤单';
                     break;
-                
+
                 default:
                     $tmp[] = '未知';
                     break;
@@ -140,7 +134,7 @@ class Report
                 $report[$key][10] = $tickPrice;
             }
         }
-        
+
         // csv
         $fp = fopen($this->file . ".csv", 'w');
         fputcsv($fp, $this->title);
@@ -149,7 +143,7 @@ class Report
         }
         fclose($fp);
     }
- 
+
 }
 
 $start = isset($argv[1]) ? $argv[1] : false;

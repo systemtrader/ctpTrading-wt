@@ -74,6 +74,7 @@ void Lib::sysErrLog(string logPath, string logName, CThostFtdcRspInfoField *info
 
 void Lib::sysReqLog(string logPath, string logName, int code)
 {
+    if (code == 0) return;
     ofstream sysLogger;
     logPath = logPath + getDate("%Y%m%d") + ".log";
     sysLogger.open(logPath.c_str(), ios::app);

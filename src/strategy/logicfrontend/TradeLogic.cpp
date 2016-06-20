@@ -396,6 +396,7 @@ void TradeLogic::_forecastSellOpened(TickData tick)
 void TradeLogic::_forecast(TickData tick)
 {
     if (_transTypeList.size() < _peroid - 1) {
+        _isLock = false;
         return; // 计算概率条件不足，不做操作
     }
 
@@ -437,6 +438,7 @@ void TradeLogic::_forecast(TickData tick)
 void TradeLogic::_realAction(TickData tick)
 {
     if (_transTypeList.size() < _peroid - 1) {
+        _isLock = false;
         return; // 计算概率条件不足，不做操作
     }
 
@@ -703,7 +705,7 @@ void TradeLogic::onKLineCloseByMe(KLineBlock block, TickData tick)
             }
             break;
 
-        case TRADE_STATUS_BUYOPENING: 
+        case TRADE_STATUS_BUYOPENING:
             if (status2 == TRADE_STATUS_SELLOPENED) {
                 _statusType = STATUS_TYPE_MYCLOSE_BOING_SOED;
             }
@@ -828,7 +830,7 @@ void TradeLogic::onRollback()
                 _setStatus(1, TRADE_STATUS_SELLOPENED);
                 _forecast(_closeTick);
             } else {
-                // 不知道怎么办。。。                
+                // 不知道怎么办。。。
             }
             break;
 
