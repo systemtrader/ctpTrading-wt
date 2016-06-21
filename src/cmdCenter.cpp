@@ -81,15 +81,15 @@ int main(int argc, char const *argv[])
     if (cmd == 1) {
 
         // php 相关模块启动，负责初始化redis，队列消费者请手动启动
-        system(phpCmd.c_str());
-        sleep(1);
+        // system(phpCmd.c_str());
+        // sleep(1);
 
         // 启动各服务模块
-        system("./tradeSrv &");
-        system("./tradeStrategySrv &");
-        system("./tradeLogicSrv &");
-        system("./kLineSrv &");
-        sleep(1);
+        // system("./tradeSrv &");
+        // system("./tradeStrategySrv &");
+        // system("./tradeLogicSrv &");
+        // system("./kLineSrv &");
+        // sleep(1);
 
         // 启动数据源
         system("./marketSrv &");
@@ -97,10 +97,10 @@ int main(int argc, char const *argv[])
     } else if (cmd == 2) {
 
         stopMarket();
-        stopKLine();
-        stopTradeLogic();
-        stopTradeStrategy();
-        stopTrade();
+        // stopKLine();
+        // stopTradeLogic();
+        // stopTradeStrategy();
+        // stopTrade();
 
     } else if (cmd == 3) {
 

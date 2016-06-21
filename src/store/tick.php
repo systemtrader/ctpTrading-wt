@@ -24,9 +24,11 @@ class Tick
                 $volume = $data[1];
                 $bid = $data[2];
                 $ask = $data[3];
+                $askVolume1 = $data[8];
+                $bidVolume1 = $data[9];
                 $instrumnetID = $data[7];
-                $sql = "insert into `tick` (`time`, `msec`, `price`, `bid_price1`, `ask_price1`, `volume`, `instrumnet_id`) values (?, ?, ?, ?, ?, ?, ?)";
-                $params = array(date("Y/m/d H:i:s", $time), $msec, $price, $bid, $ask, $volume, $instrumnetID);
+                $sql = "insert into `tick` (`time`, `msec`, `price`, `bid_price1`, `ask_price1`, `volume`, `instrumnet_id`, `ask_volume1`, `bid_volume1`) values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                $params = array(date("Y/m/d H:i:s", $time), $msec, $price, $bid, $ask, $volume, $instrumnetID, $askVolume1, $bidVolume1);
                 echo ".";
                 $this->consumer->insertDB($sql, $params);
             } else {

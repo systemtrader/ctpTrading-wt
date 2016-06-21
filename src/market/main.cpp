@@ -47,7 +47,7 @@ int main(int argc, char const *argv[])
 
     // 初始化交易接口
     mApi = CThostFtdcMdApi::CreateFtdcMdApi(flowPath.c_str());
-    MarketSpi mSpi(mApi, logPath, kLineSrvID, bid, userID, password, instrumnetIDs, db, stopTradeTime, tradeLogicSrvID); // 初始化回调实例
+    MarketSpi mSpi(mApi, logPath, bid, userID, password, instrumnetIDs, db); // 初始化回调实例
     mApi->RegisterSpi(&mSpi);
     mApi->RegisterFront(Lib::stoc(mURL));
     mApi->Init();

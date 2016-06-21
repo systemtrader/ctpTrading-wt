@@ -168,7 +168,9 @@ string Lib::tickData2String(TickData tick)
                  string(tick.date) + "_" +
                  string(tick.time) + "_" +
                  Lib::itos(tick.msec) + "_" +
-                 string(tick.instrumnetID);
+                 string(tick.instrumnetID) + "_" +
+                 Lib::itos(tick.askVolume1) + "_" +
+                 Lib::itos(tick.bidVolume1);
     return str;
 }
 

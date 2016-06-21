@@ -3,9 +3,7 @@
 using namespace std;
 
 MarketSpi::MarketSpi(CThostFtdcMdApi * mdApi, string logPath,
-    int serviceID,
-    string brokerID, string userID, string password, string instrumnetIDs, int db,
-    string stopTradeTime, int serviceIDT)
+    string brokerID, string userID, string password, string instrumnetIDs, int db)
 {
     _mdApi = mdApi;
     _logPath = logPath;
@@ -15,31 +13,13 @@ MarketSpi::MarketSpi(CThostFtdcMdApi * mdApi, string logPath,
     _brokerID = brokerID;
 
     _instrumnetIDs = Lib::split(instrumnetIDs, "/");
-
-    _klineClient = new QClient(serviceID, sizeof(MSG_TO_KLINE));
-    _tradeLogicSrvClient = new QClient(serviceIDT, sizeof(MSG_TO_TRADE_LOGIC));
     _store = new Redis("127.0.0.1", 6379, db);
-
-    // 初始化停止交易时间
-    std::vector<string> times = Lib::split(stopTradeTime, "/");
-    std::vector<string> hm;
-    int i;
-    for (i = 0; i < times.size(); ++i)
-    {
-        TRADE_HM tmp = {0};
-        hm = Lib::split(times[i], ":");
-        tmp.hour = Lib::stoi(hm[0]);
-        tmp.min = Lib::stoi(hm[1]);
-        _stopHM.push_back(tmp);
-    }
 
 }
 
 MarketSpi::~MarketSpi()
 {
     _mdApi = NULL;
-    // delete _store;
-    // delete _klineClient;
     cout << "~MarketSpi" << endl;
 }
 
@@ -114,40 +94,23 @@ void MarketSpi::OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, boo
 void MarketSpi::_saveMarketData(CThostFtdcDepthMarketDataField *data)
 {
     if (!data) return;
-    // 发送给K线系统
-    MSG_TO_KLINE msg = {0};
-    msg.msgType = MSG_TICK;
-    msg.tick.price = data->LastPrice;
-    msg.tick.volume = data->Volume;
-    msg.tick.bidPrice1 = data->BidPrice1;
-    msg.tick.askPrice1 = data->AskPrice1;
-    strcpy(msg.tick.date, data->ActionDay);
-    strcpy(msg.tick.time, data->UpdateTime);
-    strcpy(msg.tick.instrumnetID, data->InstrumentID);
-    msg.tick.msec = data->UpdateMillisec;
-    _klineClient->send((void *)&msg);
 
+    TickData tick = {0};
+    tick.price = data->LastPrice;
+    tick.volume = data->Volume;
+    tick.bidPrice1 = data->BidPrice1;
+    tick.bidVolume1 = data->BidVolume1;
+    tick.askPrice1 = data->AskPrice1;
+    tick.askVolume1 = data->AskVolume1;
+    strcpy(tick.date, data->ActionDay);
+    strcpy(tick.time, data->UpdateTime);
+    strcpy(tick.instrumnetID, data->InstrumentID);
+    tick.msec = data->UpdateMillisec;
 
     // 将数据放入队列，以便存入DB
-    string tickStr = Lib::tickData2String(msg.tick);
+    string tickStr = Lib::tickData2String(tick);
     string keyQ = "MARKET_TICK_Q";
-    string keyD = "CURRENT_TICK_" + string(data->InstrumentID);
-    _store->set(keyD, tickStr); // tick数据，供全局使用
     _store->push(keyQ, tickStr);
-
-    string now = string(msg.tick.time);
-    std::vector<string> nowHMS = Lib::split(now, ":");
-    int i;
-    for (i = 0; i < _stopHM.size(); ++i)
-    {
-        if (_stopHM[i].hour == Lib::stoi(nowHMS[0]) && Lib::stoi(nowHMS[1]) == _stopHM[i].min && Lib::stoi(nowHMS[2]) >= 5) {
-            MSG_TO_TRADE_LOGIC msg2 = {0};
-            msg2.msgType = MSG_TRADE_END;
-            msg2.tick = msg.tick;
-            _tradeLogicSrvClient->send((void *)&msg2);
-            return;
-        }
-    }
 
 }
 
