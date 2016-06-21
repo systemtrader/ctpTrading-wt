@@ -9,7 +9,7 @@ class Report
     private $title = ['序列号', '订单号', '合约', 'K线索引', '买卖', '开平', '订单类型', '报单时间', '最后成交时间/撤单时间', '报单价格', '成交价格', '报单手数', '未成交手数', '盈亏', '手续费', '系统响应耗时', '订单成交耗时', '详细状态'];
 
     private $commission = [
-        'sn1609' => 1,
+        'sn1609' => 3.9,
     ];
 
     function __construct($start, $end)
@@ -44,7 +44,7 @@ class Report
             }
         }
         $this->file = str_replace(" ", "_", $this->file);
-        $this->file = "order_" . $this->file;
+        $this->file = "/home/dev/ctpOrder/order_" . $this->file;
         $this->start = $start;
         $this->end = $end;
     }
@@ -138,10 +138,12 @@ class Report
                 $report[$key][10] = implode(',', array_unique($tickPrice));
             }
         }
-
+        array_unshift($report, $this->title);
+        array_walk_recursive($report, function(&$item) {
+            $item = iconv('utf8', 'gbk', $item);
+        });
         // csv
         $fp = fopen($this->file . ".csv", 'w');
-        fputcsv($fp, $this->title);
         foreach ($report as $fields) {
             fputcsv($fp, $fields);
         }

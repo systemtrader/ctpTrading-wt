@@ -16,7 +16,7 @@ TradeLogic::TradeLogic(int peroid, double thresholdTrend, double thresholdVibrat
     _instrumnetID = instrumnetID;
 
     _peroid = peroid;
-    _lineRatio = 2 / (((double)peroid + 3) * ((double)peroid - 3));
+    _lineRatio = 2 / ((double)peroid * ((double)peroid + 1));
     _thresholdTrend = thresholdTrend;
     _thresholdVibrate = thresholdVibrate;
 
@@ -78,14 +78,13 @@ void TradeLogic::init()
 bool TradeLogic::_isTradingTime(TickData tick)
 {
     string now = string(tick.time);
-    now = now.substr(0, 5);
     std::vector<string> nowHM = Lib::split(now, ":");
     int i;
     ofstream info;
     for (i = 0; i < _stopHM.size(); ++i)
     {
-        if ((_stopHM[i].hour == Lib::stoi(nowHM[0]) && Lib::stoi(nowHM[1]) >= _stopHM[i].min) || 
-            Lib::stoi(nowHM[0]) == _stopHM[i].hour + 1) 
+        if ((_stopHM[i].hour == Lib::stoi(nowHM[0]) && Lib::stoi(nowHM[1]) >= _stopHM[i].min) ||
+            Lib::stoi(nowHM[0]) == _stopHM[i].hour + 1)
         {
             //log
             Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
@@ -102,7 +101,7 @@ bool TradeLogic::_isTradingTime(TickData tick)
     }
     for (i = 0; i < _startHM.size(); ++i)
     {
-        if ((_startHM[i].hour == Lib::stoi(nowHM[0]) && Lib::stoi(nowHM[1]) < _startHM[i].min) || 
+        if ((_startHM[i].hour == Lib::stoi(nowHM[0]) && Lib::stoi(nowHM[1]) < _startHM[i].min) ||
             Lib::stoi(nowHM[0]) == _startHM[i].hour - 1) // 前一小时也不能交易
         {
             //log
@@ -116,6 +115,21 @@ bool TradeLogic::_isTradingTime(TickData tick)
             info.close();
             return false;
         }
+    }
+    // 全品种十点十五休息至十点半 提前30秒休息，错后30秒开始
+    if ((Lib::stoi(nowHM[0]) == 10 && Lib::stoi(nowHM[1]) == 14 && Lib::stoi(nowHM[2]) >= 30) ||
+        (Lib::stoi(nowHM[0]) == 10 && Lib::stoi(nowHM[1]) == 30 && Lib::stoi(nowHM[2]) >= 30) ||
+        (Lib::stoi(nowHM[0]) == 10 && Lib::stoi(nowHM[1]) >= 15 && Lib::stoi(nowHM[1]) <= 29 ))
+    {
+        //log
+        Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
+        info << "TradeLogicSrv[10clock]";
+        info << "|nowH|" << nowHM[0];
+        info << "|nowM|" << nowHM[1];
+        info << "|nowS|" << nowHM[2];
+        info << endl;
+        info.close();
+        return false;
     }
     return true;
 }
@@ -466,6 +480,7 @@ void TradeLogic::_forecastSellOpened(TickData tick)
 void TradeLogic::_forecast(TickData tick)
 {
     if (_transTypeList.size() < _peroid - 1) {
+        _isLock = false;
         return; // 计算概率条件不足，不做操作
     }
 
@@ -507,6 +522,7 @@ void TradeLogic::_forecast(TickData tick)
 void TradeLogic::_realAction(TickData tick)
 {
     if (_transTypeList.size() < _peroid - 1) {
+        _isLock = false;
         return; // 计算概率条件不足，不做操作
     }
 
@@ -641,7 +657,6 @@ void TradeLogic::_endClose()
         _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 3);
         _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 3);
     }
-
 }
 
 void TradeLogic::onTradeEnd()
