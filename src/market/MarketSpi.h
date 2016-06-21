@@ -5,6 +5,7 @@
 #include "../../include/ThostFtdcMdApi.h"
 #include "../../include/ThostFtdcTraderApi.h"
 #include "../libs/Redis.h"
+#include <map>
 
 using namespace std;
 
@@ -24,7 +25,7 @@ private:
     QClient * _tradeLogicSrvClient;
     Redis * _store;
 
-    std::vector<TRADE_HM> _stopHM; // 停止交易时间
+    std::map<string, std::vector<TRADE_HM> > _stopHM;
 
     string _brokerID;
     string _userID;
@@ -37,7 +38,7 @@ private:
 
 public:
 
-    MarketSpi(CThostFtdcMdApi *, string, int, string, string, string, string, int, string, int);
+    MarketSpi(CThostFtdcMdApi *, string, int, string, string, string, string, int, std::map<string, std::vector<string> >, int);
     ~MarketSpi();
 
     void OnFrontConnected();

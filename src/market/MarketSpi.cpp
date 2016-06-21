@@ -5,7 +5,7 @@ using namespace std;
 MarketSpi::MarketSpi(CThostFtdcMdApi * mdApi, string logPath,
     int serviceID,
     string brokerID, string userID, string password, string instrumnetIDs, int db,
-    string stopTradeTime, int serviceIDT)
+    std::map<string, std::vector<string> > stopTradeTimes, int serviceIDT)
 {
     _mdApi = mdApi;
     _logPath = logPath;
@@ -21,17 +21,22 @@ MarketSpi::MarketSpi(CThostFtdcMdApi * mdApi, string logPath,
     _store = new Redis("127.0.0.1", 6379, db);
 
     // 初始化停止交易时间
-    std::vector<string> times = Lib::split(stopTradeTime, "/");
-    std::vector<string> hm;
-    int i;
-    for (i = 0; i < times.size(); ++i)
+    std::map<string, std::vector<string> >::iterator it;
+    for (it = stopTradeTimes.begin(); it != stopTradeTimes.end(); ++it)
     {
-        TRADE_HM tmp = {0};
-        hm = Lib::split(times[i], ":");
-        tmp.hour = Lib::stoi(hm[0]);
-        tmp.min = Lib::stoi(hm[1]);
-        _stopHM.push_back(tmp);
+        std::vector<string> times = it->second;
+        std::vector<string> hm;
+        int i;
+        for (i = 0; i < times.size(); ++i)
+        {
+            TRADE_HM tmp = {0};
+            hm = Lib::split(times[i], ":");
+            tmp.hour = Lib::stoi(hm[0]);
+            tmp.min = Lib::stoi(hm[1]);
+            _stopHM[it->first].push_back(tmp);
+        }
     }
+
 
 }
 
@@ -139,10 +144,11 @@ void MarketSpi::_saveMarketData(CThostFtdcDepthMarketDataField *data)
 
     string now = string(msg.tick.time);
     std::vector<string> nowHMS = Lib::split(now, ":");
+    string iID = string(data->InstrumentID);
     int i;
-    for (i = 0; i < _stopHM.size(); ++i)
+    for (i = 0; i < _stopHM[iID].size(); ++i)
     {
-        if (_stopHM[i].hour == Lib::stoi(nowHMS[0]) && Lib::stoi(nowHMS[1]) == _stopHM[i].min && Lib::stoi(nowHMS[2]) >= 5) {
+        if (_stopHM[iID][i].hour == Lib::stoi(nowHMS[0]) && Lib::stoi(nowHMS[1]) == _stopHM[iID][i].min && Lib::stoi(nowHMS[2]) >= 5) {
             MSG_TO_TRADE_LOGIC msg2 = {0};
             msg2.msgType = MSG_TRADE_END;
             msg2.tick = msg.tick;

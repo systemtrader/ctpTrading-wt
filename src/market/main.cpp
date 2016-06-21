@@ -36,7 +36,15 @@ int main(int argc, char const *argv[])
     } else {
         db = getOptionToInt("rds_db_online");
     }
-    string stopTradeTime = getOptionToString("stop_trade_time");
+
+    std::vector<string> iIDs = Lib::split(instrumnetIDs, "/");
+    std::map<string, std::vector<string> > stopTradeTimes;
+    for (int i = 0; i < iIDs.size(); ++i)
+    {
+        string tmp = getOptionToString("stop_trade_time_" + iIDs[i]);
+        stopTradeTimes[iIDs[i]] = Lib::split(tmp, "/");
+    }
+
     int tradeLogicSrvID = getOptionToInt("trade_logic_service_id");
 
     signal(30, shutdown);
@@ -47,7 +55,7 @@ int main(int argc, char const *argv[])
 
     // 初始化交易接口
     mApi = CThostFtdcMdApi::CreateFtdcMdApi(flowPath.c_str());
-    MarketSpi mSpi(mApi, logPath, kLineSrvID, bid, userID, password, instrumnetIDs, db, stopTradeTime, tradeLogicSrvID); // 初始化回调实例
+    MarketSpi mSpi(mApi, logPath, kLineSrvID, bid, userID, password, instrumnetIDs, db, stopTradeTimes, tradeLogicSrvID); // 初始化回调实例
     mApi->RegisterSpi(&mSpi);
     mApi->RegisterFront(Lib::stoc(mURL));
     mApi->Init();

@@ -40,10 +40,16 @@ int main(int argc, char const *argv[])
     std::vector<string> thresholdsV = Lib::split(thresholdStrV, "/");
     std::vector<string> kRanges = Lib::split(krs, "/");
 
+    std::map<string, string> stopTradeTimes;
+    for (int i = 0; i < instrumnetIDs.size(); ++i)
+    {
+        stopTradeTimes[instrumnetIDs[i]] = getOptionToString("stop_trade_time_" + instrumnetIDs[i]);
+    }
+
     for (int i = 0; i < instrumnetIDs.size(); ++i)
     {
         TradeLogic * tmp = new TradeLogic(Lib::stoi(peroids[i]), Lib::stod(thresholdsT[i]), Lib::stod(thresholdsV[i]), tradeStrategySrvID,
-            logPath, db, stopTradeTime, startTradeTime, instrumnetIDs[i], Lib::stoi(kRanges[i]));
+            logPath, db, stopTradeTimes[instrumnetIDs[i]], startTradeTime, instrumnetIDs[i], Lib::stoi(kRanges[i]));
         tmp->init();
         services[instrumnetIDs[i]] = tmp;
     }
