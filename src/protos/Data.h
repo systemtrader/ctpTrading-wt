@@ -6,7 +6,9 @@ typedef struct Tick
     double price;
     int volume;
     double bidPrice1;
+    int bidVolume1;
     double askPrice1;
+    int askVolume1;
     char date[9];
     char time[9];
     int msec;

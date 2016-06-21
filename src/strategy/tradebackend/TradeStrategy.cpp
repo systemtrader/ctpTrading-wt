@@ -36,6 +36,7 @@ TradeStrategy::TradeStrategy(int serviceID, string logPath, int db, int serviceI
     _orderID = 0;
     _logPath = logPath;
     _store = new Redis("127.0.0.1", 6379, db);
+    _storeTick = new Redis("127.0.0.1", 6379, 1);
     _tradeSrvClient = new QClient(serviceID, sizeof(MSG_TO_TRADE));
     _klineClient = new QClient(serviceIDK, sizeof(MSG_TO_KLINE));
     _tradeLogicSrvClient = new QClient(serviceIDL, sizeof(MSG_TO_TRADE_LOGIC));
@@ -279,8 +280,11 @@ void TradeStrategy::onSuccess(MSG_TO_TRADE_STRATEGY rsp)
                 MSG_TO_KLINE msg = {0};
                 msg.msgType = MSG_TICK;
                 msg.tick.price = rsp.price;
+                msg.tick.volume = 0;
                 msg.tick.bidPrice1 = rsp.price;
+                msg.tick.bidVolume1 = 0;
                 msg.tick.askPrice1 = rsp.price;
+                msg.tick.askVolume1 = 0;
                 strcpy(msg.tick.date, rsp.date);
                 strcpy(msg.tick.time, rsp.time);
                 strcpy(msg.tick.instrumnetID, order.instrumnetID.c_str());
@@ -292,7 +296,7 @@ void TradeStrategy::onSuccess(MSG_TO_TRADE_STRATEGY rsp)
                 string keyQ = "MARKET_TICK_Q";
                 string keyD = "CURRENT_TICK_" + string(order.instrumnetID);
                 _store->set(keyD, tickStr); // tick数据，供全局使用
-                _store->push(keyQ, tickStr);
+                _storeTick->push(keyQ, tickStr);
             }
 
         } else {

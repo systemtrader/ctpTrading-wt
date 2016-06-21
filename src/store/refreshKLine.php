@@ -22,14 +22,14 @@ class Refresh
     public function run()
     {
         $db = new PDO("mysql:dbname={$this->mysqldb};host={$this->dbHost}", "root", "Abc518131!");
-
+        $tickDB = new PDO("mysql:dbname=tick;host={$this->dbHost}", "root", "Abc518131!");
         $i = 0;
         foreach ($this->iIDs as $iID) {
-            $this->refresh($iID, $this->kRanges[$i++], $db);
+            $this->refresh($iID, $this->kRanges[$i++], $db, $tickDB);
         }
     }
 
-    private function refresh($iID, $range, $db)
+    private function refresh($iID, $range, $db, $tickDB)
     {
         // 清空原有数据
         $sql = "DELETE FROM `kline` WHERE `instrumnet_id` = '{$iID}'";
@@ -39,20 +39,20 @@ class Refresh
         $id = 0;
         $index = 0;
         while (true) {
-            $id = $this->makeBlock($id, $iID, $range, $index, $db);
+            $id = $this->makeBlock($id, $iID, $range, $index, $db, $tickDB);
             $index++;
             if (!$id) break;
         }
     }
 
-    public function makeBlock($id, $iID, $range, $index, $db)
+    public function makeBlock($id, $iID, $range, $index, $db, $tickDB)
     {
         if (empty($id)) {
             $sql = "SELECT * FROM `tick` WHERE `instrumnet_id` = '{$iID}' ORDER BY `id` LIMIT 1";
         } else {
             $sql = "SELECT * FROM `tick` WHERE `id` = {$id}";
         }
-        $st = $db->prepare($sql);
+        $st = $tickDB->prepare($sql);
         $st->execute(array());
         $res = $st->fetchAll(PDO::FETCH_ASSOC);
         $open = $res[0];
@@ -62,7 +62,7 @@ class Refresh
         $highPrice = $startPrice + $range;
         $lowPrice = $startPrice - $range;
         $sql = "SELECT * FROM `tick` WHERE (`price` >= {$highPrice} or `price` <= {$lowPrice}) AND `id` > {$id} AND `instrumnet_id` = '{$iID}' ORDER BY `id` LIMIT 1";
-        $st = $db->prepare($sql);
+        $st = $tickDB->prepare($sql);
         $st->execute(array());
         $res = $st->fetchAll(PDO::FETCH_ASSOC);
         $close = $res[0];
@@ -71,7 +71,7 @@ class Refresh
         $openID = $open['id'];
         $closeID = $open['id'];
         $sql = "SELECT MAX(`price`) AS `max`, MIN(`price`) AS `min` FROM `tick` WHERE `id` >= {$openID} AND `id` <= {$closeID} AND `instrumnet_id` = '{$iID}'";
-        $st = $db->prepare($sql);
+        $st = $tickDB->prepare($sql);
         $st->execute(array());
         $res = $st->fetchAll(PDO::FETCH_ASSOC);
         $res = $res[0];

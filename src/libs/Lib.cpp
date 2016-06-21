@@ -168,7 +168,9 @@ string Lib::tickData2String(TickData tick)
                  string(tick.date) + "_" +
                  string(tick.time) + "_" +
                  Lib::itos(tick.msec) + "_" +
-                 string(tick.instrumnetID);
+                 string(tick.instrumnetID) + "_" +
+                 Lib::itos(tick.askVolume1) + "_" +
+                 Lib::itos(tick.bidVolume1);
     return str;
 }
 
@@ -185,6 +187,8 @@ TickData Lib::string2TickData(string str)
     strcpy(tick.time, params[5].c_str());
     tick.msec = Lib::stoi(params[6]);
     strcpy(tick.instrumnetID, params[7].c_str());
+    tick.askVolume1 = Lib::stoi(params[8]);
+    tick.bidVolume1 = Lib::stoi(params[9]);
     return tick;
 }
 

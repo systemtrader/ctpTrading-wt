@@ -125,6 +125,8 @@ void MarketSpi::_saveMarketData(CThostFtdcDepthMarketDataField *data)
     strcpy(msg.tick.time, data->UpdateTime);
     strcpy(msg.tick.instrumnetID, data->InstrumentID);
     msg.tick.msec = data->UpdateMillisec;
+    msg.tick.askVolume1 = data->AskVolume1;
+    msg.tick.bidVolume1 = data->BidVolume1;
     _klineClient->send((void *)&msg);
 
 
@@ -133,7 +135,7 @@ void MarketSpi::_saveMarketData(CThostFtdcDepthMarketDataField *data)
     string keyQ = "MARKET_TICK_Q";
     string keyD = "CURRENT_TICK_" + string(data->InstrumentID);
     _store->set(keyD, tickStr); // tick数据，供全局使用
-    _store->push(keyQ, tickStr);
+    // _store->push(keyQ, tickStr);
 
     string now = string(msg.tick.time);
     std::vector<string> nowHMS = Lib::split(now, ":");

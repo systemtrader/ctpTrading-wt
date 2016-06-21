@@ -28,6 +28,8 @@ class TradeStrategy
 private:
 
     Redis * _store;
+    Redis * _storeTick;
+
     QClient * _tradeSrvClient;
     QClient * _klineClient;
     QClient * _tradeLogicSrvClient;
