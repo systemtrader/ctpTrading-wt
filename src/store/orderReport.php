@@ -7,9 +7,15 @@ class Report
 {
 
     private $title = ['序列号', '订单号', '系统单号', '合约', 'K线索引', '买卖', '开平', '订单类型', '报单时间', '最后成交时间/撤单时间', '报单价格', '成交价格', '报单手数', '未成交手数', '盈亏', '手续费', '系统响应耗时', '订单成交耗时', '详细状态'];
-
+    private $infoTitle = ['合约', '下单总数', '成交', '平开', '预测单', '双开预测', '平开预测', '方向对的平开预测', '双开成功', '平开成功', '双开成功率', '平开成功率', '实时单', '实时成功', '实时平仓', '实时追价', '开仓FOK'];
     private $commission = [
         'sn1609' => 3.9,
+        'hc1610' => 5.12,
+    ];
+
+    private $priceRadio = [
+        'sn1609' => 1,
+        'hc1610' => 10,
     ];
 
     function __construct($start, $end)
@@ -88,14 +94,15 @@ class Report
             $tmp[] = $line['status'] == 1 ? 1 : 0;
             $tmp[] = $line['status'] != 1 ? 1 : 0;
             if ($line['is_open'] && $line['status'] == 1) {
-                $openPrice = $line['real_price'];
+                $openPrice[$line['instrumnet_id']] = $line['real_price'];
             }
             if (!$line['is_open'] && $line['status'] == 1) {
-                $p = $line['real_price'] - $openPrice;
+                $p = $line['real_price'] - $openPrice[$line['instrumnet_id']];
                 if ($line['is_buy']) $p *= -1;
+                $p = $p * $this->priceRadio[$line['instrumnet_id']];
                 $tmp[] = $p - $this->commission[$line['instrumnet_id']];
                 $tmp[] = $this->commission[$line['instrumnet_id']];
-                $openPrice = 0;
+                $openPrice[$line['instrumnet_id']] = 0;
             } else {
                 $tmp[] = 0;
                 $tmp[] = 0;
@@ -139,6 +146,91 @@ class Report
                 $report[$key][10] = implode(',', array_unique($tickPrice));
             }
         }
+
+        // 计算统计信息
+        foreach ($res as $line) {
+            // 下单总数
+            $total[$line['instrumnet_id']] = isset($total[$line['instrumnet_id']]) ? $total[$line['instrumnet_id']] + 1 : 1;
+            // 成交单数
+            if ($line['status'] == 1) {
+                $traded[$line['instrumnet_id']] = isset($traded[$line['instrumnet_id']]) ? $traded[$line['instrumnet_id']] + 1 : 1;
+            }
+            // 预测单
+            if ($line['is_forecast']) {
+                $forecast[$line['instrumnet_id']] = isset($forecast[$line['instrumnet_id']]) ? $forecast[$line['instrumnet_id']] + 1 : 1;
+                $forecastKline[$line['instrumnet_id']][$line['kindex']][] = $line['is_open'];
+                $forecastKline[$line['instrumnet_id']][$line['kindex']][] = $line['status'];
+            } else {
+                $real[$line['instrumnet_id']] = isset($real[$line['instrumnet_id']]) ? $real[$line['instrumnet_id']] + 1 : 1;
+                if ($line['status'] == 1) {
+                    $realOK[$line['instrumnet_id']] = isset($realOK[$line['instrumnet_id']]) ? $realOK[$line['instrumnet_id']] + 1 : 1;
+                    if (!$line['is_open']) {
+                        if ($line['is_zhuijia']) $realZhuiOK[$line['instrumnet_id']] = isset($realZhuiOK[$line['instrumnet_id']]) ? $realZhuiOK[$line['instrumnet_id']] + 1 : 1;
+                        else  $realCloseOK[$line['instrumnet_id']] = isset($realCloseOK[$line['instrumnet_id']]) ? $realCloseOK[$line['instrumnet_id']] + 1 : 1;
+                    } else {
+                        $fokOK[$line['instrumnet_id']] = isset($fokOK[$line['instrumnet_id']]) ? $fokOK[$line['instrumnet_id']] + 1 : 1;
+                    }
+
+                }
+            }
+            if (!$line['is_open']) {
+                $tmpType = 0;
+                if ($line['is_forecast']) $tmpType = 1; // 预测
+                else if ($line['is_zhuijia']) $tmpType = 3; // 追价
+                else $tmpType = 2; // 实时
+                $closeLine[$line['instrumnet_id']][$line['kindex']][] = $tmpType;
+                $closeLine[$line['instrumnet_id']][$line['kindex']][] = intval($line['status']);
+            }
+        }
+
+        foreach ($forecastKline as $iid => $kline) {
+            foreach ($kline as $key => $item) {
+                if ($item[0] == 1 && $item[2] == 1) {
+                    $openopen[$iid] = isset($openopen[$iid]) ? $openopen[$iid] + 1 : 1;
+                    if ($item[1] == 1 || $item[3] == 1) {
+                        $openopenOK[$iid] = isset($openopenOK[$iid]) ? $openopenOK[$iid] + 1 : 1;
+                    }
+                } else {
+                    $openclose[$iid] = isset($openclose[$iid]) ? $openclose[$iid] + 1 : 1;
+                    if ($item[1] == 1 && $item[3] == 1) {
+                        $opencloseOK[$iid] = isset($opencloseOK[$iid]) ? $opencloseOK[$iid] + 1 : 1;
+                    }
+                }
+            }
+
+        }
+
+        foreach ($closeLine as $iid => $kline) {
+            if (count($kline) > 2) $opencloseRight[$iid] = isset($opencloseRight[$iid]) ? $opencloseRight[$iid] + 1 : 1;
+            else {
+                if ($kline[1] == 1) $opencloseRight[$iid] = isset($opencloseRight[$iid]) ? $opencloseRight[$iid] + 1 : 1;
+            }
+        }
+
+        $info[] = $this->infoTitle;
+        foreach ($total as $iid => $item) {
+            $tmp = [];
+            $tmp[] = $iid;
+            $tmp[] = $total[$iid] ?: 0;
+            $tmp[] = $traded[$iid] ?: 0;
+            $tmp[] = $traded[$iid] / 2 ?: 0;
+            $tmp[] = $forecast[$iid] ?: 0;
+            $tmp[] = $openopen[$iid] ?: 0;
+            $tmp[] = $openclose[$iid] ?: 0;
+            $tmp[] = $opencloseRight[$iid] ?: 0;
+            $tmp[] = $openopenOK[$iid] ?: 0;
+            $tmp[] = $opencloseOK[$iid] ?: 0;
+            $tmp[] = $openopenOK[$iid] / $openopen[$iid] ?: 0;
+            $tmp[] = $opencloseOK[$iid] / $opencloseRight[$iid] ?: 0;
+
+            $tmp[] = $real[$iid] ?: 0;
+            $tmp[] = $realOK[$iid] ?: 0;
+            $tmp[] = $realCloseOK[$iid] ?: 0;
+            $tmp[] = $realZhuiOK[$iid]  ?: 0;
+            $tmp[] = $fokOK[$iid] ?: 0;
+            $info[] = $tmp;
+        }
+
         array_unshift($report, $this->title);
         array_walk_recursive($report, function(&$item) {
             $item = iconv('utf8', 'gbk', $item);
@@ -146,6 +238,13 @@ class Report
         // csv
         $fp = fopen($this->file . ".csv", 'w');
         foreach ($report as $fields) {
+            fputcsv($fp, $fields);
+        }
+        fputcsv($fp, []);
+        array_walk_recursive($info, function(&$item) {
+            $item = iconv('utf8', 'gbk', $item);
+        });
+        foreach ($info as $fields) {
             fputcsv($fp, $fields);
         }
         fclose($fp);
