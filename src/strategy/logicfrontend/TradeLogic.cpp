@@ -643,20 +643,20 @@ void TradeLogic::_endClose()
     _kIndex = -1;
     if (status1 != TRADE_STATUS_NOTHING && status1 != TRADE_STATUS_UNKOWN)
     {
-        _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, true, ++_forecast, 1);
-        _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, true, ++_forecast, 1);
+        _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, true, _forecastID, 1);
+        _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, true, _forecastID, 1);
     }
 
     if (status2 != TRADE_STATUS_NOTHING && status2 != TRADE_STATUS_UNKOWN)
     {
-        _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, true, ++_forecast, 2);
-        _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, true, ++_forecast, 2);
+        _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, true, _forecastID, 2);
+        _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, true, _forecastID, 2);
     }
 
     if (status3 != TRADE_STATUS_NOTHING && status3 != TRADE_STATUS_UNKOWN)
     {
-        _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, true, ++_forecast, 3);
-        _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, true, ++_forecast, 3);
+        _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, true, _forecastID, 3);
+        _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, true, _forecastID, 3);
     }
 }
 
