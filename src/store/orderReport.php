@@ -6,7 +6,7 @@
 class Report
 {
 
-    private $title = ['序列号', '订单号', '合约', 'K线索引', '买卖', '开平', '订单类型', '报单时间', '最后成交时间/撤单时间', '报单价格', '成交价格', '报单手数', '未成交手数', '盈亏', '手续费', '系统响应耗时', '订单成交耗时', '详细状态'];
+    private $title = ['序列号', '订单号', '系统单号', '合约', 'K线索引', '买卖', '开平', '订单类型', '报单时间', '最后成交时间/撤单时间', '报单价格', '成交价格', '报单手数', '未成交手数', '盈亏', '手续费', '系统响应耗时', '订单成交耗时', '详细状态'];
 
     private $commission = [
         'sn1609' => 3.9,
@@ -14,8 +14,7 @@ class Report
 
     function __construct($start, $end)
     {
-        $res = parse_ini_file(dirname(__FILE__) . '/../../etc/config.ini');
-        $this->mysqldb = $res['mysql_db_online'];
+        $this->mysqldb = 'ctp_1';
 
         $today = date('Y-m-d', time());
         $yestoday = date('Y-m-d', strtotime('-1 day'));
@@ -52,8 +51,9 @@ class Report
     public function run()
     {
         $this->db = new PDO("mysql:dbname={$this->mysqldb};host=127.0.0.1", "root", "Abc518131!");
+        $this->dbTick = new PDO("mysql:dbname=tick;host=127.0.0.1", "root", "Abc518131!");
         $sql = "SELECT
-            m.order_id, m.instrumnet_id, m.kindex, o.is_buy, o.is_open, m.is_forecast, m.is_zhuijia, o.srv_insert_time, o.srv_traded_time, o.start_time, o.start_usec, o.first_time, o.first_usec, o.end_time, o.end_usec, o.price, o.real_price, m.cancel_type, o.status
+            m.order_id, m.instrumnet_id, m.kindex, o.is_buy, o.is_open, m.is_forecast, m.is_zhuijia, o.srv_insert_time, o.srv_traded_time, o.start_time, o.start_usec, o.first_time, o.first_usec, o.end_time, o.end_usec, o.price, o.real_price, m.cancel_type, o.status, o.session_id, o.front_id, o.order_ref
         FROM
             markov_kline_order as m,
             `order` as o
@@ -75,6 +75,7 @@ class Report
             $tmp = [];
             $tmp[] = $no++;
             $tmp[] = $line['order_id'];
+            $tmp[] = "{$line['front_id']}:{$line['session_id']}:{$line['order_ref']}";
             $tmp[] = $line['instrumnet_id'];
             $tmp[] = $line['kindex'];
             $tmp[] = $line['is_buy'] ? 'buy' : 'sell';
@@ -128,7 +129,7 @@ class Report
             if ($line['real_price'] == 0) {
                 $lastTime = $line['srv_insert_time'];
                 $sql = "SELECT * FROM `tick` WHERE `time` = '{$lastTime}' AND `instrumnet_id` = '{$line['instrumnet_id']}'";
-                $st = $this->db->prepare($sql);
+                $st = $this->dbTick->prepare($sql);
                 $st->execute([]);
                 $res2 = $st->fetchAll(PDO::FETCH_ASSOC);
                 $tickPrice = [];

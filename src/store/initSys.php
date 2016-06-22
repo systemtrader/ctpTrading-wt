@@ -24,12 +24,13 @@ class InitSys
     public function run()
     {
         $db = new PDO("mysql:dbname={$this->mysqldb};host={$this->dbHost}", "root", "Abc518131!");
+        $dbTick = new PDO("mysql:dbname=tick;host={$this->dbHost}", "root", "Abc518131!");
         $rds = new Redis();
         $rds->connect('127.0.0.1', 6379);
         $rds->select($this->rdsdb);
 
         foreach ($this->iIDs as $iID) {
-            $this->initKLine($iID, $rds, $db);
+            $this->initKLine($iID, $rds, $db, $dbTick);
             $this->initTradeStatus($iID, $rds);
             $this->initKLineTick($iID, $rds, $db);
         }
@@ -48,7 +49,7 @@ class InitSys
         $rds->set($key, $maxID);
     }
 
-    private function initKLine($iID, $rds, $db)
+    private function initKLine($iID, $rds, $db, $dbTick)
     {
         $key = "CURRENT_BLOCK_STORE_" . $iID;
         $rds->set($key, "");
@@ -69,20 +70,20 @@ class InitSys
         $tickTime = $last['close_time'];
         $tickMsec = $last['close_msec'];
         $sql = "SELECT * FROM `tick` WHERE `instrumnet_id` = '{$iID}' AND `time` = '{$tickTime}' AND `msec` = {$tickMsec}";
-        $st = $db->prepare($sql);
+        $st = $dbTick->prepare($sql);
         $st->execute(array());
         $res = $st->fetchAll(PDO::FETCH_ASSOC);
         $id = $res[0]['id'];
 
         $sql = "SELECT * FROM `tick` WHERE `id` > {$id} AND `instrumnet_id` = '{$iID}' ORDER BY `id` LIMIT 1";
-        $st = $db->prepare($sql);
+        $st = $dbTick->prepare($sql);
         $st->execute(array());
         $res = $st->fetchAll(PDO::FETCH_ASSOC);
         $open = $res[0];
         if (!$open) return;
 
         $sql = "SELECT MAX(`price`) AS `max`, MIN(`price`) AS `min` FROM `tick` WHERE `id` >= {$open['id']} AND `instrumnet_id` = '{$iID}'";
-        $st = $db->prepare($sql);
+        $st = $dbTick->prepare($sql);
         $st->execute(array());
         $res = $st->fetchAll(PDO::FETCH_ASSOC);
         $res = $res[0];
