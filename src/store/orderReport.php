@@ -7,7 +7,7 @@ class Report
 {
 
     private $title = ['序列号', '订单号', '系统单号', '合约', 'K线索引', '买卖', '开平', '订单类型', '报单时间', '最后成交时间/撤单时间', '报单价格', '成交价格', '报单手数', '未成交手数', '盈亏', '手续费', '系统响应耗时', '订单成交耗时', '详细状态'];
-    private $infoTitle = ['合约', '盈亏', '下单总数', '成交', '平开', '预测单', '双开预测', '平开预测', '方向对的平开预测', '双开成功', '平开成功', '双开成功率', '平开成功率', '实时单', '实时成功', '实时平仓', '实时追价', '开仓FOK'];
+    private $infoTitle = ['合约', '盈亏', '下单总数', '成交', '平开', '预测单', '双开预测', '平开预测', '方向对的平开预测', '双开成功', '平开成功', '双开成功率', '平开成功率', '实时单', '实时成功', '实时平仓', '实时追价'];
     private $commission = [
         'sn1609' => 3.9,
         'hc1610' => 5.12,
@@ -86,7 +86,7 @@ class Report
             $tmp[] = $line['kindex'];
             $tmp[] = $line['is_buy'] ? 'buy' : 'sell';
             $tmp[] = $line['is_open'] ? 'kai' : 'ping';
-            $tmp[] = $line['is_forecast'] ? ($line['kindex'] == 0 ? '强平单' : '预测单') : ($line['is_zhuijia'] ? '追价单' : '实时单');
+            $tmp[] = $line['is_forecast'] ? ($line['kindex'] == -1 ? '强平单' : '预测单') : ($line['is_zhuijia'] ? '追价单' : '实时单');
             $tmp[] = $line['start_time'];
             $tmp[] = $line['end_time'];
             $tmp[] = $line['price'];
@@ -159,7 +159,7 @@ class Report
                 $traded[$line['instrumnet_id']] = isset($traded[$line['instrumnet_id']]) ? $traded[$line['instrumnet_id']] + 1 : 1;
             }
             // 预测单
-            if ($line['is_forecast'] && $line['kindex'] > 0) {
+            if ($line['is_forecast'] && $line['kindex'] >= 0) {
                 $forecast[$line['instrumnet_id']] = isset($forecast[$line['instrumnet_id']]) ? $forecast[$line['instrumnet_id']] + 1 : 1;
                 $forecastKline[$line['instrumnet_id']][$line['kindex']][] = $line['is_open'];
                 $forecastKline[$line['instrumnet_id']][$line['kindex']][] = $line['status'];
@@ -170,13 +170,11 @@ class Report
                     if (!$line['is_open']) {
                         if ($line['is_zhuijia']) $realZhuiOK[$line['instrumnet_id']] = isset($realZhuiOK[$line['instrumnet_id']]) ? $realZhuiOK[$line['instrumnet_id']] + 1 : 1;
                         else  $realCloseOK[$line['instrumnet_id']] = isset($realCloseOK[$line['instrumnet_id']]) ? $realCloseOK[$line['instrumnet_id']] + 1 : 1;
-                    } else {
-                        $fokOK[$line['instrumnet_id']] = isset($fokOK[$line['instrumnet_id']]) ? $fokOK[$line['instrumnet_id']] + 1 : 1;
                     }
 
                 }
             }
-            if (!$line['is_open'] && $line['kindex'] > 0) {
+            if (!$line['is_open'] && $line['kindex'] >= 0) {
                 $tmpType = 0;
                 if ($line['is_forecast']) $tmpType = 1; // 预测
                 else if ($line['is_zhuijia']) $tmpType = 3; // 追价
@@ -234,7 +232,6 @@ class Report
             $tmp[] = $realOK[$iid] ?: 0;
             $tmp[] = $realCloseOK[$iid] ?: 0;
             $tmp[] = $realZhuiOK[$iid]  ?: 0;
-            $tmp[] = $fokOK[$iid] ?: 0;
             $info[] = $tmp;
         }
 

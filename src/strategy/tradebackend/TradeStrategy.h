@@ -36,6 +36,8 @@ private:
     string _logPath;
     string _iID;
 
+    double _minRange;
+
     std::map<int, int> _rollbackID;
     bool _isRollback(int);
     void _clearRollbackID(int);
@@ -52,7 +54,7 @@ private:
     void _clearTradeInfo(int);
 
     void _tradeAction(MSG_TO_TRADE_STRATEGY);
-    void _zhuijia(int); // 追价
+    void _zhuijia(int, double); // 追价
     void _cancel(int, int = 1); // 撤销
 
     int _getStatus(int, string);
@@ -61,12 +63,12 @@ private:
     void _sendMsg(double, int, bool, bool, int, bool = false);
 
 public:
-    TradeStrategy(int, string, int, int, int);
+    TradeStrategy(int, string, int, int, int, int);
     ~TradeStrategy();
 
     void trade(MSG_TO_TRADE_STRATEGY);
     void onSuccess(MSG_TO_TRADE_STRATEGY);
-    void onCancel(int);
+    void onCancel(MSG_TO_TRADE_STRATEGY);
     void onErr(int, int);
     void timeout(int);
 

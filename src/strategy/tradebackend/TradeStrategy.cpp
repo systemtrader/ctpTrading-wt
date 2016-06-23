@@ -31,7 +31,7 @@ void setTimer(int orderID, string iID)
     timer_settime(timer, 0, &ts, NULL);
 }
 
-TradeStrategy::TradeStrategy(int serviceID, string logPath, int db, int serviceIDK, int serviceIDL)
+TradeStrategy::TradeStrategy(int serviceID, string logPath, int db, int serviceIDK, int serviceIDL, int minRange)
 {
     _orderID = 0;
     _logPath = logPath;
@@ -40,6 +40,7 @@ TradeStrategy::TradeStrategy(int serviceID, string logPath, int db, int serviceI
     _tradeSrvClient = new QClient(serviceID, sizeof(MSG_TO_TRADE));
     _klineClient = new QClient(serviceIDK, sizeof(MSG_TO_KLINE));
     _tradeLogicSrvClient = new QClient(serviceIDL, sizeof(MSG_TO_TRADE_LOGIC));
+    _minRange = (double)minRange;
 }
 
 TradeStrategy::~TradeStrategy()
@@ -214,8 +215,8 @@ void TradeStrategy::_tradeAction(MSG_TO_TRADE_STRATEGY msg)
         default:
             break;
     }
-    if (!msg.isForecast && (action == TRADE_ACTION_BUYCLOSE || action == TRADE_ACTION_SELLCLOSE))
-        setTimer(orderID, instrumnetID);
+    // if (!msg.isForecast && (action == TRADE_ACTION_BUYCLOSE || action == TRADE_ACTION_SELLCLOSE))
+        // setTimer(orderID, instrumnetID);
 }
 
 void TradeStrategy::onSuccess(MSG_TO_TRADE_STRATEGY rsp)
@@ -315,8 +316,9 @@ void TradeStrategy::onSuccess(MSG_TO_TRADE_STRATEGY rsp)
     }
 }
 
-void TradeStrategy::onCancel(int orderID)
+void TradeStrategy::onCancel(MSG_TO_TRADE_STRATEGY rsp)
 {
+    int orderID = rsp.orderID;
     if (!_isTrading(orderID)) return;
     TRADE_DATA order = _tradingInfo[orderID];
 
@@ -336,7 +338,7 @@ void TradeStrategy::onCancel(int orderID)
          order.action == TRADE_ACTION_BUYCLOSE) &&
         !order.isForecast)
     {
-        _zhuijia(orderID);
+        _zhuijia(orderID, rsp.price);
         _clearTradeInfo(orderID);
         return;
     }
@@ -444,7 +446,7 @@ void TradeStrategy::_cancel(int orderID, int type)
     _store->push("ORDER_LOGS", data);
 }
 
-void TradeStrategy::_zhuijia(int orderID)
+void TradeStrategy::_zhuijia(int orderID, double price)
 {
     if (!_isTrading(orderID)) return;
     TRADE_DATA order = _tradingInfo[orderID];
@@ -461,21 +463,20 @@ void TradeStrategy::_zhuijia(int orderID)
     info << endl;
     info.close();
 
-    double price;
     TickData tick = _getTick(order.instrumnetID);
     switch (order.action) {
         case TRADE_ACTION_SELLCLOSE:
-            price = tick.bidPrice1;
+            price = tick.bidPrice1 < price - _minRange ? tick.bidPrice1 : price - _minRange;
             _sendMsg(price, 1, false, false, newOrderID);
             break;
         case TRADE_ACTION_BUYCLOSE:
-            price = tick.askPrice1;
+            price = tick.askPrice1 > price + _minRange ? tick.askPrice1 : price + _minRange;
             _sendMsg(price, 1, true, false, newOrderID);
             break;
         default:
             break;
     }
-    setTimer(newOrderID, order.instrumnetID);
+    // setTimer(newOrderID, order.instrumnetID);
 }
 
 void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen, int orderID, bool isFok)

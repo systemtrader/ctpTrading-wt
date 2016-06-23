@@ -331,6 +331,7 @@ void TradeSrv::onCancel(CThostFtdcOrderField * const rsp)
     info << "|SessionID|" << rsp->SessionID;
     info << "|OrderSysID|" << rsp->OrderSysID;
     info << "|OrderStatus|" << rsp->OrderStatus;
+    info << "|LimitPrice|" << rsp->LimitPrice;
     info << endl;
     info.close();
 
@@ -338,6 +339,7 @@ void TradeSrv::onCancel(CThostFtdcOrderField * const rsp)
     MSG_TO_TRADE_STRATEGY msg = {0};
     msg.msgType = MSG_TRADE_BACK_CANCELED;
     msg.orderID = orderID;
+    msg.price = rsp->LimitPrice;
     strcpy(msg.instrumnetID, rsp->InstrumentID);
     _tradeStrategySrvClient->send((void *)&msg);
 
