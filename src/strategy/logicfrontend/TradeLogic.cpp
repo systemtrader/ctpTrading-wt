@@ -725,6 +725,8 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
 
         case TRADE_STATUS_BUYOPENING:
 
+            _statusType = STATUS_TYPE_CLOSE_BOING;
+
             if (status2 == TRADE_STATUS_SELLOPENING) {
                 _statusType = STATUS_TYPE_CLOSE_BOING_SOING;
             }
@@ -741,6 +743,8 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
             break;
 
         case TRADE_STATUS_SELLOPENING:
+
+            _statusType = STATUS_TYPE_CLOSE_SOING;
 
             if (status3 == TRADE_STATUS_SELLCLOSING) {
                 _statusType = STATUS_TYPE_CLOSE_SOING__SCING;
@@ -803,6 +807,7 @@ void TradeLogic::onKLineCloseByMe(KLineBlock block, TickData tick)
             break;
 
         case TRADE_STATUS_SELLOPENED:
+            _statusType = STATUS_TYPE_MYCLOSE_SOED;
             if (status3 == TRADE_STATUS_NOTHING) {
                 _statusType = STATUS_TYPE_MYCLOSE_SOED__NO;
             }
@@ -812,6 +817,8 @@ void TradeLogic::onKLineCloseByMe(KLineBlock block, TickData tick)
             break;
 
         case TRADE_STATUS_BUYOPENED:
+            _statusType = STATUS_TYPE_MYCLOSE_BOED;
+
             if (status3 == TRADE_STATUS_NOTHING) {
                 _statusType = STATUS_TYPE_MYCLOSE_BOED__NO;
             }
@@ -846,8 +853,12 @@ void TradeLogic::_onKLineCloseDo(TickData tick)
         case STATUS_TYPE_MYCLOSE_NO:
         case STATUS_TYPE_MYCLOSE_SOED__NO:
         case STATUS_TYPE_MYCLOSE_BOED__NO:
+        case STATUS_TYPE_MYCLOSE_BOED:
+        case STATUS_TYPE_MYCLOSE_SOED:
             _forecast(tick);
             break;
+        case STATUS_TYPE_CLOSE_BOING:
+        case STATUS_TYPE_CLOSE_SOING:
         case STATUS_TYPE_CLOSE_BOING_SOING:
         case STATUS_TYPE_CLOSE_NO_SOING:
         case STATUS_TYPE_CLOSE_BOING_NO:
