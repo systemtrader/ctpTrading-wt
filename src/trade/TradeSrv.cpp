@@ -352,10 +352,12 @@ void TradeSrv::onCancel(CThostFtdcOrderField * const rsp)
     stream << rsp->OrderStatus;
     str = stream.str();
 
+    string tickStr = _store->get("CURRENT_TICK_" + string(rsp->InstrumentID));
+
     string time = Lib::getDate("%Y/%m/%d-%H:%M:%S", true);
     string data = "orderRtn_" + string(rsp->OrderRef) + "_" + Lib::itos(_frontID) + "_" + Lib::itos(_sessionID) + "_" +
                   string(rsp->InsertDate) + "_" + string(rsp->InsertTime) + "_" + time + "_" +
-                  str;
+                  str + "_" + tickStr ;
     _store->push("ORDER_LOGS", data);
 }
 

@@ -61,6 +61,7 @@ CREATE TABLE `order` (
   `order_ref` int(11) NOT NULL DEFAULT 0,
   `price` decimal(10,2) NOT NULL DEFAULT '0',
   `real_price` decimal(10,2) NOT NULL DEFAULT '0',
+  `cancel_tick_price` decimal(10,2) NOT NULL DEFAULT '0',
   `is_buy` int(1) NOT NULL DEFAULT 0,
   `is_open` int(11) NOT NULL DEFAULT '0',
   `srv_insert_time` datetime NOT NULL COMMENT '服务器返回的insert时间',

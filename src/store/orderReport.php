@@ -20,7 +20,7 @@ class Report
 
     function __construct($start, $end)
     {
-        $this->mysqldb = 'ctp_1';
+        $this->mysqldb = 'ctp';
 
         $today = date('Y-m-d', time());
         $yestoday = date('Y-m-d', strtotime('-1 day'));
