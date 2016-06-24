@@ -425,6 +425,7 @@ void TradeStrategy::timeout(int orderID)
 
 void TradeStrategy::_cancel(int orderID, int type)
 {
+    usleep(1500);
     if (!_isTrading(orderID)) return;
     TRADE_DATA order = _tradingInfo[orderID];
 
