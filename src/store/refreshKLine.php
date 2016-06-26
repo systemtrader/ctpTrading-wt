@@ -6,27 +6,17 @@
 class Refresh
 {
 
-    function __construct()
+    function __construct($iID, $range)
     {
-        $res = parse_ini_file(dirname(__FILE__) . '/../../etc/config.ini');
-        if ($res['is_dev']) {
-            $this->mysqldb = $res['mysql_db_dev'];
-        } else {
-            $this->mysqldb = $res['mysql_db_online'];
-        }
-        $this->iIDs = explode('/', $res['instrumnet_id']);
-        $this->kRanges = explode('/', $res['k_range']);
-        $this->dbHost = $res['mysql_host'];
+        $this->iID = $iID;
+        $this->kRange = $range;
     }
 
     public function run()
     {
-        $db = new PDO("mysql:dbname={$this->mysqldb};host={$this->dbHost}", "root", "Abc518131!");
-        $tickDB = new PDO("mysql:dbname=tick;host={$this->dbHost}", "root", "Abc518131!");
-        $i = 0;
-        foreach ($this->iIDs as $iID) {
-            $this->refresh($iID, $this->kRanges[$i++], $db, $tickDB);
-        }
+        $db = new PDO("mysql:dbname=ctp_1;host=127.0.0.1", "root", "Abc518131!");
+        $tickDB = new PDO("mysql:dbname=tick;host=127.0.0.1", "root", "Abc518131!");
+        $this->refresh($this->iID, $this->kRange, $db, $tickDB);
     }
 
     private function refresh($iID, $range, $db, $tickDB)
@@ -35,6 +25,8 @@ class Refresh
         $sql = "DELETE FROM `kline` WHERE `instrumnet_id` = '{$iID}'";
         $st = $db->prepare($sql);
         $st->execute([]);
+        // 获取最新K线
+        // $sql = "SELECT"
 
         $id = 0;
         $index = 0;
@@ -81,8 +73,8 @@ class Refresh
         $type = 2;
         if ($open['price'] > $close['price']) $type = 1;
 
-        $sql = "INSERT INTO `kline` (`index`, `open_time`, `open_msec`, `close_time`, `close_msec`, `open_price`, `close_price`, `max_price`, `min_price`, `volume`, `type`, `instrumnet_id`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        $params = array($index, $open['time'], $open['msec'], $close['time'], $close['msec'], $open['price'], $close['price'], $max, $min, $close['volume'], $type, $iID);
+        $sql = "INSERT INTO `kline` (`index`, `open_time`, `open_msec`, `close_time`, `close_msec`, `open_price`, `close_price`, `max_price`, `min_price`, `volume`, `type`, `instrumnet_id`, `range`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $params = array($index, $open['time'], $open['msec'], $close['time'], $close['msec'], $open['price'], $close['price'], $max, $min, $close['volume'], $type, $iID, $range);
         $st = $db->prepare($sql);
         $st->execute($params);
 
@@ -92,5 +84,5 @@ class Refresh
 }
 
 
-$h = new Refresh();
+$h = new Refresh($argv[1], $argv[2]);
 $h->run();

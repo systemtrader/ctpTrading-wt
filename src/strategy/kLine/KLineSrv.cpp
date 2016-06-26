@@ -111,7 +111,7 @@ void KLineSrv::_closeBlock(TickData tick, bool isMy)
 
     _currentBlock->close();
     string keyQ = "K_LINE_Q";
-    string strData = _currentBlock->exportString();
+    string strData = _currentBlock->exportString() + "_" + Lib::itos(_kRange);
     KLineBlockData blockData = _currentBlock->exportData();
     delete _currentBlock;
     _currentBlock = NULL;

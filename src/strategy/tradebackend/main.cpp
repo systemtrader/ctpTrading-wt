@@ -33,11 +33,14 @@ int main(int argc, char const *argv[])
         iid2minR[minRs[i]] = Lib::stoi(minRs[i+1]);
     }
 
+    string krs = getOptionToString("k_range");
+    std::vector<string> kRanges = Lib::split(krs, "/");
+
     string iIDs = getOptionToString("instrumnet_id");
     std::vector<string> instrumnetIDs = Lib::split(iIDs, "/");
     for (int i = 0; i < instrumnetIDs.size(); ++i)
     {
-        services[instrumnetIDs[i]] = new TradeStrategy(tradeSrvID, logPath, db, kLineSrvID, tradeLogicSrvID, iid2minR[instrumnetIDs[i]]);
+        services[instrumnetIDs[i]] = new TradeStrategy(tradeSrvID, logPath, db, kLineSrvID, tradeLogicSrvID, iid2minR[instrumnetIDs[i]], Lib::stoi(kRanges[i]));
     }
 
 

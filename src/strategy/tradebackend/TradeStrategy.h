@@ -35,6 +35,7 @@ private:
     QClient * _tradeLogicSrvClient;
     string _logPath;
     string _iID;
+    int _kRange;
 
     double _minRange;
 
@@ -63,7 +64,7 @@ private:
     void _sendMsg(double, int, bool, bool, int, bool = false);
 
 public:
-    TradeStrategy(int, string, int, int, int, int);
+    TradeStrategy(int, string, int, int, int, int, int);
     ~TradeStrategy();
 
     void trade(MSG_TO_TRADE_STRATEGY);

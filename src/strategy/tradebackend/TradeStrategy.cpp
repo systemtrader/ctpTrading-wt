@@ -31,7 +31,7 @@ void setTimer(int orderID, string iID)
     timer_settime(timer, 0, &ts, NULL);
 }
 
-TradeStrategy::TradeStrategy(int serviceID, string logPath, int db, int serviceIDK, int serviceIDL, int minRange)
+TradeStrategy::TradeStrategy(int serviceID, string logPath, int db, int serviceIDK, int serviceIDL, int minRange, int kRange)
 {
     _orderID = 0;
     _logPath = logPath;
@@ -41,6 +41,7 @@ TradeStrategy::TradeStrategy(int serviceID, string logPath, int db, int serviceI
     _klineClient = new QClient(serviceIDK, sizeof(MSG_TO_KLINE));
     _tradeLogicSrvClient = new QClient(serviceIDL, sizeof(MSG_TO_TRADE_LOGIC));
     _minRange = (double)minRange;
+    _kRange = kRange;
 }
 
 TradeStrategy::~TradeStrategy()
@@ -82,7 +83,7 @@ int TradeStrategy::_initTrade(int action, int kIndex, int total, string instrumn
 
     // save data
     string data = "klineorder_" + Lib::itos(kIndex) + "_" + Lib::itos(_orderID) + "_" + instrumnetID + "_" + Lib::itos(isForecast)
-                 + "_" + Lib::itos(isZhuijia);
+                 + "_" + Lib::itos(isZhuijia) + "_" + Lib::itos(_kRange);
     _store->push("ORDER_LOGS", data);
 
     return _orderID;
@@ -288,6 +289,7 @@ void TradeStrategy::onSuccess(MSG_TO_TRADE_STRATEGY rsp)
                 msg.tick.askVolume1 = 0;
                 strcpy(msg.tick.date, rsp.date);
                 strcpy(msg.tick.time, rsp.time);
+                msg.tick.msec = -1;
                 strcpy(msg.tick.instrumnetID, order.instrumnetID.c_str());
                 msg.isMy = true;
                 _klineClient->send((void *)&msg);
