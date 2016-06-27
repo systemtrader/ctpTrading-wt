@@ -15,6 +15,10 @@ MarketSpi::MarketSpi(CThostFtdcMdApi * mdApi, string logPath,
     _brokerID = brokerID;
 
     _instrumnetIDs = Lib::split(instrumnetIDs, "/");
+    for (int i = 0; i < _instrumnetIDs.size(); ++i)
+    {
+        _stopFlg[_instrumnetIDs[i]] = false;
+    }
 
     _klineClient = new QClient(serviceID, sizeof(MSG_TO_KLINE));
     _tradeLogicSrvClient = new QClient(serviceIDT, sizeof(MSG_TO_TRADE_LOGIC));
@@ -149,11 +153,14 @@ void MarketSpi::_saveMarketData(CThostFtdcDepthMarketDataField *data)
     for (i = 0; i < _stopHM[iID].size(); ++i)
     {
         if (_stopHM[iID][i].hour == Lib::stoi(nowHMS[0]) && Lib::stoi(nowHMS[1]) == _stopHM[iID][i].min && Lib::stoi(nowHMS[2]) >= 5) {
-            MSG_TO_TRADE_LOGIC msg2 = {0};
-            msg2.msgType = MSG_TRADE_END;
-            msg2.tick = msg.tick;
-            _tradeLogicSrvClient->send((void *)&msg2);
-            return;
+            if (!_stopFlg[string(data->InstrumentID)]) {
+                _stopFlg[string(data->InstrumentID)] = true;
+                MSG_TO_TRADE_LOGIC msg2 = {0};
+                msg2.msgType = MSG_TRADE_END;
+                msg2.tick = msg.tick;
+                _tradeLogicSrvClient->send((void *)&msg2);
+                return;
+            }
         }
     }
 

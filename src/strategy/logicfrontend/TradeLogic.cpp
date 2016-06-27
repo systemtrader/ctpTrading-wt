@@ -479,16 +479,20 @@ void TradeLogic::_forecastSellOpened(TickData tick)
 
 void TradeLogic::_forecast(TickData tick)
 {
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
+    info << "TradeLogicSrv[forecastBegin]";
+
     if (_transTypeList.size() < _peroid - 1) {
         _isLock = false;
+        info << "|peroid|" << _peroid;
+        info << endl;
+        info.close();
         return; // 计算概率条件不足，不做操作
     }
 
     int status1 = _getStatus(1);
 
-    ofstream info;
-    Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
-    info << "TradeLogicSrv[forecastBegin]";
     info << "|status1|" << status1;
     info << endl;
     info.close();
@@ -521,16 +525,20 @@ void TradeLogic::_forecast(TickData tick)
 
 void TradeLogic::_realAction(TickData tick)
 {
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
+    info << "TradeLogicSrv[realAction]";
+
     if (_transTypeList.size() < _peroid - 1) {
         _isLock = false;
+        info << "|peroid|" << _peroid;
+        info << endl;
+        info.close();
         return; // 计算概率条件不足，不做操作
     }
 
     int status1 = _getStatus(1);
 
-    ofstream info;
-    Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
-    info << "TradeLogicSrv[realAction]";
     info << "|status1|" << status1;
     info << endl;
     info.close();
@@ -641,22 +649,23 @@ void TradeLogic::_endClose()
     TickData tick = _getTick();
 
     _kIndex = -2;
-    if (status1 != TRADE_STATUS_NOTHING && status1 != TRADE_STATUS_UNKOWN)
-    {
-        _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, true, _forecastID, 1);
-        _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, true, _forecastID, 1);
+    if (status1 == TRADE_STATUS_BUYOPENED) {
+        _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 1, true);
     }
-
-    if (status2 != TRADE_STATUS_NOTHING && status2 != TRADE_STATUS_UNKOWN)
-    {
-        _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, true, _forecastID, 2);
-        _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, true, _forecastID, 2);
+    if (status2 == TRADE_STATUS_BUYOPENED) {
+        _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 2, true);
     }
-
-    if (status3 != TRADE_STATUS_NOTHING && status3 != TRADE_STATUS_UNKOWN)
-    {
-        _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, true, _forecastID, 3);
-        _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, true, _forecastID, 3);
+    if (status3 == TRADE_STATUS_BUYOPENED) {
+        _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 3, true);
+    }
+    if (status1 == TRADE_STATUS_SELLOPENED) {
+        _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 1, true);
+    }
+    if (status2 == TRADE_STATUS_SELLOPENED) {
+        _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 2, true);
+    }
+    if (status3 == TRADE_STATUS_SELLOPENED) {
+        _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 3, true);
     }
 }
 

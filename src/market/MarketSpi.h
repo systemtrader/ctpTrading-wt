@@ -26,6 +26,7 @@ private:
     Redis * _store;
 
     std::map<string, std::vector<TRADE_HM> > _stopHM;
+    std::map<string, bool> _stopFlg;
 
     string _brokerID;
     string _userID;
