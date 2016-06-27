@@ -22,6 +22,8 @@ TradeLogic::TradeLogic(int peroid, double thresholdTrend, double thresholdVibrat
 
     _logPath = logPath;
     _forecastID = 0;
+    _rollbackOpenUUID = _rollbackOpenUDID = _rollbackOpenDDID = _rollbackOpenDUID = 0;
+    _rollbackCloseDID = _rollbackCloseUID = 0;
     _kRange = kRange;
     _isTradeEnd = false;
 
@@ -109,8 +111,8 @@ bool TradeLogic::_isTradingTime(TickData tick)
             info << "TradeLogicSrv[startTrade]";
             info << "|nowH|" << nowHM[0];
             info << "|nowM|" << nowHM[1];
-            info << "|stopH|" << _startHM[i].hour;
-            info << "|stopM|" << _startHM[i].min;
+            info << "|startH|" << _startHM[i].hour;
+            info << "|startM|" << _startHM[i].min;
             info << endl;
             info.close();
             return false;
@@ -648,7 +650,7 @@ void TradeLogic::_endClose()
 
     TickData tick = _getTick();
 
-    _kIndex = -2;
+    _kIndex = -1;
     if (status1 == TRADE_STATUS_BUYOPENED) {
         _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 1, true);
     }
@@ -1051,6 +1053,10 @@ void TradeLogic::onRealActionBack()
     info << "|status3|" << status3;
     info << endl;
     info.close();
+
+    if (_isTradeEnd) {
+        return;
+    }
 
     _forecast(_closeTick);
 }

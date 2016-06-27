@@ -19,7 +19,7 @@ class InitSys
         $this->iIDs = explode('/', $res['instrumnet_id']);
         $this->kRanges = explode('/', $res['k_range']);
 
-        $this->peroid = $res['peroid'];
+        $this->peroid = explode('/', $res['peroid']);
         $this->dbHost = $res['mysql_host'];
     }
 
@@ -34,7 +34,7 @@ class InitSys
         foreach ($this->iIDs as $i=> $iID) {
             $this->initKLine($iID, $rds, $db, $dbTick, $this->kRanges[$i]);
             $this->initTradeStatus($iID, $rds);
-            $this->initKLineTick($iID, $rds, $db);
+            $this->initKLineTick($iID, $rds, $db, $this->peroid[$i]);
         }
         $this->initOrderID($rds, $db);
     }
@@ -111,11 +111,11 @@ class InitSys
         $rds->set("TRADE_STATUS_3_" . $iID, 0);
     }
 
-    private function initKLineTick($iID, $rds, $db)
+    private function initKLineTick($iID, $rds, $db, $peroid)
     {
         $key = "MARKOV_HISTORY_KLINE_TICK_" . $iID;
         $rds->set($key, "");
-        $cnt = $this->peroid + 1;
+        $cnt = $peroid + 1;
         $sql = "SELECT `close_price` FROM `kline` WHERE `instrumnet_id` = '{$iID}' ORDER BY `id` DESC LIMIT {$cnt}";
         $st = $db->prepare($sql);
         $st->execute([]);

@@ -81,6 +81,7 @@ void TradeSrv::onLogin(CThostFtdcRspUserLoginField * const rsp)
 void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int orderID, string instrumnetID, bool isFok)
 {
     if (_isOrderDealed(orderID)) return;
+    usleep(1500);
     _initOrder(orderID, instrumnetID);
 
     TThostFtdcOffsetFlagEnType flag = THOST_FTDC_OFEN_Open;

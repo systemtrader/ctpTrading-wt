@@ -216,8 +216,8 @@ void TradeStrategy::_tradeAction(MSG_TO_TRADE_STRATEGY msg)
         default:
             break;
     }
-    // if (!msg.isForecast && (action == TRADE_ACTION_BUYCLOSE || action == TRADE_ACTION_SELLCLOSE))
-        // setTimer(orderID, instrumnetID);
+    if (!msg.isForecast && (action == TRADE_ACTION_BUYCLOSE || action == TRADE_ACTION_SELLCLOSE))
+        setTimer(orderID, instrumnetID);
 }
 
 void TradeStrategy::onSuccess(MSG_TO_TRADE_STRATEGY rsp)
@@ -427,7 +427,6 @@ void TradeStrategy::timeout(int orderID)
 
 void TradeStrategy::_cancel(int orderID, int type)
 {
-    usleep(1500);
     if (!_isTrading(orderID)) return;
     TRADE_DATA order = _tradingInfo[orderID];
 
@@ -479,12 +478,11 @@ void TradeStrategy::_zhuijia(int orderID, double price)
         default:
             break;
     }
-    // setTimer(newOrderID, order.instrumnetID);
+    setTimer(newOrderID, order.instrumnetID);
 }
 
 void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen, int orderID, bool isFok)
 {
-    usleep(1500);
     TRADE_DATA order = _tradingInfo[orderID];
 
     MSG_TO_TRADE msg = {0};
