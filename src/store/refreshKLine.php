@@ -22,7 +22,7 @@ class Refresh
     private function refresh($iID, $range, $db, $tickDB)
     {
         // 清空原有数据
-        $sql = "DELETE FROM `kline` WHERE `instrumnet_id` = '{$iID}'";
+        $sql = "DELETE FROM `kline` WHERE `instrumnet_id` = '{$iID}' AND `range` = {$this->kRange}";
         $st = $db->prepare($sql);
         $st->execute([]);
         // 获取最新K线

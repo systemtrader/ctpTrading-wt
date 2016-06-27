@@ -17,6 +17,8 @@ class InitSys
             $this->rdsdb = $res['rds_db_online'];
         }
         $this->iIDs = explode('/', $res['instrumnet_id']);
+        $this->kRanges = explode('/', $res['k_range']);
+
         $this->peroid = $res['peroid'];
         $this->dbHost = $res['mysql_host'];
     }
@@ -29,8 +31,8 @@ class InitSys
         $rds->connect('127.0.0.1', 6379);
         $rds->select($this->rdsdb);
 
-        foreach ($this->iIDs as $iID) {
-            $this->initKLine($iID, $rds, $db, $dbTick);
+        foreach ($this->iIDs as $i=> $iID) {
+            $this->initKLine($iID, $rds, $db, $dbTick, $this->kRanges[$i]);
             $this->initTradeStatus($iID, $rds);
             $this->initKLineTick($iID, $rds, $db);
         }
@@ -49,13 +51,13 @@ class InitSys
         $rds->set($key, $maxID);
     }
 
-    private function initKLine($iID, $rds, $db, $dbTick)
+    private function initKLine($iID, $rds, $db, $dbTick, $kRange)
     {
         $key = "CURRENT_BLOCK_STORE_" . $iID;
         $rds->set($key, "");
 
         // 获取最新K线
-        $sql = "SELECT * FROM `kline` WHERE `instrumnet_id` = '{$iID}' ORDER BY `id` DESC LIMIT 1";
+        $sql = "SELECT * FROM `kline` WHERE `instrumnet_id` = '{$iID}' AND `range` = {$kRange} ORDER BY `id` DESC LIMIT 1";
         $st = $db->prepare($sql);
         $st->execute([]);
         $res = $st->fetchAll(PDO::FETCH_ASSOC);
@@ -73,14 +75,15 @@ class InitSys
         $st = $dbTick->prepare($sql);
         $st->execute(array());
         $res = $st->fetchAll(PDO::FETCH_ASSOC);
+        if (!isset($res[0])) return;
         $id = $res[0]['id'];
 
         $sql = "SELECT * FROM `tick` WHERE `id` > {$id} AND `instrumnet_id` = '{$iID}' ORDER BY `id` LIMIT 1";
         $st = $dbTick->prepare($sql);
         $st->execute(array());
         $res = $st->fetchAll(PDO::FETCH_ASSOC);
+        if (!isset($res[0])) return;
         $open = $res[0];
-        if (!$open) return;
 
         $sql = "SELECT MAX(`price`) AS `max`, MIN(`price`) AS `min` FROM `tick` WHERE `id` >= {$open['id']} AND `instrumnet_id` = '{$iID}'";
         $st = $dbTick->prepare($sql);

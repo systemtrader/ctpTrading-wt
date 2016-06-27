@@ -19,7 +19,7 @@ KLineSrv::KLineSrv(int kRange, int serviceID, string logPath, int db, string ins
         _index = _currentBlock->getIndex() + 1;
     } else {
         string iStr = _store->get("CURRENT_BLOCK_INDEX_" + instrumnetID);
-        _index = Lib::stoi(iStr);
+        _index = Lib::stoi(iStr) + 1;
     }
 }
 
