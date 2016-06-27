@@ -1016,6 +1016,12 @@ void TradeLogic::onRollback()
                 _forecast(_closeTick);
             }
             break;
+
+        case STATUS_TYPE_CLOSE_BOING:
+        case STATUS_TYPE_CLOSE_SOING:
+            _realAction(_closeTick);
+            break;
+
         default:
             break;
     }

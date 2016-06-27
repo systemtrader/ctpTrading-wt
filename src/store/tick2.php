@@ -16,6 +16,13 @@ class Refresh
     {
         // $this->tick1DB = new PDO("mysql:dbname=tick1;host=127.0.0.1", "root", "Abc518131!");
         $this->tickDB = new PDO("mysql:dbname=tick;host=127.0.0.1", "root", "Abc518131!");
+
+        // 删除旧数据
+        $iID = "{$this->i}{$this->id}";
+        $sql = "DELETE FROM `tick` WHERE `instrumnet_id` = '{$iID}'";
+        $st = $this->tickDB->prepare($sql);
+        $st->execute([]);
+
         for ($i=601; $i < 625; $i++) { 
             echo $i . PHP_EOL;
             $fileName = "/" . strtoupper($this->i) . "201606/{$this->i}{$this->id}_20160{$i}.csv";
@@ -28,11 +35,7 @@ class Refresh
         $sTime = time();
         $tickDB = $this->tickDB;
         $iID = "{$this->i}{$this->id}";
-        // 删除旧数据
-        $sql = "DELETE FROM `tick` WHERE `instrumnet_id` = '{$iID}'";
-        $st = $tickDB->prepare($sql);
-        $st->execute([]);
-
+        
         // 导入新数据
         $fileBase = "/home/dev/source/ctpDev/data";
         $file = $fileBase . $fileName;

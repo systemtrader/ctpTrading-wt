@@ -73,7 +73,7 @@ class Order
                     $isForecast = $data[4] == 0 ? 0 : 1;
                     $isZhuijia = $data[5] == 0 ? 0 : 1;
                     $range = $data[6];
-                    $sql = "INSERT INTO `markov_kline_order` (`order_id`, `kindex`, `instrumnet_id`, `is_forecast`, `is_zhuijia`, `range`) VALUES (?, ?, ?, ?, ?, ?)";
+                    $sql = "INSERT INTO `markov_kline_order` (`order_id`, `kindex`, `instrumnet_id`, `is_forecast`, `is_zhuijia`, `krange`) VALUES (?, ?, ?, ?, ?, ?)";
                     $params = [$orderID, $kIndex, $iID, $isForecast, $isZhuijia, $range];
                     $this->consumer->insertDB($sql, $params);
                 }
