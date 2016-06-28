@@ -144,7 +144,10 @@ bool TradeLogic::_isSerial()
     first = _transTypeList.begin();
     second = first++;
     bool flg = true;
-    if (*first == *second) flg = false;
+    if (*first == *second) {
+        _isLock = false;
+        flg = false;
+    }
 
     //log
     ofstream info;
