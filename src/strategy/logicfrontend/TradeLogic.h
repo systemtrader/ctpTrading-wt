@@ -117,6 +117,7 @@ private:
     void _sendRollBack(int);
 
     void _endClose();
+    bool _isSerial();
 
     bool _isTradingTime(TickData);
 

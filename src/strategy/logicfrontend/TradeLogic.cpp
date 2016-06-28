@@ -136,6 +136,26 @@ bool TradeLogic::_isTradingTime(TickData tick)
     return true;
 }
 
+bool TradeLogic::_isSerial()
+{
+    if (_transTypeList.size() < 2) return false;
+    list<int>::iterator first;
+    list<int>::iterator second;
+    first = _transTypeList.begin();
+    second = first++;
+    bool flg = true;
+    if (*first == *second) flg = false;
+
+    //log
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
+    info << "TradeLogicSrv[isSerial]";
+    info << "|isSerial|" << flg;
+    info << endl;
+    info.close();
+    return flg;
+}
+
 void TradeLogic::_tick(TickData tick)
 {
     _closeTick = tick;
@@ -512,7 +532,9 @@ void TradeLogic::_forecast(TickData tick)
     _setStatus(3, TRADE_STATUS_UNKOWN);
     switch (status1) {
         case TRADE_STATUS_NOTHING:
-            _forecastNothing(tick);
+            if (!_isSerial()) {
+                _forecastNothing(tick);
+            }
             break;
         case TRADE_STATUS_BUYOPENED:
             _forecastBuyOpened(tick);
@@ -548,6 +570,7 @@ void TradeLogic::_realAction(TickData tick)
 
     switch (status1) {
         case TRADE_STATUS_NOTHING:
+            if (_isSerial()) break;
             if (_isCurrentUp()) {
                 // _calculateUp(_countUp2Down, _countUp2Up);
                 _calculateUp();
@@ -575,12 +598,13 @@ void TradeLogic::_realAction(TickData tick)
                 if (_pUp2Down <= _thresholdVibrate) { // 不满足买开，平仓
                     if (_pUp2Up > _thresholdTrend) {
                         _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 1, true);
-                        _sendMsg(MSG_TRADE_BUYOPEN, tick.price, false, 0, 1, true);
+                        if (!_isSerial()) _sendMsg(MSG_TRADE_BUYOPEN, tick.price, false, 0, 1, true);
                     } else {
                         _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 1, true);
                     }
                 } else {
-                    _forecast(tick);
+                    _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 1, true); // 只交易一根K线，无论如果都平仓
+                    // _forecast(tick);
                 }
 
             } else {
@@ -589,12 +613,13 @@ void TradeLogic::_realAction(TickData tick)
                 if (_pDown2Down <= _thresholdTrend) { // 不满足买开，平
                     if (_pDown2Up > _thresholdVibrate) {
                         _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 1, true);
-                        _sendMsg(MSG_TRADE_BUYOPEN, tick.price, false, 0, 1, true);
+                        if (!_isSerial()) _sendMsg(MSG_TRADE_BUYOPEN, tick.price, false, 0, 1, true);
                     } else {
                         _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 1, true);
                     }
                 } else {
-                    _forecast(tick);
+                    _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 1, true); // 只交易一根K线，无论如果都平仓
+                    // _forecast(tick);
                 }
             }
             break;
@@ -607,12 +632,13 @@ void TradeLogic::_realAction(TickData tick)
                 if (_pUp2Up <= _thresholdTrend ) { // 不满足买开，平仓
                     if (_pUp2Down > _thresholdVibrate) {
                         _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 1, true);
-                        _sendMsg(MSG_TRADE_SELLOPEN, tick.price, false, 0, 1, true);
+                        if (!_isSerial()) _sendMsg(MSG_TRADE_SELLOPEN, tick.price, false, 0, 1, true);
                     } else {
                         _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 1, true);
                     }
                 } else {
-                    _forecast(tick);
+                    _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 1, true);
+                    // _forecast(tick);
                 }
 
             } else {
@@ -621,12 +647,13 @@ void TradeLogic::_realAction(TickData tick)
                 if (_pDown2Up <= _thresholdVibrate) { // 不满足买开，平
                     if (_pDown2Down > _thresholdTrend) {
                         _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 1, true);
-                        _sendMsg(MSG_TRADE_SELLOPEN, tick.price, false, 0, 1, true);
+                        if (!_isSerial()) _sendMsg(MSG_TRADE_SELLOPEN, tick.price, false, 0, 1, true);
                     } else {
                         _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 1, true);
                     }
                 } else {
-                    _forecast(tick);
+                    _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 1, true);
+                    // _forecast(tick);
                 }
             }
             break;
