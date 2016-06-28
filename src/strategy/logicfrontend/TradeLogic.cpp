@@ -606,8 +606,11 @@ void TradeLogic::_realAction(TickData tick)
                         _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 1, true);
                     }
                 } else {
-                    _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 1, true); // 只交易一根K线，无论如果都平仓
-                    // _forecast(tick);
+                    if (_isSerial()) {
+                        _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 1, true); // 只交易一根K线，无论如果都平仓
+                    } else {
+                        _forecast(tick);
+                    }
                 }
 
             } else {
@@ -621,8 +624,11 @@ void TradeLogic::_realAction(TickData tick)
                         _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 1, true);
                     }
                 } else {
-                    _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 1, true); // 只交易一根K线，无论如果都平仓
-                    // _forecast(tick);
+                    if (_isSerial()){
+                        _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 1, true); // 只交易一根K线，无论如果都平仓
+                    } else {
+                        _forecast(tick);
+                    }
                 }
             }
             break;
@@ -640,8 +646,11 @@ void TradeLogic::_realAction(TickData tick)
                         _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 1, true);
                     }
                 } else {
-                    _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 1, true);
-                    // _forecast(tick);
+                    if (_isSerial()) {
+                        _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 1, true);
+                    } else {
+                        _forecast(tick);
+                    }
                 }
 
             } else {
@@ -655,8 +664,10 @@ void TradeLogic::_realAction(TickData tick)
                         _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 1, true);
                     }
                 } else {
-                    _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 1, true);
-                    // _forecast(tick);
+                    if (_isSerial())
+                        _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 1, true);
+                    else 
+                        _forecast(tick);
                 }
             }
             break;
