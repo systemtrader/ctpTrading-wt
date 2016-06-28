@@ -11,16 +11,22 @@ class Report
     private $commission = [
         'sn1609' => 3.9,
         'hc1610' => 5.12,
+        'SR609' => 1,
+        'zn1608' => 1,
+        'cu1608' => 1,
     ];
 
     private $priceRadio = [
         'sn1609' => 1,
         'hc1610' => 10,
+        'SR609' => 10,
+        'zn1608' => 5,
+        'cu1608' => 5,
     ];
 
     function __construct($start, $end)
     {
-        $this->mysqldb = 'ctp';
+        $this->mysqldb = 'ctp_1';
 
         $today = date('Y-m-d', time());
         $yestoday = date('Y-m-d', strtotime('-1 day'));

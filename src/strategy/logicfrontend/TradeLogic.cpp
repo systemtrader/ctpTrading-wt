@@ -345,6 +345,7 @@ bool TradeLogic::_rollback()
         flg = true;
         _sendRollBack(_rollbackCloseDID);
     }
+    _sendRollBack(-1);
     return flg;
 }
 

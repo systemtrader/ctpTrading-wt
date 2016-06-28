@@ -36,6 +36,7 @@ private:
     string _logPath;
     string _iID;
     int _kRange;
+    int _rollbackCnt;
 
     double _minRange;
 

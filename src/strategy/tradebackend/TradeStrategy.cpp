@@ -42,6 +42,7 @@ TradeStrategy::TradeStrategy(int serviceID, string logPath, int db, int serviceI
     _tradeLogicSrvClient = new QClient(serviceIDL, sizeof(MSG_TO_TRADE_LOGIC));
     _minRange = (double)minRange;
     _kRange = kRange;
+    _rollbackCnt = 0;
 }
 
 TradeStrategy::~TradeStrategy()
@@ -143,7 +144,18 @@ void TradeStrategy::trade(MSG_TO_TRADE_STRATEGY msg)
 
     // 撤单直接发送
     if (msg.msgType == MSG_TRADE_ROLLBACK) {
+        if (msg.forecastID == -1) { // 回滚停止标志
+            if (_rollbackCnt == 0) { // 没有发生回滚，应对发出回滚信号时订单已经全部成交
+                MSG_TO_TRADE_LOGIC rsp = {0};
+                rsp.msgType = MSG_LOGIC_ROLLBACK;
+                strcpy(rsp.tick.instrumnetID, msg.instrumnetID);
+                _tradeLogicSrvClient->send((void *)&rsp);
+            }
+            _rollbackCnt = 0;
+            return;
+        }
         if (!_isForecasting(msg.forecastID)) return;
+        _rollbackCnt++;
         int orderID = _forecastID2OrderID[msg.forecastID];
         _rollbackID[orderID] = 1; // 记录rollback的orderID
         _cancel(orderID, 2);
