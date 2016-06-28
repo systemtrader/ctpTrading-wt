@@ -250,6 +250,7 @@ void TradeSrv::cancel(int orderID)
 {
     if (_isOrderCanceled(orderID)) return;
 
+    usleep(1500);
 
     int orderRef = _getOrderRefByID(orderID);
     if (orderRef <= 0) {
