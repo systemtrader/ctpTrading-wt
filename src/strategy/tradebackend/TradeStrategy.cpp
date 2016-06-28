@@ -55,7 +55,7 @@ TradeStrategy::~TradeStrategy()
 int TradeStrategy::_initTrade(int action, int kIndex, int total, string instrumnetID,
     double price, int forecastID, bool isForecast, int statusWay, bool isZhuijia)
 {
-    _orderID = Lib::stoi(_store->incr("ORDER_ID_MAX"));
+    _orderID = Lib::stoi(_storeTick->incr("ORDER_ID_MAX"));
 
     TRADE_DATA order = {0};
     order.action = action;

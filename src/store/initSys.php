@@ -48,7 +48,10 @@ class InitSys
         $st->execute([]);
         $res = $st->fetchAll(PDO::FETCH_ASSOC);
         $maxID = $res[0]['m'] ?: 0;
-        $rds->set($key, $maxID);
+        $rds1 = new Redis();
+        $rds1->connect('127.0.0.1', 6379);
+        $rds1->select(1);
+        $rds1->set($key, $maxID);
     }
 
     private function initKLine($iID, $rds, $db, $dbTick, $kRange)
