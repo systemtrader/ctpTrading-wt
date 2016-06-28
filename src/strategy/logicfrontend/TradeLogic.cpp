@@ -143,10 +143,10 @@ bool TradeLogic::_isSerial()
     list<int>::iterator second;
     first = _transTypeList.begin();
     second = first++;
-    bool flg = true;
+    bool flg = false;
     if (*first == *second) {
         _isLock = false;
-        flg = false;
+        flg = true;
     }
 
     //log
