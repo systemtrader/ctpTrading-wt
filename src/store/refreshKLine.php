@@ -21,15 +21,29 @@ class Refresh
 
     private function refresh($iID, $range, $db, $tickDB)
     {
-        // 清空原有数据
-        $sql = "DELETE FROM `kline` WHERE `instrumnet_id` = '{$iID}' AND `range` = {$this->kRange}";
-        $st = $db->prepare($sql);
-        $st->execute([]);
+        // // 清空原有数据
+        // $sql = "DELETE FROM `kline` WHERE `instrumnet_id` = '{$iID}' AND `range` = {$this->kRange}";
+        // $st = $db->prepare($sql);
+        // $st->execute([]);
         // 获取最新K线
-        // $sql = "SELECT"
+        $sql = "SELECT * FROM `kline` WHERE `instrumnet_id` = '{$iID}' AND `range` = {$this->kRange} ORDER BY `id` DESC";
+        $st = $db->prepare($sql);
+        $st->execute(array());
+        $res = $st->fetchAll(PDO::FETCH_ASSOC);
+        $last = $res[0];
+        if ($last) {
+            $index = $last['index'] + 1;
+            $sql = "SELECT * FROM `tick` WHERE `time` = '{$last['close_time']}' AND `msec` = '{$last['close_msec']}' AND `instrumnet_id` = '{$iID}' ORDER BY `id` LIMIT 1";
+            $st = $tickDB->prepare($sql);
+            $st->execute(array());
+            $res = $st->fetchAll(PDO::FETCH_ASSOC);
+            $close = $res[0];
+            $id = $close['id'];
+        } else {
+            $id = 0;
+            $index = 0;
+        }
 
-        $id = 0;
-        $index = 0;
         while (true) {
             $id = $this->makeBlock($id, $iID, $range, $index, $db, $tickDB);
             $index++;
