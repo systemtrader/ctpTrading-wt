@@ -410,6 +410,18 @@ void TradeStrategy::onErr(int orderID, int errNo)
     if (!_isTrading(orderID)) return;
     //
     TRADE_DATA order = _tradingInfo[orderID];
+    // log
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info, order.instrumnetID);
+    info << "TradeStrategySrv[onErr]";
+    info << "|orderID|" << orderID;
+    info << "|errNo|" << errNo;
+    info << "|statusWay|" << order.statusWay;
+    info << "|isForecast|" << order.isForecast;
+    info << "|waitingSize|" << _waitList.size();
+    info << endl;
+    info.close();
+
     if (errNo == 50) {
         _clearTradeInfo(orderID);
         _setStatus(order.statusWay, TRADE_STATUS_NOTHING, order.instrumnetID);
@@ -417,6 +429,75 @@ void TradeStrategy::onErr(int orderID, int errNo)
             MSG_TO_TRADE_STRATEGY msg = _waitList.front();
             _waitList.pop_front();
             _tradeAction(msg);
+        }
+    }
+    if (errNo == 26) {
+
+        switch (order.action) {
+            case TRADE_ACTION_BUYOPEN:
+                _setStatus(order.statusWay, TRADE_STATUS_BUYOPENED, order.instrumnetID);
+                break;
+            case TRADE_ACTION_SELLOPEN:
+                _setStatus(order.statusWay, TRADE_STATUS_SELLOPENED, order.instrumnetID);
+                break;
+            case TRADE_ACTION_BUYCLOSE:
+            case TRADE_ACTION_SELLCLOSE:
+                _setStatus(order.statusWay, TRADE_STATUS_NOTHING, order.instrumnetID);
+                break;
+            default:
+                break;
+        }
+
+        if (_isRollback(orderID)) { // 回滚的订单成交了
+            _clearRollbackID(orderID);
+            if (_rollbackID.size() == 0) { // 全部都回滚了
+                MSG_TO_TRADE_LOGIC msg = {0};
+                msg.msgType = MSG_LOGIC_ROLLBACK;
+                strcpy(msg.tick.instrumnetID, order.instrumnetID.c_str());
+                _tradeLogicSrvClient->send((void *)&msg);
+            }
+        } else if (order.isForecast) {
+            if (order.statusWay == 1 || order.statusWay == 2) {
+
+                Lib::initInfoLogHandle(_logPath, info, order.instrumnetID);
+                info << "TradeStrategySrv[sendMyTick]";
+                info << "|orderID|" << orderID;
+                info << "|statusWay|" << order.statusWay;
+                info << "|price|" << rsp.price;
+                info << "|date|" << rsp.date;
+                info << "|time|" << rsp.time;
+                info << endl;
+                info.close();
+
+                // 生成一个Tick，发送给K线系统
+                MSG_TO_KLINE msg = {0};
+                msg.msgType = MSG_TICK;
+                msg.tick.price = rsp.price;
+                msg.tick.volume = 0;
+                msg.tick.bidPrice1 = rsp.price;
+                msg.tick.bidVolume1 = 0;
+                msg.tick.askPrice1 = rsp.price;
+                msg.tick.askVolume1 = 0;
+                strcpy(msg.tick.date, rsp.date);
+                strcpy(msg.tick.time, rsp.time);
+                msg.tick.msec = -1;
+                strcpy(msg.tick.instrumnetID, order.instrumnetID.c_str());
+                msg.isMy = true;
+                _klineClient->send((void *)&msg);
+
+                // 将数据放入队列，以便存入DB
+                string tickStr = Lib::tickData2String(msg.tick);
+                string keyQ = "MARKET_TICK_Q";
+                string keyD = "CURRENT_TICK_" + string(order.instrumnetID);
+                _store->set(keyD, tickStr); // tick数据，供全局使用
+                _storeTick->push(keyQ, tickStr);
+            }
+
+        } else {
+            MSG_TO_TRADE_LOGIC msg = {0};
+            msg.msgType = MSG_LOGIC_REALBACK;
+            strcpy(msg.tick.instrumnetID, order.instrumnetID.c_str());
+            _tradeLogicSrvClient->send((void *)&msg);
         }
     }
 }
