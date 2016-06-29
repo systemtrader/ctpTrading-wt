@@ -29,6 +29,7 @@ int main(int argc, char const *argv[])
         db = getOptionToInt("rds_db_online");
     }
 
+    int serial = getOptionToInt("serial_kline");
     string peroidStr = getOptionToString("peroid");
     string thresholdStrT = getOptionToString("threshold_t");
     string thresholdStrV = getOptionToString("threshold_v");
@@ -49,7 +50,7 @@ int main(int argc, char const *argv[])
     for (int i = 0; i < instrumnetIDs.size(); ++i)
     {
         TradeLogic * tmp = new TradeLogic(Lib::stoi(peroids[i]), Lib::stod(thresholdsT[i]), Lib::stod(thresholdsV[i]), tradeStrategySrvID,
-            logPath, db, stopTradeTimes[instrumnetIDs[i]], startTradeTime, instrumnetIDs[i], Lib::stoi(kRanges[i]));
+            logPath, db, stopTradeTimes[instrumnetIDs[i]], startTradeTime, instrumnetIDs[i], Lib::stoi(kRanges[i]), serial);
         tmp->init();
         services[instrumnetIDs[i]] = tmp;
     }

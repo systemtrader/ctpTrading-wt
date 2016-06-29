@@ -10,8 +10,9 @@
 
 TradeLogic::TradeLogic(int peroid, double thresholdTrend, double thresholdVibrate,
     int serviceID, string logPath, int db,
-    string stopTradeTime, string startTradeTime, string instrumnetID, int kRange)
+    string stopTradeTime, string startTradeTime, string instrumnetID, int kRange, int serial)
 {
+    _serial = serial - 1;
     _isLock = false;
     _instrumnetID = instrumnetID;
 
@@ -138,16 +139,24 @@ bool TradeLogic::_isTradingTime(TickData tick)
 
 bool TradeLogic::_isSerial()
 {
-    if (_transTypeList.size() < 2) return false;
-    list<int>::iterator first;
-    list<int>::iterator second;
-    first = _transTypeList.begin();
-    second = first++;
-    bool flg = false;
-    if (*first == *second) {
-        _isLock = false;
-        flg = true;
+    if (_serial <= 1) return false;
+    if (_transTypeList.size() < _serial) return false;
+    list<int>::iterator it = _transTypeList.begin();
+    list<int>::iterator pre = it;
+    it++;
+    bool flg = true;
+    int i = 0;
+    while (it != _transTypeList.end()) {
+        if (i >= _serial - 1) break;
+        if (*it != *pre) {
+            flg = false;
+            break;
+        }
+        i++;
+        it++;
+        pre++;
     }
+    if (flg) _isLock = false;
 
     //log
     ofstream info;

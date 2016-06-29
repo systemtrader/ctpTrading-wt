@@ -65,7 +65,7 @@ private:
 
     bool _isLock;
     double _lineRatio;
-
+    int _serial;
 
     int _forecastID;
     int _rollbackOpenUUID;
@@ -128,7 +128,7 @@ private:
     void _sendMsg(int, double, bool, int, int, bool = false);
 
 public:
-    TradeLogic(int, double, double, int, string, int, string, string, string, int);
+    TradeLogic(int, double, double, int, string, int, string, string, string, int, int);
     ~TradeLogic();
 
     void init(); // 初始化历史K线
