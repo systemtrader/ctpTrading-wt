@@ -666,7 +666,7 @@ void TradeLogic::_realAction(TickData tick)
                 } else {
                     if (_isSerial())
                         _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 1, true);
-                    else 
+                    else
                         _forecast(tick);
                 }
             }
@@ -738,9 +738,9 @@ void TradeLogic::onTradeEnd()
 
 void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
 {
-    if (!_isTradingTime(tick)) return;
-    _kIndex = block.getIndex();
     _tick(tick);
+    _kIndex = block.getIndex();
+    if (!_isTradingTime(tick)) return;
     int status1 = _getStatus(1);
     int status2 = _getStatus(2);
     int status3 = _getStatus(3);
@@ -824,9 +824,9 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
 
 void TradeLogic::onKLineCloseByMe(KLineBlock block, TickData tick)
 {
-    if (!_isTradingTime(tick)) return;
-    _kIndex = block.getIndex();
     _tick(tick);
+    _kIndex = block.getIndex();
+    if (!_isTradingTime(tick)) return;
     int status1 = _getStatus(1);
     int status2 = _getStatus(2);
     int status3 = _getStatus(3);
