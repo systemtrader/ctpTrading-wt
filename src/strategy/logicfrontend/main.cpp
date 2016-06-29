@@ -29,7 +29,7 @@ int main(int argc, char const *argv[])
         db = getOptionToInt("rds_db_online");
     }
 
-    int serial = getOptionToInt("serial_kline");
+    string serialStr = getOptionToString("serial_kline");
     string peroidStr = getOptionToString("peroid");
     string thresholdStrT = getOptionToString("threshold_t");
     string thresholdStrV = getOptionToString("threshold_v");
@@ -40,6 +40,7 @@ int main(int argc, char const *argv[])
     std::vector<string> thresholdsT = Lib::split(thresholdStrT, "/");
     std::vector<string> thresholdsV = Lib::split(thresholdStrV, "/");
     std::vector<string> kRanges = Lib::split(krs, "/");
+    std::vector<string> serial = Lib::split(serialStr, "/");
 
     std::map<string, string> stopTradeTimes;
     for (int i = 0; i < instrumnetIDs.size(); ++i)
@@ -50,7 +51,7 @@ int main(int argc, char const *argv[])
     for (int i = 0; i < instrumnetIDs.size(); ++i)
     {
         TradeLogic * tmp = new TradeLogic(Lib::stoi(peroids[i]), Lib::stod(thresholdsT[i]), Lib::stod(thresholdsV[i]), tradeStrategySrvID,
-            logPath, db, stopTradeTimes[instrumnetIDs[i]], startTradeTime, instrumnetIDs[i], Lib::stoi(kRanges[i]), serial);
+            logPath, db, stopTradeTimes[instrumnetIDs[i]], startTradeTime, instrumnetIDs[i], Lib::stoi(kRanges[i]), Lib::stoi(serial[i]));
         tmp->init();
         services[instrumnetIDs[i]] = tmp;
     }
