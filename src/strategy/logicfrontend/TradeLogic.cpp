@@ -27,6 +27,7 @@ TradeLogic::TradeLogic(int peroid, double thresholdTrend, double thresholdVibrat
     _rollbackCloseDID = _rollbackCloseUID = 0;
     _kRange = kRange;
     _isTradeEnd = false;
+    _actionKIndex = 0;
 
     // 初始化模型参数
     _pUp2Up = _pUp2Down = _pDown2Up = _pDown2Down = 0;
@@ -752,44 +753,89 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
     _tick(tick);
     _kIndex = block.getIndex();
     if (!_isTradingTime(tick)) return;
-    int status1 = _getStatus(1);
-    int status2 = _getStatus(2);
-    int status3 = _getStatus(3);
 
     //log
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
     info << "TradeLogicSrv[onKLineClose]";
-    info << "|status1|" << status1;
-    info << "|status2|" << status2;
-    info << "|status3|" << status3;
     info << "|isLock|" << _isLock;
-    info << endl;
-    info.close();
 
     if (_isLock) {
+        info << endl;
+        info.close();
         return;
     }
     _isLock = true;
 
+    usleep(350*1000);
+    int status1 = _getStatus(1);
+    int status2 = _getStatus(2);
+    int status3 = _getStatus(3);
+
+    info << "|status1|" << status1;
+    info << "|status2|" << status2;
+    info << "|status3|" << status3;
+    info << endl;
+    info.close();
+
     switch (status1) {
 
         case TRADE_STATUS_NOTHING:
+
             _statusType = STATUS_TYPE_CLOSE_NO;
+            if (_kIndex == _actionKIndex) {
+                _statusType = STATUS_TYPE_CLOSE_WAIT_NO;
+            }
+
             if (status2 == TRADE_STATUS_SELLOPENING) {
                 _statusType = STATUS_TYPE_CLOSE_NO_SOING;
             }
             break;
         case TRADE_STATUS_SELLOPENED:
+
             _statusType = STATUS_TYPE_CLOSE_SOED;
+
+            if (_kIndex == _actionKIndex) {
+                _statusType = STATUS_TYPE_CLOSE_WAIT_SOED;
+            }
+
+            if (status3 == TRADE_STATUS_SELLCLOSING) {
+                _statusType = STATUS_TYPE_CLOSE_WAIT_SOED__SCING;
+            }
+
+            if (status3 == TRADE_STATUS_NOTHING) {
+                _statusType = STATUS_TYPE_CLOSE_WAIT_SOED__NO;
+            }
             break;
+
         case TRADE_STATUS_BUYOPENED:
+
             _statusType = STATUS_TYPE_CLOSE_BOED;
+            if (_kIndex == _actionKIndex) {
+                _statusType = STATUS_TYPE_CLOSE_WAIT_BOED;
+            }
+
+            if (status2 == TRADE_STATUS_SELLOPENING) {
+                _statusType = STATUS_TYPE_CLOSE_WAIT_BOED_SOING;
+            }
+
+            if (status3 == TRADE_STATUS_BUYCLOSING) {
+                _statusType = STATUS_TYPE_CLOSE_WAIT_BOED__BCING;
+            }
+
+            if (status3 == TRADE_STATUS_NOTHING) {
+                _statusType = STATUS_TYPE_CLOSE_WAIT_BOED__NO;
+            }
+
             break;
 
         case TRADE_STATUS_BUYOPENING:
 
             _statusType = STATUS_TYPE_CLOSE_BOING;
+
+            if (status2 == TRADE_STATUS_SELLOPENED) {
+                _statusType = STATUS_TYPE_CLOSE_WAIT_BOING_SOED;
+            }
 
             if (status2 == TRADE_STATUS_SELLOPENING) {
                 _statusType = STATUS_TYPE_CLOSE_BOING_SOING;
@@ -838,6 +884,8 @@ void TradeLogic::onKLineCloseByMe(KLineBlock block, TickData tick)
     _tick(tick);
     _kIndex = block.getIndex();
     if (!_isTradingTime(tick)) return;
+
+    _isLock = true;
     int status1 = _getStatus(1);
     int status2 = _getStatus(2);
     int status3 = _getStatus(3);
@@ -851,8 +899,6 @@ void TradeLogic::onKLineCloseByMe(KLineBlock block, TickData tick)
     info << "|status3|" << status3;
     info << endl;
     info.close();
-
-    _isLock = true;
 
     switch (status1) {
 
@@ -919,6 +965,11 @@ void TradeLogic::_onKLineCloseDo(TickData tick)
         case STATUS_TYPE_MYCLOSE_BOED__NO:
         case STATUS_TYPE_MYCLOSE_BOED:
         case STATUS_TYPE_MYCLOSE_SOED:
+        case STATUS_TYPE_CLOSE_WAIT_BOED:
+        case STATUS_TYPE_CLOSE_WAIT_SOED:
+        case STATUS_TYPE_CLOSE_WAIT_NO:
+        case STATUS_TYPE_CLOSE_WAIT_SOED__NO:
+        case STATUS_TYPE_CLOSE_WAIT_BOED__NO:
             _forecast(tick);
             break;
         case STATUS_TYPE_CLOSE_BOING:
@@ -936,6 +987,10 @@ void TradeLogic::_onKLineCloseDo(TickData tick)
         case STATUS_TYPE_MYCLOSE_BOING_SOED:
         case STATUS_TYPE_MYCLOSE_SOED__SCING:
         case STATUS_TYPE_MYCLOSE_BOED__BCING:
+        case STATUS_TYPE_CLOSE_WAIT_BOED_SOING:
+        case STATUS_TYPE_CLOSE_WAIT_BOING_SOED:
+        case STATUS_TYPE_CLOSE_WAIT_SOED__SCING:
+        case STATUS_TYPE_CLOSE_WAIT_BOED__BCING:
             _rollback();
             break;
         default:
@@ -992,6 +1047,7 @@ void TradeLogic::onRollback()
             }
 
         case STATUS_TYPE_MYCLOSE_BOING_SOED:
+        case STATUS_TYPE_CLOSE_WAIT_BOING_SOED:
             if (status1 == TRADE_STATUS_NOTHING) {
                 _setStatus(1, TRADE_STATUS_SELLOPENED);
                 _forecast(_closeTick);
@@ -1001,6 +1057,7 @@ void TradeLogic::onRollback()
             break;
 
         case STATUS_TYPE_MYCLOSE_BOED_SOING:
+        case STATUS_TYPE_CLOSE_WAIT_BOED_SOING:
             if (status2 == TRADE_STATUS_NOTHING) {
                 _forecast(_closeTick);
             } else {
@@ -1034,6 +1091,7 @@ void TradeLogic::onRollback()
             break;
 
         case STATUS_TYPE_MYCLOSE_SOED__SCING:
+        case STATUS_TYPE_CLOSE_WAIT_SOED__SCING:
             if (status3 == TRADE_STATUS_BUYOPENED) {
                 _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 3);
             } else {
@@ -1042,6 +1100,7 @@ void TradeLogic::onRollback()
             break;
 
         case STATUS_TYPE_MYCLOSE_BOED__BCING:
+        case STATUS_TYPE_CLOSE_WAIT_BOED__BCING:
             if (status3 == TRADE_STATUS_SELLOPENED) {
                 _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 3);
             } else {
@@ -1137,6 +1196,7 @@ void TradeLogic::_sendMsg(int msgType, double price, bool isForecast, int foreca
 
     int kIndex = _kIndex;
     if (isForecast) kIndex++;
+    _actionKIndex = kIndex;
     //log
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
