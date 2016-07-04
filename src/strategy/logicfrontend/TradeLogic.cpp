@@ -416,11 +416,11 @@ bool TradeLogic::_canRollbackClose(TickData tick, bool isBuyCloseAction)
 {
     bool flg = false;
     if (isBuyCloseAction) {
-        if (_forecastClosePrice > 0 && abs(tick.bidPrice1 - _forecastClosePrice) > 2 * _minRange) {
+        if (_forecastClosePrice > 0 && abs(tick.askPrice1 - _forecastClosePrice) > 2 * _minRange) {
             flg = true;
         }
     } else {
-        if (_forecastClosePrice > 0 && abs(tick.askPrice1 - _forecastClosePrice) > 2 * _minRange) {
+        if (_forecastClosePrice > 0 && abs(tick.bidPrice1 - _forecastClosePrice) > 2 * _minRange) {
             flg = true;
         }
     }
@@ -428,6 +428,7 @@ bool TradeLogic::_canRollbackClose(TickData tick, bool isBuyCloseAction)
     Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
     info << "TradeLogicSrv[canRollbackClose]";
     info << "|forecastClosePrice|" << _forecastClosePrice;
+    info << "|isBuyCloseAction|" << isBuyCloseAction;
     info << "|bidPrice1|" << tick.bidPrice1;
     info << "|askPrice1|" << tick.askPrice1;
     info << "|minRange|" << _minRange;
