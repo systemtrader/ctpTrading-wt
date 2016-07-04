@@ -351,6 +351,11 @@ void TradeLogic::_setRollbackID(int type, int id)
     }
 }
 
+void TradeLogic::onForecastSuccess()
+{
+    _rollback();
+}
+
 bool TradeLogic::_rollback()
 {
     bool flg = false;

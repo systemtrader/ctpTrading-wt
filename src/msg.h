@@ -24,6 +24,7 @@ typedef struct msg_tick
 #define MSG_LOGIC_REALBACK 22
 #define MSG_TRADE_END 23
 #define MSG_TRADE_TICK 24
+#define MSG_TRADE_FORECAST_SUCCESS 25
 typedef struct msg_k_line
 {
     long int msgType;

@@ -166,6 +166,7 @@ public:
     void onRealActionBack();
     void onTradeEnd();
     void onTick(TickData);
+    void onForecastSuccess();
 };
 
 #endif

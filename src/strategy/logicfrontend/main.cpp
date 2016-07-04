@@ -122,6 +122,11 @@ bool action(long int msgType, const void * data)
         services[string(tick.instrumnetID)]->onTick(tick);
     }
 
+    if (msgType == MSG_TRADE_FORECAST_SUCCESS) {
+        TickData tick = ((MSG_TO_TRADE_LOGIC*)data)->tick;
+        services[string(tick.instrumnetID)]->onForecastSuccess();
+    }
+
     return true;
 }
 

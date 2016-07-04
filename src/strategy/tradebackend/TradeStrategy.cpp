@@ -278,7 +278,19 @@ void TradeStrategy::onSuccess(MSG_TO_TRADE_STRATEGY rsp)
                 _tradeLogicSrvClient->send((void *)&msg);
             }
         } else if (order.isForecast) {
-            if (order.statusWay == 1 || order.statusWay == 2) {
+            if (_forecastID2OrderID.size() == 0) {
+                 Lib::initInfoLogHandle(_logPath, info, order.instrumnetID);
+                info << "TradeStrategySrv[allForecastSuccess]";
+                info << endl;
+                info.close();
+
+                MSG_TO_TRADE_LOGIC rsp = {0};
+                rsp.msgType = MSG_TRADE_FORECAST_SUCCESS;
+                strcpy(rsp.tick.instrumnetID, order.instrumnetID.c_str());
+                _tradeLogicSrvClient->send((void *)&rsp);
+            }
+
+            // if (order.statusWay == 1 || order.statusWay == 2) {
 
                 // Lib::initInfoLogHandle(_logPath, info, order.instrumnetID);
                 // info << "TradeStrategySrv[sendMyTick]";
@@ -312,7 +324,7 @@ void TradeStrategy::onSuccess(MSG_TO_TRADE_STRATEGY rsp)
                 // string keyD = "CURRENT_TICK_" + string(order.instrumnetID);
                 // _store->set(keyD, tickStr); // tick数据，供全局使用
                 // _storeTick->push(keyQ, tickStr);
-            }
+            // }
 
         } else {
             MSG_TO_TRADE_LOGIC msg = {0};
