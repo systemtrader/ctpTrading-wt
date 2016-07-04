@@ -835,7 +835,6 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
     }
     _isLock = true;
 
-    usleep(350*1000);
     int status1 = _getStatus(1);
     int status2 = _getStatus(2);
     int status3 = _getStatus(3);
