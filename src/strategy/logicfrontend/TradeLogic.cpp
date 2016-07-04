@@ -58,6 +58,7 @@ TradeLogic::TradeLogic(int peroid, double thresholdTrend, double thresholdVibrat
     }
 
     _store = new Redis("127.0.0.1", 6379, db);
+    _store->set("TRADE_TAG_" + _instrumnetID, "0");
     _tradeStrategySrvClient = new QClient(serviceID, sizeof(MSG_TO_TRADE_STRATEGY));
 }
 
@@ -818,6 +819,7 @@ void TradeLogic::onTradeEnd()
 
 void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
 {
+
     _tick(tick);
     _kIndex = block.getIndex();
     if (!_isTradingTime(tick)) return;
@@ -832,6 +834,25 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
         info << endl;
         info.close();
         return;
+    }
+
+    // 增加中间控制，标志开启后空仓，恢复后正常
+    string tagStr = _store->get("TRADE_TAG_" + _instrumnetID);
+    int tag = Lib::stoi(tagStr);
+    switch (tag) {
+        case 0: // 正常
+            break;
+        case 1: // 返回
+            return;
+        case 2: // 暂停
+            _store->set("TRADE_TAG_" + _instrumnetID, "1");
+            onTradeEnd();
+            return;
+        case 3: // 恢复
+            _store->set("TRADE_TAG_" + _instrumnetID, "0");
+            _isTradeEnd = false;
+        default:
+            break;
     }
     _isLock = true;
 
