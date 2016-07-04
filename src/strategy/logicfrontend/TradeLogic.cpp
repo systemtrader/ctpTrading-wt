@@ -10,11 +10,12 @@
 
 TradeLogic::TradeLogic(int peroid, double thresholdTrend, double thresholdVibrate,
     int serviceID, string logPath, int db,
-    string stopTradeTime, string startTradeTime, string instrumnetID, int kRange, int serial)
+    string stopTradeTime, string startTradeTime, string instrumnetID, int kRange, int serial, int minRange)
 {
     _serial = serial - 1;
     _isLock = false;
     _instrumnetID = instrumnetID;
+    _minRange = (double)minRange;
 
     _peroid = peroid;
     _lineRatio = 2 / ((double)peroid * ((double)peroid + 1));
@@ -382,6 +383,54 @@ bool TradeLogic::_rollback()
     return flg;
 }
 
+bool TradeLogic::_canRollbackOpen(TickData tick)
+{
+    bool flg = true;
+    if (_forecastOpenPrice1 > 0 && abs(tick.price - _forecastOpenPrice1) < _minRange * 2) {
+        flg = false;
+    }
+    if (_forecastOpenPrice2 > 0 && abs(tick.price - _forecastOpenPrice2) < _minRange * 2) {
+        flg = false;
+    }
+    //log
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
+    info << "TradeLogicSrv[canRollbackOpen]";
+    info << "|forecastOpenPrice1|" << _forecastOpenPrice1;
+    info << "|forecastOpenPrice2|" << _forecastOpenPrice2;
+    info << "|tickPrice|" << tick.price;
+    info << "|minRange|" << _minRange;
+    info << "|flg|" << flg;
+    info << endl;
+    info.close();
+    return flg;
+}
+
+bool TradeLogic::_canRollbackClose(TickData tick, bool isBuyCloseAction)
+{
+    bool flg = false;
+    if (isBuyCloseAction) {
+        if (_forecastClosePrice > 0 && abs(tick.bidPrice1 - _forecastClosePrice) > 2 * _minRange) {
+            flg = true;
+        }
+    } else {
+        if (_forecastClosePrice > 0 && abs(tick.askPrice1 - _forecastClosePrice) > 2 * _minRange) {
+            flg = true;
+        }
+    }
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
+    info << "TradeLogicSrv[canRollbackClose]";
+    info << "|forecastClosePrice|" << _forecastClosePrice;
+    info << "|bidPrice1|" << tick.bidPrice1;
+    info << "|askPrice1|" << tick.askPrice1;
+    info << "|minRange|" << _minRange;
+    info << "|flg|" << flg;
+    info << endl;
+    info.close();
+    return flg;
+}
+
 void TradeLogic::_forecastNothing(TickData tick)
 {
     // 只发一单
@@ -394,6 +443,7 @@ void TradeLogic::_forecastNothing(TickData tick)
             // _rollbackOpenUDID = _forecastID;
             _setRollbackID(OUD, _forecastID);
             _sendMsg(MSG_TRADE_BUYOPEN, tick.price - _kRange, true, _forecastID, 1);
+            _forecastOpenPrice1 = tick.price - _kRange;
         }
 
         // _calculateUp(_countUp2Down, _countUp2Up + 1);
@@ -403,6 +453,7 @@ void TradeLogic::_forecastNothing(TickData tick)
             // _rollbackOpenUUID = _forecastID;
             _setRollbackID(OUU, _forecastID);
             _sendMsg(MSG_TRADE_SELLOPEN, tick.price + _kRange, true, _forecastID, 2);
+            _forecastOpenPrice2 = tick.price + _kRange;
         }
 
     } else { // 当前是down
@@ -414,6 +465,7 @@ void TradeLogic::_forecastNothing(TickData tick)
             // _rollbackOpenDDID = _forecastID;
             _setRollbackID(ODD, _forecastID);
             _sendMsg(MSG_TRADE_BUYOPEN, tick.price - _kRange, true, _forecastID, 1);
+            _forecastOpenPrice1 = tick.price - _kRange;
         }
 
         // _calculateUp(_countUp2Down, _countUp2Up);
@@ -423,6 +475,7 @@ void TradeLogic::_forecastNothing(TickData tick)
             // _rollbackOpenDUID = _forecastID;
             _setRollbackID(ODU, _forecastID);
             _sendMsg(MSG_TRADE_SELLOPEN, tick.price + _kRange, true, _forecastID, 2);
+            _forecastOpenPrice2 = tick.price + _kRange;
         }
     }
 }
@@ -443,8 +496,10 @@ void TradeLogic::_forecastBuyOpened(TickData tick)
                 _setRollbackID(OUU, _forecastID);
                 _sendMsg(MSG_TRADE_SELLCLOSE, tick.price + _kRange, true, _rollbackCloseUID, 3);
                 _sendMsg(MSG_TRADE_SELLOPEN, tick.price + _kRange, true, _rollbackOpenUUID, 1);
+                _forecastOpenPrice1 = _forecastClosePrice = tick.price + _kRange;
             } else {
                 _sendMsg(MSG_TRADE_SELLCLOSE, tick.price + _kRange, true, _rollbackCloseUID, 1);
+                _forecastClosePrice = tick.price + _kRange;
             }
         }
 
@@ -462,8 +517,10 @@ void TradeLogic::_forecastBuyOpened(TickData tick)
                 _setRollbackID(ODU, _forecastID);
                 _sendMsg(MSG_TRADE_SELLCLOSE, tick.price + _kRange, true, _rollbackCloseDID, 3);
                 _sendMsg(MSG_TRADE_SELLOPEN, tick.price + _kRange, true, _rollbackOpenDUID, 1);
+                _forecastOpenPrice1 = _forecastClosePrice = tick.price + _kRange;
             } else {
                 _sendMsg(MSG_TRADE_SELLCLOSE, tick.price + _kRange, true, _rollbackCloseDID, 1);
+                _forecastClosePrice = tick.price + _kRange;
             }
         }
 
@@ -487,8 +544,10 @@ void TradeLogic::_forecastSellOpened(TickData tick)
                 _setRollbackID(OUD, _forecastID);
                 _sendMsg(MSG_TRADE_BUYCLOSE, tick.price - _kRange, true, _rollbackCloseUID, 3);
                 _sendMsg(MSG_TRADE_BUYOPEN, tick.price - _kRange, true, _rollbackOpenUDID, 1);
+                _forecastOpenPrice1 = _forecastClosePrice = tick.price - _kRange;
             } else {
                 _sendMsg(MSG_TRADE_BUYCLOSE, tick.price - _kRange, true, _rollbackCloseUID, 1);
+                _forecastClosePrice = tick.price - _kRange;
             }
         }
 
@@ -506,8 +565,10 @@ void TradeLogic::_forecastSellOpened(TickData tick)
                 _setRollbackID(ODD, _forecastID);
                 _sendMsg(MSG_TRADE_BUYCLOSE, tick.price - _kRange, true, _rollbackCloseDID, 3);
                 _sendMsg(MSG_TRADE_BUYOPEN, tick.price - _kRange, true, _rollbackOpenDDID, 1);
+                _forecastOpenPrice1 = _forecastClosePrice = tick.price - _kRange;
             } else {
                 _sendMsg(MSG_TRADE_BUYCLOSE, tick.price - _kRange, true, _rollbackCloseDID, 1);
+                _forecastClosePrice = tick.price - _kRange;
             }
         }
     }
@@ -543,6 +604,8 @@ void TradeLogic::_forecast(TickData tick)
     _setRollbackID(CD, 0);
     _setStatus(2, TRADE_STATUS_UNKOWN);
     _setStatus(3, TRADE_STATUS_UNKOWN);
+    _forecastOpenPrice1 = _forecastOpenPrice2 = _forecastClosePrice = 0;
+    _setTickSwitch(false);
     switch (status1) {
         case TRADE_STATUS_NOTHING:
             if (!_isSerial()) {
@@ -950,6 +1013,17 @@ void TradeLogic::onKLineCloseByMe(KLineBlock block, TickData tick)
 
 }
 
+void TradeLogic::onTick(TickData tick)
+{
+    _onKLineCloseDo(tick);
+}
+
+void TradeLogic::_setTickSwitch(bool needTick)
+{
+    string flg = needTick ? "1" : "0";
+    _store->set("NEED_TICK_" + _instrumnetID, flg);
+}
+
 void TradeLogic::_onKLineCloseDo(TickData tick)
 {
     switch (_statusType) {
@@ -972,17 +1046,59 @@ void TradeLogic::_onKLineCloseDo(TickData tick)
         case STATUS_TYPE_CLOSE_WAIT_BOED__NO:
             _forecast(tick);
             break;
+
         case STATUS_TYPE_CLOSE_BOING:
         case STATUS_TYPE_CLOSE_SOING:
         case STATUS_TYPE_CLOSE_BOING_SOING:
         case STATUS_TYPE_CLOSE_NO_SOING:
         case STATUS_TYPE_CLOSE_BOING_NO:
-        case STATUS_TYPE_CLOSE_SCING:
-        case STATUS_TYPE_CLOSE_BCING:
-        case STATUS_TYPE_CLOSE_SOING__SCING:
         case STATUS_TYPE_CLOSE_SOING__NO:
-        case STATUS_TYPE_CLOSE_BOING__BCING:
         case STATUS_TYPE_CLOSE_BOING__NO:
+            if (_canRollbackOpen(tick)) {
+                _setTickSwitch(false);
+                _rollback();
+            } else {
+                _setTickSwitch(true);
+            }
+            break;
+
+        case STATUS_TYPE_CLOSE_BOING__BCING:
+            if (_canRollbackClose(tick, true) && _canRollbackOpen(tick)) {
+                _setTickSwitch(false);
+                _rollback();
+            } else {
+                _setTickSwitch(true);
+            }
+
+            break;
+
+        case STATUS_TYPE_CLOSE_SOING__SCING:
+            if (_canRollbackClose(tick, false) && _canRollbackOpen(tick)) {
+                _setTickSwitch(false);
+                _rollback();
+            } else {
+                _setTickSwitch(true);
+            }
+            break;
+
+        case STATUS_TYPE_CLOSE_BCING:
+            if (_canRollbackClose(tick, true)) {
+                _setTickSwitch(false);
+                _rollback();
+            } else {
+                _setTickSwitch(true);
+            }
+            break;
+
+        case STATUS_TYPE_CLOSE_SCING:
+            if (_canRollbackClose(tick, false)) {
+                _setTickSwitch(false);
+                _rollback();
+            } else {
+                _setTickSwitch(true);
+            }
+            break;
+
         case STATUS_TYPE_MYCLOSE_BOED_SOING:
         case STATUS_TYPE_MYCLOSE_BOING_SOED:
         case STATUS_TYPE_MYCLOSE_SOED__SCING:

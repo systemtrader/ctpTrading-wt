@@ -20,6 +20,13 @@ int main(int argc, char const *argv[])
     string stopTradeTime = getOptionToString("stop_trade_time");
     string startTradeTime = getOptionToString("start_trade_time");
 
+    string minRanges    = getOptionToString("min_range");
+    std::vector<string> minRs = Lib::split(minRanges, "/");
+    std::map<string, int> iid2minR;
+    for (int i = 0; i < minRs.size(); i = i + 2)
+    {
+        iid2minR[minRs[i]] = Lib::stoi(minRs[i+1]);
+    }
 
     int isDev = getOptionToInt("is_dev");
     int db;
@@ -51,7 +58,7 @@ int main(int argc, char const *argv[])
     for (int i = 0; i < instrumnetIDs.size(); ++i)
     {
         TradeLogic * tmp = new TradeLogic(Lib::stoi(peroids[i]), Lib::stod(thresholdsT[i]), Lib::stod(thresholdsV[i]), tradeStrategySrvID,
-            logPath, db, stopTradeTimes[instrumnetIDs[i]], startTradeTime, instrumnetIDs[i], Lib::stoi(kRanges[i]), Lib::stoi(serial[i]));
+            logPath, db, stopTradeTimes[instrumnetIDs[i]], startTradeTime, instrumnetIDs[i], Lib::stoi(kRanges[i]), Lib::stoi(serial[i]), iid2minR[instrumnetIDs[i]]);
         tmp->init();
         services[instrumnetIDs[i]] = tmp;
     }
@@ -108,6 +115,11 @@ bool action(long int msgType, const void * data)
     if (msgType == MSG_TRADE_END) {
         TickData tick = ((MSG_TO_TRADE_LOGIC*)data)->tick;
         services[string(tick.instrumnetID)]->onTradeEnd();
+    }
+
+    if (msgType == MSG_TRADE_TICK) {
+        TickData tick = ((MSG_TO_TRADE_LOGIC*)data)->tick;
+        services[string(tick.instrumnetID)]->onTick(tick);
     }
 
     return true;

@@ -157,6 +157,14 @@ void MarketSpi::_saveMarketData(CThostFtdcDepthMarketDataField *data)
         }
     }
 
+    string flg = _store->get("NEED_TICK_" + string(data->InstrumentID));
+    if (Lib::stoi(flg) == 1) {
+        MSG_TO_TRADE_LOGIC msg3 = {0};
+        msg3.msgType = MSG_TRADE_TICK;
+        msg3.tick = msg.tick;
+        _tradeLogicSrvClient->send((void *)&msg3);
+    }
+
 }
 
 

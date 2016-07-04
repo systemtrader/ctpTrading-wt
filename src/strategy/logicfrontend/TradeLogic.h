@@ -7,6 +7,7 @@
 #include "../../protos/KLineBlock.h"
 #include <list>
 #include <map>
+#include <cmath>
 
 #define TRANS_TYPE_UP2UP     0
 #define TRANS_TYPE_UP2DOWN   1
@@ -82,6 +83,8 @@ private:
     int _serial;
     int _actionKIndex;
 
+    double _minRange;
+
     int _forecastID;
     int _rollbackOpenUUID;
     int _rollbackOpenUDID;
@@ -92,6 +95,10 @@ private:
     void _setRollbackID(int, int);
     int _kRange; // 放弃
     bool _isTradeEnd;
+
+    double _forecastOpenPrice1;
+    double _forecastOpenPrice2;
+    double _forecastClosePrice;
 
     // 算法参数
     int _peroid; // 周期
@@ -134,6 +141,10 @@ private:
     void _endClose();
     bool _isSerial();
 
+    bool _canRollbackClose(TickData, bool);
+    bool _canRollbackOpen(TickData);
+    void _setTickSwitch(bool);
+
     bool _isTradingTime(TickData);
 
     // 判断仓位状态
@@ -143,7 +154,7 @@ private:
     void _sendMsg(int, double, bool, int, int, bool = false);
 
 public:
-    TradeLogic(int, double, double, int, string, int, string, string, string, int, int);
+    TradeLogic(int, double, double, int, string, int, string, string, string, int, int, int);
     ~TradeLogic();
 
     void init(); // 初始化历史K线
@@ -154,6 +165,7 @@ public:
     void onRollback();
     void onRealActionBack();
     void onTradeEnd();
+    void onTick(TickData);
 };
 
 #endif

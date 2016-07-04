@@ -217,12 +217,12 @@ void TradeStrategy::_tradeAction(MSG_TO_TRADE_STRATEGY msg)
 
         case TRADE_ACTION_BUYCLOSE:
             _setStatus(msg.statusWay, TRADE_STATUS_BUYCLOSING, instrumnetID);
-            _sendMsg(price, total, true, false, orderID);
+            _sendMsg(price, total, true, false, orderID, msg.isFok);
             break;
 
         case TRADE_ACTION_SELLCLOSE:
             _setStatus(msg.statusWay, TRADE_STATUS_SELLCLOSING, instrumnetID);
-            _sendMsg(price, total, false, false, orderID);
+            _sendMsg(price, total, false, false, orderID, msg.isFok);
             break;
 
         default:
@@ -280,38 +280,38 @@ void TradeStrategy::onSuccess(MSG_TO_TRADE_STRATEGY rsp)
         } else if (order.isForecast) {
             if (order.statusWay == 1 || order.statusWay == 2) {
 
-                Lib::initInfoLogHandle(_logPath, info, order.instrumnetID);
-                info << "TradeStrategySrv[sendMyTick]";
-                info << "|orderID|" << orderID;
-                info << "|statusWay|" << order.statusWay;
-                info << "|price|" << rsp.price;
-                info << "|date|" << rsp.date;
-                info << "|time|" << rsp.time;
-                info << endl;
-                info.close();
+                // Lib::initInfoLogHandle(_logPath, info, order.instrumnetID);
+                // info << "TradeStrategySrv[sendMyTick]";
+                // info << "|orderID|" << orderID;
+                // info << "|statusWay|" << order.statusWay;
+                // info << "|price|" << rsp.price;
+                // info << "|date|" << rsp.date;
+                // info << "|time|" << rsp.time;
+                // info << endl;
+                // info.close();
 
-                // 生成一个Tick，发送给K线系统
-                MSG_TO_KLINE msg = {0};
-                msg.msgType = MSG_TICK;
-                msg.tick.price = rsp.price;
-                msg.tick.volume = 0;
-                msg.tick.bidPrice1 = rsp.price;
-                msg.tick.bidVolume1 = 0;
-                msg.tick.askPrice1 = rsp.price;
-                msg.tick.askVolume1 = 0;
-                strcpy(msg.tick.date, rsp.date);
-                strcpy(msg.tick.time, rsp.time);
-                msg.tick.msec = -1;
-                strcpy(msg.tick.instrumnetID, order.instrumnetID.c_str());
-                msg.isMy = true;
-                _klineClient->send((void *)&msg);
+                // // 生成一个Tick，发送给K线系统
+                // MSG_TO_KLINE msg = {0};
+                // msg.msgType = MSG_TICK;
+                // msg.tick.price = rsp.price;
+                // msg.tick.volume = 0;
+                // msg.tick.bidPrice1 = rsp.price;
+                // msg.tick.bidVolume1 = 0;
+                // msg.tick.askPrice1 = rsp.price;
+                // msg.tick.askVolume1 = 0;
+                // strcpy(msg.tick.date, rsp.date);
+                // strcpy(msg.tick.time, rsp.time);
+                // msg.tick.msec = -1;
+                // strcpy(msg.tick.instrumnetID, order.instrumnetID.c_str());
+                // msg.isMy = true;
+                // _klineClient->send((void *)&msg);
 
-                // 将数据放入队列，以便存入DB
-                string tickStr = Lib::tickData2String(msg.tick);
-                string keyQ = "MARKET_TICK_Q";
-                string keyD = "CURRENT_TICK_" + string(order.instrumnetID);
-                _store->set(keyD, tickStr); // tick数据，供全局使用
-                _storeTick->push(keyQ, tickStr);
+                // // 将数据放入队列，以便存入DB
+                // string tickStr = Lib::tickData2String(msg.tick);
+                // string keyQ = "MARKET_TICK_Q";
+                // string keyD = "CURRENT_TICK_" + string(order.instrumnetID);
+                // _store->set(keyD, tickStr); // tick数据，供全局使用
+                // _storeTick->push(keyQ, tickStr);
             }
 
         } else {
@@ -520,11 +520,11 @@ void TradeStrategy::_zhuijia(int orderID, double price)
     switch (order.action) {
         case TRADE_ACTION_SELLCLOSE:
             price = tick.bidPrice1 < price - _minRange ? tick.bidPrice1 : price - _minRange;
-            _sendMsg(price, 1, false, false, newOrderID);
+            _sendMsg(price, 1, false, false, newOrderID, true);
             break;
         case TRADE_ACTION_BUYCLOSE:
             price = tick.askPrice1 > price + _minRange ? tick.askPrice1 : price + _minRange;
-            _sendMsg(price, 1, true, false, newOrderID);
+            _sendMsg(price, 1, true, false, newOrderID, true);
             break;
         default:
             break;
