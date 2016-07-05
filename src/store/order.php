@@ -59,11 +59,11 @@ class Order
                     $status = $data[7] == 5 ? 2 : 0;
                     $tickPrice = $status == 2 ? $data[8] : 0;
                     list($date, $usec) = explode('.', $time);
-                    $sql = "UPDATE `order` SET `end_time` = ?, `end_usec` = ?, `srv_insert_time` = ?, `status` = ?, `cancel_tick_price` = ? WHERE `order_ref` = ? AND `front_id` = ? AND `session_id` = ?";
+                    $sql = "UPDATE `order` SET `end_time` = ?, `end_usec` = ?, `srv_end_time` = ?, `status` = ?, `cancel_tick_price` = ? WHERE `order_ref` = ? AND `front_id` = ? AND `session_id` = ?";
                     $params = array($date, $usec, $srvTime, $status, $tickPrice, $orderRef, $frontID, $sessionID);
                     $this->consumer->updateDB($sql, $params);
-                    $sql = "UPDATE `order` SET `first_time` = ?, `first_usec` = ? WHERE `order_ref` = ? AND `front_id` = ? AND `session_id` = ? AND `first_time` = 0";
-                    $params = array($date, $usec, $orderRef, $frontID, $sessionID);
+                    $sql = "UPDATE `order` SET `first_time` = ?, `first_usec` = ?, `srv_insert_time` = ? WHERE `order_ref` = ? AND `front_id` = ? AND `session_id` = ? AND `first_time` = 0";
+                    $params = array($date, $usec, $srvTime, $orderRef, $frontID, $sessionID);
                     $this->consumer->updateDB($sql, $params);
                 }
                 if ($type == "klineorder") {
