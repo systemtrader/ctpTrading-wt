@@ -354,6 +354,7 @@ void TradeLogic::_setRollbackID(int type, int id)
 
 void TradeLogic::onForecastSuccess()
 {
+    _setTickSwitch(false);
     _rollback();
 }
 
@@ -1041,7 +1042,10 @@ void TradeLogic::onKLineCloseByMe(KLineBlock block, TickData tick)
 
 void TradeLogic::onTick(TickData tick)
 {
-    _onKLineCloseDo(tick);
+    string flgStr = _store->get("NEED_TICK_" + _instrumnetID);
+    int flg = Lib::stoi(flgStr);
+    if (flg == 1)
+        _onKLineCloseDo(tick);
 }
 
 void TradeLogic::_setTickSwitch(bool needTick)
