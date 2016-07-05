@@ -27,11 +27,6 @@ int main(int argc, char const *argv[])
     }
 
     std::vector<string> minRs = Lib::split(minRanges, "/");
-    std::map<string, int> iid2minR;
-    for (int i = 0; i < minRs.size(); i = i + 2)
-    {
-        iid2minR[minRs[i]] = Lib::stoi(minRs[i+1]);
-    }
 
     string krs = getOptionToString("k_range");
     std::vector<string> kRanges = Lib::split(krs, "/");
@@ -40,7 +35,7 @@ int main(int argc, char const *argv[])
     std::vector<string> instrumnetIDs = Lib::split(iIDs, "/");
     for (int i = 0; i < instrumnetIDs.size(); ++i)
     {
-        services[instrumnetIDs[i]] = new TradeStrategy(tradeSrvID, logPath, db, kLineSrvID, tradeLogicSrvID, iid2minR[instrumnetIDs[i]], Lib::stoi(kRanges[i]));
+        services[instrumnetIDs[i]] = new TradeStrategy(tradeSrvID, logPath, db, kLineSrvID, tradeLogicSrvID, Lib::stoi(minRs[i]), Lib::stoi(kRanges[i]));
     }
 
 
