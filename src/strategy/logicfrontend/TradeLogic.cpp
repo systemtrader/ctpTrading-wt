@@ -124,7 +124,7 @@ bool TradeLogic::_isTradingTime(TickData tick)
     }
     // 全品种十点十五休息至十点半 提前30秒休息，错后30秒开始
     if ((Lib::stoi(nowHM[0]) == 10 && Lib::stoi(nowHM[1]) == 14 && Lib::stoi(nowHM[2]) >= 30) ||
-        (Lib::stoi(nowHM[0]) == 10 && Lib::stoi(nowHM[1]) == 30 && Lib::stoi(nowHM[2]) >= 30) ||
+        // (Lib::stoi(nowHM[0]) == 10 && Lib::stoi(nowHM[1]) == 30 && Lib::stoi(nowHM[2]) >= 30) ||
         (Lib::stoi(nowHM[0]) == 10 && Lib::stoi(nowHM[1]) >= 15 && Lib::stoi(nowHM[1]) <= 29 ))
     {
         //log
