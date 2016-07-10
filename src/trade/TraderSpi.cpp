@@ -94,6 +94,13 @@ void TraderSpi::OnRtnOrder(CThostFtdcOrderField *pOrder)
     }
 }
 
+void TraderSpi::OnRspQryInstrumentOrderCommRate(CThostFtdcInstrumentOrderCommRateField *pInstrumentOrderCommRate, 
+        CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+    if (!pInstrumentOrderCommRate) return;
+    _service->onQryCommRate(pInstrumentOrderCommRate);
+}
+
 void TraderSpi::OnRtnTrade(CThostFtdcTradeField *pTrade)
 {
     _service->onTraded(pTrade);

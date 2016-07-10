@@ -78,6 +78,18 @@ void TradeSrv::onLogin(CThostFtdcRspUserLoginField * const rsp)
     _maxOrderRef = atoi(rsp->MaxOrderRef);
 }
 
+void TradeSrv::onQryCommRate(CThostFtdcInstrumentOrderCommRateField * const rsp)
+{
+    if (!rsp) return;
+    string iid = string(rsp->InstrumentID);
+    double order = rsp->OrderCommByVolume;
+    double cancel = rsp->OrderActionCommByVolume;
+
+    // save data
+    string data = "rate_" + iid + "_" + Lib::dtos(order) + "_" + Lib::dtos(cancel);
+    _store->push("ORDER_LOGS", data);
+}
+
 void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int orderID, string instrumnetID, bool isFok)
 {
     if (_isOrderDealed(orderID)) return;
@@ -456,6 +468,20 @@ void TradeSrv::_initOrder(int orderID, string iID)
     Lib::initInfoLogHandle(_logPath, info, iID);
     info << "TradeSrv[initOrder]";
     info << "|orderID|" << orderID;
+
+    // 查询手续费
+    std::map<string, int>::iterator i = _rate.find(iID);
+    if (i == _rate.end()) {
+        CThostFtdcQryInstrumentOrderCommRateField req = {0};
+
+        strcpy(req.BrokerID, Lib::stoc(_brokerID));
+        strcpy(req.InvestorID, Lib::stoc(_userID));
+        strcpy(req.InstrumentID, Lib::stoc(iID));
+
+        int res = _tradeApi->ReqQryInstrumentOrderCommRate(&req, 0);
+        Lib::sysReqLog(_logPath, "TradeSrv[rate]", res);
+    }
+
 
     _maxOrderRef++;
     info << "|orderRef|" << _maxOrderRef;

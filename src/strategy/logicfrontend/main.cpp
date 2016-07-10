@@ -120,7 +120,7 @@ bool action(long int msgType, const void * data)
 
     if (msgType == MSG_TRADE_FORECAST_SUCCESS) {
         TickData tick = ((MSG_TO_TRADE_LOGIC*)data)->tick;
-        services[string(tick.instrumnetID)]->onForecastSuccess();
+        services[string(tick.instrumnetID)]->onForecastSuccess(((MSG_TO_TRADE_LOGIC*)data)->kIndex);
     }
 
     return true;

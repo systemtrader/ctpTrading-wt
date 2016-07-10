@@ -41,6 +41,10 @@ public:
 
     void OnFrontDisconnected(int nReason);
     void OnHeartBeatWarning(int nTimeLapse);
+
+    void OnRspQryInstrumentOrderCommRate(CThostFtdcInstrumentOrderCommRateField *pInstrumentOrderCommRate, 
+        CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+
 };
 
 #endif

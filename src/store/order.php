@@ -20,6 +20,14 @@ class Order
             $data = $this->consumer->popViaRds("ORDER_LOGS");
             if (count($data) > 1) {
                 $type = $data[0];
+                if ($type == "rate") {
+                    $iID = $data[1];
+                    $order = $data[2];
+                    $cancel = $data[3];
+                    $sql = "INSERT INTO `rate` (`instrumnet_id`, `order`, `cancel`) VALUES (?, ?, ?)";
+                    $params = array($iID, $order, $cancel);
+                    $this->consumer->insertDB($sql, $params);
+                }
                 if ($type == "trade") {
                     $orderID = $data[1];
                     $frontID = $data[2];

@@ -53,6 +53,15 @@ CREATE TABLE `tick` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB CHARSET=utf8;
 
+CREATE TABLE `rate` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `instrumnet_id` varchar(50) NOT NULL DEFAULT '',
+  `order` decimal(10,2) NOT NULL DEFAULT '0',
+  `cancel` decimal(10,2) NOT NULL DEFAULT '0',
+  `mtime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB CHARSET=utf8;
+
 
 CREATE TABLE `order` (
   `id` int(11) NOT NULL AUTO_INCREMENT,

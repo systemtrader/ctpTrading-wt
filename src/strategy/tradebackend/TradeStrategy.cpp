@@ -286,6 +286,7 @@ void TradeStrategy::onSuccess(MSG_TO_TRADE_STRATEGY rsp)
 
                 MSG_TO_TRADE_LOGIC rsp = {0};
                 rsp.msgType = MSG_TRADE_FORECAST_SUCCESS;
+                rsp.kIndex = order.kIndex;
                 strcpy(rsp.tick.instrumnetID, order.instrumnetID.c_str());
                 _tradeLogicSrvClient->send((void *)&rsp);
             }

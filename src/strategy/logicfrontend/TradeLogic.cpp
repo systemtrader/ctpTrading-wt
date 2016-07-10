@@ -352,10 +352,11 @@ void TradeLogic::_setRollbackID(int type, int id)
     }
 }
 
-void TradeLogic::onForecastSuccess()
+void TradeLogic::onForecastSuccess(int kIndex)
 {
     _setTickSwitch(false);
-    _rollback();
+    if (kIndex != _kIndex)
+        _rollback();
 }
 
 bool TradeLogic::_rollback()

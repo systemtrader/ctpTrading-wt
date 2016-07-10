@@ -37,6 +37,7 @@ private:
     map<int, int> _orderID2Ref; // orderID -> orderRef
     map<int, int> _orderIDDealed; // orderID -> 1
     map<int, int> _orderIDCanceled; // orderID -> 1
+    map<string, int> _rate;
 
     void _showData();
     bool _isOrderDealed(int);
@@ -78,6 +79,7 @@ public:
     void onCancel(CThostFtdcOrderField * const);
     void onCancelErr(CThostFtdcInputOrderActionField * const, CThostFtdcRspInfoField * const);
 
+    void onQryCommRate(CThostFtdcInstrumentOrderCommRateField * const);
 };
 
 #endif

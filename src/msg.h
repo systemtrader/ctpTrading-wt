@@ -31,6 +31,7 @@ typedef struct msg_k_line
     KLineBlockData block;
     TickData tick;
     int forecastID;
+    int kIndex;
 } MSG_TO_TRADE_LOGIC;
 
 // tradeLogicSrv->tradeStrategySrv
