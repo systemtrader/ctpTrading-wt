@@ -481,6 +481,7 @@ void TradeSrv::_initOrder(int orderID, string iID)
     // 查询手续费
     std::map<string, int>::iterator i = _rate.find(iID);
     if (i == _rate.end()) {
+        info << "|isFirst|" << 1;
         _rate[iID] = 1;
         CThostFtdcQryInstrumentOrderCommRateField req = {0};
 
