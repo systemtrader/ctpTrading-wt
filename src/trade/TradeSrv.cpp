@@ -85,6 +85,15 @@ void TradeSrv::onQryCommRate(CThostFtdcInstrumentOrderCommRateField * const rsp)
     double order = rsp->OrderCommByVolume;
     double cancel = rsp->OrderActionCommByVolume;
 
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info, iid);
+    info << "TradeSrv[onQryCommRate]";
+    info << "|instrumnetID|" << iid;
+    info << "|order|" << order;
+    info << "|cancel|" << cancel;
+    info << endl;
+    info.close();
+
     // save data
     string data = "rate_" + iid + "_" + Lib::dtos(order) + "_" + Lib::dtos(cancel);
     _store->push("ORDER_LOGS", data);
@@ -472,6 +481,7 @@ void TradeSrv::_initOrder(int orderID, string iID)
     // 查询手续费
     std::map<string, int>::iterator i = _rate.find(iID);
     if (i == _rate.end()) {
+        _rate[iID] = 1;
         CThostFtdcQryInstrumentOrderCommRateField req = {0};
 
         strcpy(req.BrokerID, Lib::stoc(_brokerID));
