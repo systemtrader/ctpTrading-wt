@@ -355,7 +355,15 @@ void TradeLogic::_setRollbackID(int type, int id)
 void TradeLogic::onForecastSuccess(int kIndex)
 {
     _setTickSwitch(false);
-    if (kIndex != _kIndex)
+    //log
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
+    info << "TradeLogicSrv[onForecastSuccess]";
+    info << "|kIndex|" << kIndex;
+    info << "|currentKIndex|" << _kIndex;
+    info << endl;
+    info.close();
+    if (kIndex == _kIndex)
         _rollback();
 }
 

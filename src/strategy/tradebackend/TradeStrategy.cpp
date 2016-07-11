@@ -281,6 +281,7 @@ void TradeStrategy::onSuccess(MSG_TO_TRADE_STRATEGY rsp)
             if (_forecastID2OrderID.size() == 0) {
                  Lib::initInfoLogHandle(_logPath, info, order.instrumnetID);
                 info << "TradeStrategySrv[allForecastSuccess]";
+                info << "|kIndex|" << order.kIndex;
                 info << endl;
                 info.close();
 
