@@ -94,9 +94,10 @@ void TraderSpi::OnRtnOrder(CThostFtdcOrderField *pOrder)
     }
 }
 
-void TraderSpi::OnRspQryInstrumentOrderCommRate(CThostFtdcInstrumentOrderCommRateField *pInstrumentOrderCommRate, 
+void TraderSpi::OnRspQryInstrumentOrderCommRate(CThostFtdcInstrumentOrderCommRateField *pInstrumentOrderCommRate,
         CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
+    Lib::sysErrLog(_logPath, "TradeSpi[OnRspQryInstrumentOrderCommRate]", pRspInfo, nRequestID, bIsLast);
     if (!pInstrumentOrderCommRate) return;
     _service->onQryCommRate(pInstrumentOrderCommRate);
 }
