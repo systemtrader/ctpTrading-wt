@@ -30,6 +30,8 @@ TradeLogic::TradeLogic(int peroid, double thresholdTrend, double thresholdVibrat
     _isTradeEnd = false;
     _actionKIndex = 0;
 
+    _firstAction = true;
+
     // 初始化模型参数
     _pUp2Up = _pUp2Down = _pDown2Up = _pDown2Down = 0;
     // _countUp2Up = _countUp2Down = _countDown2Up = _countDown2Down = 0;
@@ -643,6 +645,11 @@ void TradeLogic::_forecast(TickData tick)
 
 void TradeLogic::_realAction(TickData tick)
 {
+    if (_firstAction) {
+        _firstAction = false;
+        _forecast(tick);
+        return;
+    }
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
     info << "TradeLogicSrv[realAction]";

@@ -78,6 +78,8 @@ private:
     std::vector<TRADE_HM> _stopHM; // 停止交易时间
     std::vector<TRADE_HM> _startHM; // 停止交易时间
 
+    bool _firstAction;
+
     bool _isLock;
     double _lineRatio;
     int _serial;
