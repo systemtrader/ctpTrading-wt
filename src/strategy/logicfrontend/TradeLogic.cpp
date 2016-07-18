@@ -645,11 +645,6 @@ void TradeLogic::_forecast(TickData tick)
 
 void TradeLogic::_realAction(TickData tick)
 {
-    if (_firstAction) {
-        _firstAction = false;
-        _forecast(tick);
-        return;
-    }
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
     info << "TradeLogicSrv[realAction]";
@@ -679,7 +674,14 @@ void TradeLogic::_realAction(TickData tick)
                 if (_pUp2Up > _thresholdTrend) { // 买开
                     _sendMsg(MSG_TRADE_BUYOPEN, tick.price, false, 0, 1, true);
                 } else {
-                    _forecast(tick);
+                    if (!_firstAction) {
+                        _forecast(tick);
+                        _firstAction = false;
+                    } else {
+                        if (_pUp2Down > _thresholdVibrate) {
+                            _sendMsg(MSG_TRADE_SELLOPEN, tick.price, false, 0, 1, true);
+                        }
+                    }
                 }
             } else {
                 // _calculateDown(_countDown2Up, _countDown2Down);
@@ -687,7 +689,14 @@ void TradeLogic::_realAction(TickData tick)
                 if (_pDown2Down > _thresholdTrend) { // 卖开
                     _sendMsg(MSG_TRADE_SELLOPEN, tick.price, false, 0, 1, true);
                 } else {
-                    _forecast(tick);
+                    if (!_firstAction) {
+                        _forecast(tick);
+                        _firstAction = false;
+                    } else {
+                        if (_pUp2Down > _thresholdVibrate) {
+                            _sendMsg(MSG_TRADE_BUYOPEN, tick.price, false, 0, 1, true);
+                        }
+                    }
                 }
             }
             break;
