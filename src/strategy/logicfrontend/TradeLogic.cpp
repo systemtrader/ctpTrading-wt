@@ -680,6 +680,8 @@ void TradeLogic::_realAction(TickData tick)
                     } else {
                         if (_pUp2Down > _thresholdVibrate) {
                             _sendMsg(MSG_TRADE_SELLOPEN, tick.price, false, 0, 1, true);
+                        } else {
+                            _forecast(tick);
                         }
                     }
                 }
@@ -695,6 +697,8 @@ void TradeLogic::_realAction(TickData tick)
                     } else {
                         if (_pUp2Down > _thresholdVibrate) {
                             _sendMsg(MSG_TRADE_BUYOPEN, tick.price, false, 0, 1, true);
+                        } else {
+                            _forecast(tick);
                         }
                     }
                 }
