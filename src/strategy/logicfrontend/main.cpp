@@ -123,6 +123,12 @@ bool action(long int msgType, const void * data)
         services[string(tick.instrumnetID)]->onForecastSuccess(((MSG_TO_TRADE_LOGIC*)data)->kIndex);
     }
 
+    if (msgType == MSG_TRADE_ONE_FORECAST_SUCCESS) {
+        TickData tick = ((MSG_TO_TRADE_LOGIC*)data)->tick;
+        services[string(tick.instrumnetID)]->onOneForecastSuccess();
+    }
+
+
     return true;
 }
 

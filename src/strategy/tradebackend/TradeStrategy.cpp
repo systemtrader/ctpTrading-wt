@@ -279,7 +279,7 @@ void TradeStrategy::onSuccess(MSG_TO_TRADE_STRATEGY rsp)
             }
         } else if (order.isForecast) {
             if (_forecastID2OrderID.size() == 0) {
-                 Lib::initInfoLogHandle(_logPath, info, order.instrumnetID);
+                Lib::initInfoLogHandle(_logPath, info, order.instrumnetID);
                 info << "TradeStrategySrv[allForecastSuccess]";
                 info << "|kIndex|" << order.kIndex;
                 info << endl;
@@ -287,6 +287,18 @@ void TradeStrategy::onSuccess(MSG_TO_TRADE_STRATEGY rsp)
 
                 MSG_TO_TRADE_LOGIC rsp = {0};
                 rsp.msgType = MSG_TRADE_FORECAST_SUCCESS;
+                rsp.kIndex = order.kIndex;
+                strcpy(rsp.tick.instrumnetID, order.instrumnetID.c_str());
+                _tradeLogicSrvClient->send((void *)&rsp);
+            } else {
+                Lib::initInfoLogHandle(_logPath, info, order.instrumnetID);
+                info << "TradeStrategySrv[forecastSuccess]";
+                info << "|kIndex|" << order.kIndex;
+                info << endl;
+                info.close();
+
+                MSG_TO_TRADE_LOGIC rsp = {0};
+                rsp.msgType = MSG_TRADE_ONE_FORECAST_SUCCESS;
                 rsp.kIndex = order.kIndex;
                 strcpy(rsp.tick.instrumnetID, order.instrumnetID.c_str());
                 _tradeLogicSrvClient->send((void *)&rsp);

@@ -169,6 +169,7 @@ public:
     void onTradeEnd();
     void onTick(TickData);
     void onForecastSuccess(int);
+    void onOneForecastSuccess();
 };
 
 #endif

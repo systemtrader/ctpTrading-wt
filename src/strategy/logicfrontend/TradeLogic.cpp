@@ -354,6 +354,21 @@ void TradeLogic::_setRollbackID(int type, int id)
     }
 }
 
+void TradeLogic::onOneForecastSuccess()
+{
+    //log
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
+    info << "TradeLogicSrv[onOneForecastSuccess]";
+    info << "|currentKIndex|" << _kIndex;
+    info << endl;
+    info.close();
+    if (_forecastOpenPrice1 > 0 && _forecastOpenPrice2 > 0) {
+        _setTickSwitch(false);
+        _rollback();
+    }
+}
+
 void TradeLogic::onForecastSuccess(int kIndex)
 {
     _setTickSwitch(false);
