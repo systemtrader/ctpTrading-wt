@@ -51,6 +51,8 @@ private:
     bool _isForecasting(int);
 
     std::list<MSG_TO_TRADE_STRATEGY> _waitList;
+    std::map<int, int> _zhuijiaCnt;
+    int _zhuijiaMaxCnt;
 
     int _initTrade(int, int, int, string, double, int, bool, int, bool = false); // 初始化交易
     void _clearTradeInfo(int);
@@ -62,7 +64,7 @@ private:
     int _getStatus(int, string);
     void _setStatus(int, int, string);
     TickData _getTick(string);
-    void _sendMsg(double, int, bool, bool, int, bool = false);
+    void _sendMsg(double, int, bool, bool, int, int);
 
 public:
     TradeStrategy(int, string, int, int, int, int, int);

@@ -49,6 +49,11 @@ typedef struct msg_k_line
 #define MSG_TRADE_BACK_CANCELED 11
 #define MSG_TRADE_BACK_ERR 17
 
+#define TRADE_TYPE_NORMAL 0
+#define TRADE_TYPE_FOK 1
+#define TRADE_TYPE_FAK 2
+#define TRADE_TYPE_IOC 3
+
 typedef struct msg_trade_data
 {
     long int msgType;
@@ -58,7 +63,8 @@ typedef struct msg_trade_data
     bool isForecast; // 是否是预测单
     int forecastID; // 预测id
     int statusWay;
-    bool isFok;
+    // bool isFok;
+    int type;
     // int groupID; // 逻辑模块生成
     int orderID; // 下单模块生成，下单系统反馈时使用
     // int forecastType;
@@ -83,7 +89,8 @@ typedef struct msg_trade
     int orderID;
     int forecastType;
     char instrumnetID[7];
-    bool isFok;
+    // bool isFok;
+    int type;
 
 } MSG_TO_TRADE;
 

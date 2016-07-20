@@ -99,7 +99,7 @@ void TradeSrv::onQryCommRate(CThostFtdcInstrumentOrderCommRateField * const rsp)
     _store->push("ORDER_LOGS", data);
 }
 
-void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int orderID, string instrumnetID, bool isFok)
+void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int orderID, string instrumnetID, int type)
 {
     if (_isOrderDealed(orderID)) return;
     usleep(1500);
@@ -127,9 +127,21 @@ void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int order
 
     TThostFtdcTimeConditionType timeCondition = THOST_FTDC_TC_GFD;
     TThostFtdcVolumeConditionType volumeCondition = THOST_FTDC_VC_AV;
-    if (isFok) {
+    TThostFtdcOrderPriceTypeType priceType = THOST_FTDC_OPT_LimitPrice;
+    if (type == TRADE_TYPE_FOK) {
         timeCondition = THOST_FTDC_TC_IOC;
         volumeCondition = THOST_FTDC_VC_CV;
+    }
+
+    if (type == TRADE_TYPE_FAK) {
+        timeCondition = THOST_FTDC_TC_IOC;
+        volumeCondition = THOST_FTDC_VC_AV;
+    }
+
+    if (type == TRADE_TYPE_IOC) {
+        priceType = THOST_FTDC_OPT_AnyPrice;
+        price = 0;
+        timeCondition = THOST_FTDC_TC_IOC;
     }
 
     ofstream info;
@@ -142,7 +154,7 @@ void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int order
     info.close();
 
     CThostFtdcInputOrderField order = _createOrder(instrumnetID, isBuy, total, price, flag,
-            THOST_FTDC_HFEN_Speculation, THOST_FTDC_OPT_LimitPrice, timeCondition, volumeCondition, condition);
+            THOST_FTDC_HFEN_Speculation, priceType, timeCondition, volumeCondition, condition);
 
 
     int res = _tradeApi->ReqOrderInsert(&order, _maxOrderRef);

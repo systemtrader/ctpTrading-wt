@@ -153,7 +153,7 @@ private:
     TickData _getTick();
     int _getStatus(int);
     void _setStatus(int, int);
-    void _sendMsg(int, double, bool, int, int, bool = false);
+    void _sendMsg(int, double, bool, int, int, int);
 
 public:
     TradeLogic(int, double, double, int, string, int, string, string, string, int, int, int);

@@ -363,7 +363,10 @@ void TradeLogic::onOneForecastSuccess()
     info << "|currentKIndex|" << _kIndex;
     info << endl;
     info.close();
-    if (_forecastOpenPrice1 > 0 && _forecastOpenPrice2 > 0) {
+
+    string flgStr = _store->get("NEED_TICK_" + _instrumnetID);
+    int flg = Lib::stoi(flgStr);
+    if (_forecastOpenPrice1 > 0 && _forecastOpenPrice2 > 0 && flg == 1) {
         _setTickSwitch(false);
         _rollback();
     }
@@ -476,7 +479,7 @@ void TradeLogic::_forecastNothing(TickData tick)
             _forecastID++;
             // _rollbackOpenUDID = _forecastID;
             _setRollbackID(OUD, _forecastID);
-            _sendMsg(MSG_TRADE_BUYOPEN, tick.price - _kRange, true, _forecastID, 1);
+            _sendMsg(MSG_TRADE_BUYOPEN, tick.price - _kRange, true, _forecastID, 1, TRADE_TYPE_NORMAL);
             _forecastOpenPrice1 = tick.price - _kRange;
         }
 
@@ -486,7 +489,7 @@ void TradeLogic::_forecastNothing(TickData tick)
             _forecastID++;
             // _rollbackOpenUUID = _forecastID;
             _setRollbackID(OUU, _forecastID);
-            _sendMsg(MSG_TRADE_SELLOPEN, tick.price + _kRange, true, _forecastID, 2);
+            _sendMsg(MSG_TRADE_SELLOPEN, tick.price + _kRange, true, _forecastID, 2, TRADE_TYPE_NORMAL);
             _forecastOpenPrice2 = tick.price + _kRange;
         }
 
@@ -498,7 +501,7 @@ void TradeLogic::_forecastNothing(TickData tick)
             _forecastID++;
             // _rollbackOpenDDID = _forecastID;
             _setRollbackID(ODD, _forecastID);
-            _sendMsg(MSG_TRADE_BUYOPEN, tick.price - _kRange, true, _forecastID, 1);
+            _sendMsg(MSG_TRADE_BUYOPEN, tick.price - _kRange, true, _forecastID, 1, TRADE_TYPE_NORMAL);
             _forecastOpenPrice1 = tick.price - _kRange;
         }
 
@@ -508,7 +511,7 @@ void TradeLogic::_forecastNothing(TickData tick)
             _forecastID++;
             // _rollbackOpenDUID = _forecastID;
             _setRollbackID(ODU, _forecastID);
-            _sendMsg(MSG_TRADE_SELLOPEN, tick.price + _kRange, true, _forecastID, 2);
+            _sendMsg(MSG_TRADE_SELLOPEN, tick.price + _kRange, true, _forecastID, 2, TRADE_TYPE_NORMAL);
             _forecastOpenPrice2 = tick.price + _kRange;
         }
     }
@@ -528,11 +531,11 @@ void TradeLogic::_forecastBuyOpened(TickData tick)
                 _forecastID++;
                 // _rollbackOpenUUID = _forecastID;
                 _setRollbackID(OUU, _forecastID);
-                _sendMsg(MSG_TRADE_SELLCLOSE, tick.price + _kRange, true, _rollbackCloseUID, 3);
-                _sendMsg(MSG_TRADE_SELLOPEN, tick.price + _kRange, true, _rollbackOpenUUID, 1);
+                _sendMsg(MSG_TRADE_SELLCLOSE, tick.price + _kRange, true, _rollbackCloseUID, 3, TRADE_TYPE_NORMAL);
+                _sendMsg(MSG_TRADE_SELLOPEN, tick.price + _kRange, true, _rollbackOpenUUID, 1, TRADE_TYPE_NORMAL);
                 _forecastOpenPrice1 = _forecastClosePrice = tick.price + _kRange;
             } else {
-                _sendMsg(MSG_TRADE_SELLCLOSE, tick.price + _kRange, true, _rollbackCloseUID, 1);
+                _sendMsg(MSG_TRADE_SELLCLOSE, tick.price + _kRange, true, _rollbackCloseUID, 1, TRADE_TYPE_NORMAL);
                 _forecastClosePrice = tick.price + _kRange;
             }
         }
@@ -549,11 +552,11 @@ void TradeLogic::_forecastBuyOpened(TickData tick)
                 _forecastID++;
                 // _rollbackOpenDUID = _forecastID;
                 _setRollbackID(ODU, _forecastID);
-                _sendMsg(MSG_TRADE_SELLCLOSE, tick.price + _kRange, true, _rollbackCloseDID, 3);
-                _sendMsg(MSG_TRADE_SELLOPEN, tick.price + _kRange, true, _rollbackOpenDUID, 1);
+                _sendMsg(MSG_TRADE_SELLCLOSE, tick.price + _kRange, true, _rollbackCloseDID, 3, TRADE_TYPE_NORMAL);
+                _sendMsg(MSG_TRADE_SELLOPEN, tick.price + _kRange, true, _rollbackOpenDUID, 1, TRADE_TYPE_NORMAL);
                 _forecastOpenPrice1 = _forecastClosePrice = tick.price + _kRange;
             } else {
-                _sendMsg(MSG_TRADE_SELLCLOSE, tick.price + _kRange, true, _rollbackCloseDID, 1);
+                _sendMsg(MSG_TRADE_SELLCLOSE, tick.price + _kRange, true, _rollbackCloseDID, 1, TRADE_TYPE_NORMAL);
                 _forecastClosePrice = tick.price + _kRange;
             }
         }
@@ -576,11 +579,11 @@ void TradeLogic::_forecastSellOpened(TickData tick)
                 _forecastID++;
                 // _rollbackOpenUDID = _forecastID;
                 _setRollbackID(OUD, _forecastID);
-                _sendMsg(MSG_TRADE_BUYCLOSE, tick.price - _kRange, true, _rollbackCloseUID, 3);
-                _sendMsg(MSG_TRADE_BUYOPEN, tick.price - _kRange, true, _rollbackOpenUDID, 1);
+                _sendMsg(MSG_TRADE_BUYCLOSE, tick.price - _kRange, true, _rollbackCloseUID, 3, TRADE_TYPE_NORMAL);
+                _sendMsg(MSG_TRADE_BUYOPEN, tick.price - _kRange, true, _rollbackOpenUDID, 1, TRADE_TYPE_NORMAL);
                 _forecastOpenPrice1 = _forecastClosePrice = tick.price - _kRange;
             } else {
-                _sendMsg(MSG_TRADE_BUYCLOSE, tick.price - _kRange, true, _rollbackCloseUID, 1);
+                _sendMsg(MSG_TRADE_BUYCLOSE, tick.price - _kRange, true, _rollbackCloseUID, 1, TRADE_TYPE_NORMAL);
                 _forecastClosePrice = tick.price - _kRange;
             }
         }
@@ -597,11 +600,11 @@ void TradeLogic::_forecastSellOpened(TickData tick)
                 _forecastID++;
                 // _rollbackOpenDDID = _forecastID;
                 _setRollbackID(ODD, _forecastID);
-                _sendMsg(MSG_TRADE_BUYCLOSE, tick.price - _kRange, true, _rollbackCloseDID, 3);
-                _sendMsg(MSG_TRADE_BUYOPEN, tick.price - _kRange, true, _rollbackOpenDDID, 1);
+                _sendMsg(MSG_TRADE_BUYCLOSE, tick.price - _kRange, true, _rollbackCloseDID, 3, TRADE_TYPE_NORMAL);
+                _sendMsg(MSG_TRADE_BUYOPEN, tick.price - _kRange, true, _rollbackOpenDDID, 1, TRADE_TYPE_NORMAL);
                 _forecastOpenPrice1 = _forecastClosePrice = tick.price - _kRange;
             } else {
-                _sendMsg(MSG_TRADE_BUYCLOSE, tick.price - _kRange, true, _rollbackCloseDID, 1);
+                _sendMsg(MSG_TRADE_BUYCLOSE, tick.price - _kRange, true, _rollbackCloseDID, 1, TRADE_TYPE_NORMAL);
                 _forecastClosePrice = tick.price - _kRange;
             }
         }
@@ -687,14 +690,14 @@ void TradeLogic::_realAction(TickData tick)
                 // _calculateUp(_countUp2Down, _countUp2Up);
                 _calculateUp();
                 if (_pUp2Up > _thresholdTrend) { // 买开
-                    _sendMsg(MSG_TRADE_BUYOPEN, tick.price, false, 0, 1, true);
+                    _sendMsg(MSG_TRADE_BUYOPEN, tick.price, false, 0, 1, TRADE_TYPE_FOK);
                 } else {
                     if (!_firstAction) {
                         _forecast(tick);
                     } else {
                         _firstAction = false;
                         if (_pUp2Down > _thresholdVibrate) {
-                            _sendMsg(MSG_TRADE_SELLOPEN, tick.price, false, 0, 1, true);
+                            _sendMsg(MSG_TRADE_SELLOPEN, tick.price, false, 0, 1, TRADE_TYPE_FOK);
                         } else {
                             _forecast(tick);
                         }
@@ -704,14 +707,14 @@ void TradeLogic::_realAction(TickData tick)
                 // _calculateDown(_countDown2Up, _countDown2Down);
                 _calculateDown();
                 if (_pDown2Down > _thresholdTrend) { // 卖开
-                    _sendMsg(MSG_TRADE_SELLOPEN, tick.price, false, 0, 1, true);
+                    _sendMsg(MSG_TRADE_SELLOPEN, tick.price, false, 0, 1, TRADE_TYPE_FOK);
                 } else {
                     if (!_firstAction) {
                         _forecast(tick);
                     } else {
                         _firstAction = false;
                         if (_pUp2Down > _thresholdVibrate) {
-                            _sendMsg(MSG_TRADE_BUYOPEN, tick.price, false, 0, 1, true);
+                            _sendMsg(MSG_TRADE_BUYOPEN, tick.price, false, 0, 1, TRADE_TYPE_FOK);
                         } else {
                             _forecast(tick);
                         }
@@ -727,14 +730,14 @@ void TradeLogic::_realAction(TickData tick)
                 _calculateUp();
                 if (_pUp2Down <= _thresholdVibrate) { // 不满足买开，平仓
                     if (_pUp2Up > _thresholdTrend) {
-                        _sendMsg(MSG_TRADE_BUYCLOSE, nowTick.bidPrice1, false, 0, 1, true);
-                        if (!_isSerial()) _sendMsg(MSG_TRADE_BUYOPEN, tick.price, false, 0, 1, true);
+                        _sendMsg(MSG_TRADE_BUYCLOSE, nowTick.bidPrice1, false, 0, 1, TRADE_TYPE_FOK);
+                        if (!_isSerial()) _sendMsg(MSG_TRADE_BUYOPEN, tick.price, false, 0, 1, TRADE_TYPE_FOK);
                     } else {
-                        _sendMsg(MSG_TRADE_BUYCLOSE, nowTick.bidPrice1, false, 0, 1, true);
+                        _sendMsg(MSG_TRADE_BUYCLOSE, nowTick.bidPrice1, false, 0, 1, TRADE_TYPE_FOK);
                     }
                 } else {
                     if (_isSerial()) {
-                        _sendMsg(MSG_TRADE_BUYCLOSE, nowTick.bidPrice1, false, 0, 1, true); // 只交易一根K线，无论如果都平仓
+                        _sendMsg(MSG_TRADE_BUYCLOSE, nowTick.bidPrice1, false, 0, 1, TRADE_TYPE_FOK); // 只交易一根K线，无论如果都平仓
                     } else {
                         _forecast(tick);
                     }
@@ -745,14 +748,14 @@ void TradeLogic::_realAction(TickData tick)
                 _calculateDown();
                 if (_pDown2Down <= _thresholdTrend) { // 不满足买开，平
                     if (_pDown2Up > _thresholdVibrate) {
-                        _sendMsg(MSG_TRADE_BUYCLOSE, nowTick.bidPrice1, false, 0, 1, true);
-                        if (!_isSerial()) _sendMsg(MSG_TRADE_BUYOPEN, tick.price, false, 0, 1, true);
+                        _sendMsg(MSG_TRADE_BUYCLOSE, nowTick.bidPrice1, false, 0, 1, TRADE_TYPE_FOK);
+                        if (!_isSerial()) _sendMsg(MSG_TRADE_BUYOPEN, tick.price, false, 0, 1, TRADE_TYPE_FOK);
                     } else {
-                        _sendMsg(MSG_TRADE_BUYCLOSE, nowTick.bidPrice1, false, 0, 1, true);
+                        _sendMsg(MSG_TRADE_BUYCLOSE, nowTick.bidPrice1, false, 0, 1, TRADE_TYPE_FOK);
                     }
                 } else {
                     if (_isSerial()){
-                        _sendMsg(MSG_TRADE_BUYCLOSE, nowTick.bidPrice1, false, 0, 1, true); // 只交易一根K线，无论如果都平仓
+                        _sendMsg(MSG_TRADE_BUYCLOSE, nowTick.bidPrice1, false, 0, 1, TRADE_TYPE_FOK); // 只交易一根K线，无论如果都平仓
                     } else {
                         _forecast(tick);
                     }
@@ -767,14 +770,14 @@ void TradeLogic::_realAction(TickData tick)
                 _calculateUp();
                 if (_pUp2Up <= _thresholdTrend ) { // 不满足买开，平仓
                     if (_pUp2Down > _thresholdVibrate) {
-                        _sendMsg(MSG_TRADE_SELLCLOSE, nowTick.askPrice1, false, 0, 1, true);
-                        if (!_isSerial()) _sendMsg(MSG_TRADE_SELLOPEN, tick.price, false, 0, 1, true);
+                        _sendMsg(MSG_TRADE_SELLCLOSE, nowTick.askPrice1, false, 0, 1, TRADE_TYPE_FOK);
+                        if (!_isSerial()) _sendMsg(MSG_TRADE_SELLOPEN, tick.price, false, 0, 1, TRADE_TYPE_FOK);
                     } else {
-                        _sendMsg(MSG_TRADE_SELLCLOSE, nowTick.askPrice1, false, 0, 1, true);
+                        _sendMsg(MSG_TRADE_SELLCLOSE, nowTick.askPrice1, false, 0, 1, TRADE_TYPE_FOK);
                     }
                 } else {
                     if (_isSerial()) {
-                        _sendMsg(MSG_TRADE_SELLCLOSE, nowTick.askPrice1, false, 0, 1, true);
+                        _sendMsg(MSG_TRADE_SELLCLOSE, nowTick.askPrice1, false, 0, 1, TRADE_TYPE_FOK);
                     } else {
                         _forecast(tick);
                     }
@@ -785,14 +788,14 @@ void TradeLogic::_realAction(TickData tick)
                 _calculateDown();
                 if (_pDown2Up <= _thresholdVibrate) { // 不满足买开，平
                     if (_pDown2Down > _thresholdTrend) {
-                        _sendMsg(MSG_TRADE_SELLCLOSE, nowTick.askPrice1, false, 0, 1, true);
-                        if (!_isSerial()) _sendMsg(MSG_TRADE_SELLOPEN, tick.price, false, 0, 1, true);
+                        _sendMsg(MSG_TRADE_SELLCLOSE, nowTick.askPrice1, false, 0, 1, TRADE_TYPE_FOK);
+                        if (!_isSerial()) _sendMsg(MSG_TRADE_SELLOPEN, tick.price, false, 0, 1, TRADE_TYPE_FOK);
                     } else {
-                        _sendMsg(MSG_TRADE_SELLCLOSE, nowTick.askPrice1, false, 0, 1, true);
+                        _sendMsg(MSG_TRADE_SELLCLOSE, nowTick.askPrice1, false, 0, 1, TRADE_TYPE_FOK);
                     }
                 } else {
                     if (_isSerial())
-                        _sendMsg(MSG_TRADE_SELLCLOSE, nowTick.askPrice1, false, 0, 1, true);
+                        _sendMsg(MSG_TRADE_SELLCLOSE, nowTick.askPrice1, false, 0, 1, TRADE_TYPE_FOK);
                     else
                         _forecast(tick);
                 }
@@ -821,22 +824,22 @@ void TradeLogic::_endClose()
 
     _kIndex = -1;
     if (status1 == TRADE_STATUS_BUYOPENED) {
-        _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 1, true);
+        _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 1, TRADE_TYPE_FOK);
     }
     if (status2 == TRADE_STATUS_BUYOPENED) {
-        _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 2, true);
+        _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 2, TRADE_TYPE_FOK);
     }
     if (status3 == TRADE_STATUS_BUYOPENED) {
-        _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 3, true);
+        _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 3, TRADE_TYPE_FOK);
     }
     if (status1 == TRADE_STATUS_SELLOPENED) {
-        _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 1, true);
+        _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 1, TRADE_TYPE_FOK);
     }
     if (status2 == TRADE_STATUS_SELLOPENED) {
-        _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 2, true);
+        _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 2, TRADE_TYPE_FOK);
     }
     if (status3 == TRADE_STATUS_SELLOPENED) {
-        _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 3, true);
+        _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 3, TRADE_TYPE_FOK);
     }
 }
 
@@ -1283,7 +1286,7 @@ void TradeLogic::onRollback()
         case STATUS_TYPE_MYCLOSE_SOED__SCING:
         case STATUS_TYPE_CLOSE_WAIT_SOED__SCING:
             if (status3 == TRADE_STATUS_BUYOPENED) {
-                _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 3);
+                _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 3, TRADE_TYPE_FOK);
             } else {
                 _forecast(_closeTick);
             }
@@ -1292,7 +1295,7 @@ void TradeLogic::onRollback()
         case STATUS_TYPE_MYCLOSE_BOED__BCING:
         case STATUS_TYPE_CLOSE_WAIT_BOED__BCING:
             if (status3 == TRADE_STATUS_SELLOPENED) {
-                _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 3);
+                _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 3, TRADE_TYPE_FOK);
             } else {
                 _forecast(_closeTick);
             }
@@ -1307,7 +1310,7 @@ void TradeLogic::onRollback()
                 _realAction(_closeTick);
             }
             if (status1 == TRADE_STATUS_SELLOPENED && status3 == TRADE_STATUS_BUYOPENED) {
-                _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 3);
+                _sendMsg(MSG_TRADE_SELLCLOSE, tick.askPrice1, false, 0, 3, TRADE_TYPE_FOK);
             }
             if (status1 == TRADE_STATUS_SELLOPENED && status3 == TRADE_STATUS_NOTHING) {
                 _forecast(_closeTick);
@@ -1323,7 +1326,7 @@ void TradeLogic::onRollback()
                 _realAction(_closeTick);
             }
             if (status1 == TRADE_STATUS_BUYOPENED && status3 == TRADE_STATUS_SELLOPENED) {
-                _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 3);
+                _sendMsg(MSG_TRADE_BUYCLOSE, tick.bidPrice1, false, 0, 3, TRADE_TYPE_FOK);
             }
             if (status1 == TRADE_STATUS_BUYOPENED && status3 == TRADE_STATUS_NOTHING) {
                 _forecast(_closeTick);
@@ -1381,7 +1384,7 @@ void TradeLogic::_setStatus(int way, int status)
 }
 
 
-void TradeLogic::_sendMsg(int msgType, double price, bool isForecast, int forecastID, int statusWay, bool isFok)
+void TradeLogic::_sendMsg(int msgType, double price, bool isForecast, int forecastID, int statusWay, int type)
 {
 
     int kIndex = _kIndex;
@@ -1394,7 +1397,7 @@ void TradeLogic::_sendMsg(int msgType, double price, bool isForecast, int foreca
     info << "|forecastID|" << forecastID;
     info << "|isForecast|" << isForecast;
     info << "|statusWay|" << statusWay;
-    info << "|isFok|" << isFok;
+    info << "|type|" << type;
     info << "|action|" << msgType;
     info << "|price|" << price;
     info << "|kIndex|" << kIndex << endl;
@@ -1408,7 +1411,7 @@ void TradeLogic::_sendMsg(int msgType, double price, bool isForecast, int foreca
     msg.isForecast = isForecast;
     if (isForecast) msg.forecastID = forecastID;
     msg.statusWay = statusWay;
-    msg.isFok = isFok;
+    msg.type = type;
     strcpy(msg.instrumnetID, Lib::stoc(_instrumnetID));
     _tradeStrategySrvClient->send((void *)&msg);
 

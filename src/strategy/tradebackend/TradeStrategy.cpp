@@ -43,6 +43,7 @@ TradeStrategy::TradeStrategy(int serviceID, string logPath, int db, int serviceI
     _minRange = (double)minRange;
     _kRange = kRange;
     _rollbackCnt = 0;
+    _zhuijiaMaxCnt = 10;
 }
 
 TradeStrategy::~TradeStrategy()
@@ -207,22 +208,22 @@ void TradeStrategy::_tradeAction(MSG_TO_TRADE_STRATEGY msg)
 
         case TRADE_ACTION_BUYOPEN:
             _setStatus(msg.statusWay, TRADE_STATUS_BUYOPENING, instrumnetID);
-            _sendMsg(price, total, true, true, orderID, msg.isFok);
+            _sendMsg(price, total, true, true, orderID, msg.type);
             break;
 
         case TRADE_ACTION_SELLOPEN:
             _setStatus(msg.statusWay, TRADE_STATUS_SELLOPENING, instrumnetID);
-            _sendMsg(price, total, false, true, orderID, msg.isFok);
+            _sendMsg(price, total, false, true, orderID, msg.type);
             break;
 
         case TRADE_ACTION_BUYCLOSE:
             _setStatus(msg.statusWay, TRADE_STATUS_BUYCLOSING, instrumnetID);
-            _sendMsg(price, total, true, false, orderID, msg.isFok);
+            _sendMsg(price, total, true, false, orderID, msg.type);
             break;
 
         case TRADE_ACTION_SELLCLOSE:
             _setStatus(msg.statusWay, TRADE_STATUS_SELLCLOSING, instrumnetID);
-            _sendMsg(price, total, false, false, orderID, msg.isFok);
+            _sendMsg(price, total, false, false, orderID, msg.type);
             break;
 
         default:
@@ -530,7 +531,14 @@ void TradeStrategy::_zhuijia(int orderID, double price)
     if (!_isTrading(orderID)) return;
     TRADE_DATA order = _tradingInfo[orderID];
 
+    int zjCnt = 0;
+    std::map<int, int>::iterator i = _zhuijiaCnt.find(orderID);
+    if (i != _zhuijiaCnt.end()) {
+        zjCnt = i->second;
+    }
+    zjCnt++;
     int newOrderID = _initTrade(order.action, order.kIndex, order.total, order.instrumnetID, order.price, order.forecastID, order.isForecast, order.statusWay, true);
+    _zhuijiaCnt[newOrderID] = zjCnt;
 
     // log
     ofstream info;
@@ -539,18 +547,23 @@ void TradeStrategy::_zhuijia(int orderID, double price)
     info << "|orderID|" << orderID;
     info << "|newOrderID|" << newOrderID;
     info << "|kIndex|" << order.kIndex;
+    info << "|zjCnt|" << zjCnt;
     info << endl;
     info.close();
+
+    int type = TRADE_TYPE_FOK;
+    if (zjCnt >= _zhuijiaMaxCnt)
+        type = TRADE_TYPE_IOC;
 
     TickData tick = _getTick(order.instrumnetID);
     switch (order.action) {
         case TRADE_ACTION_SELLCLOSE:
             price = tick.bidPrice1 < price - _minRange ? tick.bidPrice1 : price - _minRange;
-            _sendMsg(price, 1, false, false, newOrderID, true);
+            _sendMsg(price, 1, false, false, newOrderID, type);
             break;
         case TRADE_ACTION_BUYCLOSE:
             price = tick.askPrice1 > price + _minRange ? tick.askPrice1 : price + _minRange;
-            _sendMsg(price, 1, true, false, newOrderID, true);
+            _sendMsg(price, 1, true, false, newOrderID, type);
             break;
         default:
             break;
@@ -558,9 +571,12 @@ void TradeStrategy::_zhuijia(int orderID, double price)
     setTimer(newOrderID, order.instrumnetID);
 }
 
-void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen, int orderID, bool isFok)
+void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen, int orderID, int type)
 {
     TRADE_DATA order = _tradingInfo[orderID];
+
+    if (type == TRADE_TYPE_FOK)
+        type == TRADE_TYPE_FAK;
 
     MSG_TO_TRADE msg = {0};
     msg.msgType = MSG_ORDER;
@@ -568,7 +584,7 @@ void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen, i
     msg.isBuy = isBuy;
     msg.total = total;
     msg.isOpen = isOpen;
-    msg.isFok = isFok;
+    msg.type = type;
     msg.orderID = orderID;
     strcpy(msg.instrumnetID, Lib::stoc(order.instrumnetID));
     _tradeSrvClient->send((void *)&msg);
