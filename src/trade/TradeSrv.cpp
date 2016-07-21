@@ -2,7 +2,7 @@
 #include "TraderSpi.h"
 
 TradeSrv::TradeSrv(string brokerID, string userID, string password,
-    string tradeFront, string instrumnetIDs, string flowPath, string logPath, int serviceID, int db)
+    string tradeFront, string instrumnetIDs, string flowPath, string logPath, int serviceID, int db, string iocs)
 {
     _brokerID = brokerID;
     _userID = userID;
@@ -13,6 +13,7 @@ TradeSrv::TradeSrv(string brokerID, string userID, string password,
 
     _store = new Redis("127.0.0.1", 6379, db);
     _tradeStrategySrvClient = new QClient(serviceID, sizeof(MSG_TO_TRADE_STRATEGY));
+    _iocs = Lib::split(iocs, "/");
 
 }
 
@@ -139,9 +140,27 @@ void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int order
     }
 
     if (type == TRADE_TYPE_IOC) {
-        priceType = THOST_FTDC_OPT_AnyPrice;
-        price = 0;
-        timeCondition = THOST_FTDC_TC_IOC;
+        bool inMyIOC = false;
+        std::vector<string>::iterator i;
+        for (i = _iocs.begin(); i != _iocs.end(); i++) {
+            if (*i == instrumnetID) {
+                inMyIOC = true;
+                break;
+            }
+        }
+        if (inMyIOC) {
+            if (isBuy) {
+                string upper = _store->get("UPPERLIMITPRICE_" + instrumnetID);
+                price = Lib::stod(upper);
+            } else {
+                string lower = _store->get("LOWERLIMITPRICE_" + instrumnetID);
+                price = Lib::stod(lower);
+            }
+        } else {
+            priceType = THOST_FTDC_OPT_AnyPrice;
+            price = 0;
+            timeCondition = THOST_FTDC_TC_IOC;
+        }
     }
 
     ofstream info;

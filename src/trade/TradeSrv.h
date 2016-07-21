@@ -38,6 +38,7 @@ private:
     map<int, int> _orderIDDealed; // orderID -> 1
     map<int, int> _orderIDCanceled; // orderID -> 1
     map<string, int> _rate;
+    std::vector<string> _iocs;
 
     void _showData();
     bool _isOrderDealed(int);
@@ -61,7 +62,7 @@ private:
 
 public:
 
-    TradeSrv(string, string, string, string, string, string, string, int, int);
+    TradeSrv(string, string, string, string, string, string, string, int, int, string);
     ~TradeSrv();
 
     void init();

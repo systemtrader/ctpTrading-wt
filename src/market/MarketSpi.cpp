@@ -134,17 +134,22 @@ void MarketSpi::_saveMarketData(CThostFtdcDepthMarketDataField *data)
     msg.tick.bidVolume1 = data->BidVolume1;
     _klineClient->send((void *)&msg);
 
+    string upperLimitPrice = Lib::dtos(data->UpperLimitPrice);
+    string lowerLimitPrice = Lib::dtos(data->LowerLimitPrice);
+
+    string iID = string(data->InstrumentID);
+    _store->set("UPPERLIMITPRICE_" + iID, upperLimitPrice);
+    _store->set("LOWERLIMITPRICE_" + iID, lowerLimitPrice);
 
     // 将数据放入队列，以便存入DB
     string tickStr = Lib::tickData2String(msg.tick);
     string keyQ = "MARKET_TICK_Q";
-    string keyD = "CURRENT_TICK_" + string(data->InstrumentID);
+    string keyD = "CURRENT_TICK_" + iID;
     _store->set(keyD, tickStr); // tick数据，供全局使用
     // _store->push(keyQ, tickStr);
 
     string now = string(msg.tick.time);
     std::vector<string> nowHMS = Lib::split(now, ":");
-    string iID = string(data->InstrumentID);
     int i;
     for (i = 0; i < _stopHM[iID].size(); ++i)
     {

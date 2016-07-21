@@ -14,6 +14,7 @@ int main(int argc, char const *argv[])
     string userID   = getOptionToString("trade_user_id");
     string password = getOptionToString("trade_password");
     string tURL     = getOptionToString("trade_front");
+    string iocs     = getOptionToString("iocs");
 
     string instrumnetIDs = getOptionToString("instrumnet_id");
 
@@ -29,7 +30,7 @@ int main(int argc, char const *argv[])
     }
 
     service = new TradeSrv(bid, userID, password, tURL, instrumnetIDs,
-        flowPath, logPath, tradeStrategySrvID, db);
+        flowPath, logPath, tradeStrategySrvID, db, iocs);
     service->init();
 
     // 服务化

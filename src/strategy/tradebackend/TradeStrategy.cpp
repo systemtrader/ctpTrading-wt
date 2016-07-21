@@ -576,7 +576,7 @@ void TradeStrategy::_sendMsg(double price, int total, bool isBuy, bool isOpen, i
     TRADE_DATA order = _tradingInfo[orderID];
 
     if (type == TRADE_TYPE_FOK)
-        type == TRADE_TYPE_FAK;
+        type = TRADE_TYPE_FAK;
 
     MSG_TO_TRADE msg = {0};
     msg.msgType = MSG_ORDER;
