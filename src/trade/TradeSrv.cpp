@@ -110,7 +110,7 @@ void TradeSrv::trade(double price, int total, bool isBuy, bool isOpen, int order
         flag = THOST_FTDC_OFEN_CloseToday;
     }
 
-    TThostFtdcContingentConditionType condition = THOST_FTDC_VC_AV;
+    TThostFtdcContingentConditionType condition = THOST_FTDC_CC_Immediately;
     // switch (forecastType) {
     //     case FORECAST_TYPE_NONE:
     //         condition = THOST_FTDC_VC_AV;
