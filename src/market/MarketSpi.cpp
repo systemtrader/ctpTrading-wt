@@ -5,7 +5,7 @@ using namespace std;
 MarketSpi::MarketSpi(CThostFtdcMdApi * mdApi, string logPath,
     int serviceID,
     string brokerID, string userID, string password, string instrumnetIDs, int db,
-    std::map<string, std::vector<string> > stopTradeTimes, int serviceIDT)
+    std::map<string, std::vector<string> > stopTradeTimes, int serviceIDT, std::map<string, double> minRs)
 {
     _mdApi = mdApi;
     _logPath = logPath;
@@ -19,6 +19,7 @@ MarketSpi::MarketSpi(CThostFtdcMdApi * mdApi, string logPath,
     _klineClient = new QClient(serviceID, sizeof(MSG_TO_KLINE));
     _tradeLogicSrvClient = new QClient(serviceIDT, sizeof(MSG_TO_TRADE_LOGIC));
     _store = new Redis("127.0.0.1", 6379, db);
+    _minRs = minRs;
 
     // 初始化停止交易时间
     std::map<string, std::vector<string> >::iterator it;
@@ -170,6 +171,20 @@ void MarketSpi::_saveMarketData(CThostFtdcDepthMarketDataField *data)
         _tradeLogicSrvClient->send((void *)&msg3);
     }
 
+
+    if (data->UpperLimitPrice - data->LastPrice <= 10 * _minRs[iID]) {
+        MSG_TO_TRADE_LOGIC msg4 = {0};
+        msg4.msgType = MSG_TICK_UPPER;
+        msg4.tick = msg.tick;
+        _tradeLogicSrvClient->send((void *)&msg4);
+    }
+
+    if (data->LowerLimitPrice - data->LastPrice >= 10 * _minRs[iID]) {
+        MSG_TO_TRADE_LOGIC msg5 = {0};
+        msg5.msgType = MSG_TICK_LOWER;
+        msg5.tick = msg.tick;
+        _tradeLogicSrvClient->send((void *)&msg5);
+    }
 }
 
 

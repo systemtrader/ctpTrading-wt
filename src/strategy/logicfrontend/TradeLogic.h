@@ -170,6 +170,8 @@ public:
     void onTick(TickData);
     void onForecastSuccess(int);
     void onOneForecastSuccess();
+    void onTickUpper();
+    void onTickLower();
 };
 
 #endif

@@ -1383,6 +1383,28 @@ void TradeLogic::_setStatus(int way, int status)
     _store->set("TRADE_STATUS_" + Lib::itos(way) + "_" + _instrumnetID, Lib::itos(status));
 }
 
+void TradeLogic::onTickUpper()
+{
+    //log
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
+    info << "TradeLogicSrv[onTickUpper]";
+    info << endl;
+    info.close();
+    onTradeEnd();
+}
+
+void TradeLogic::onTickLower()
+{
+    //log
+    ofstream info;
+    Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
+    info << "TradeLogicSrv[onTickLower]";
+    info << endl;
+    info.close();
+    onTradeEnd();
+}
+
 
 void TradeLogic::_sendMsg(int msgType, double price, bool isForecast, int forecastID, int statusWay, int type)
 {

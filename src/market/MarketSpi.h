@@ -33,12 +33,13 @@ private:
     std::vector<string>  _instrumnetIDs;
 
     string _logPath;
+    std::map<string, double> _minRs;
 
     void _saveMarketData(CThostFtdcDepthMarketDataField *);
 
 public:
 
-    MarketSpi(CThostFtdcMdApi *, string, int, string, string, string, string, int, std::map<string, std::vector<string> >, int);
+    MarketSpi(CThostFtdcMdApi *, string, int, string, string, string, string, int, std::map<string, std::vector<string> >, int, std::map<string, double>);
     ~MarketSpi();
 
     void OnFrontConnected();

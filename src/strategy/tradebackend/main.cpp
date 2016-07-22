@@ -16,7 +16,7 @@ int main(int argc, char const *argv[])
     string logPath         = getOptionToString("log_path");
     int kLineSrvID         = getOptionToInt("k_line_service_id");
     int tradeLogicSrvID    = getOptionToInt("trade_logic_service_id");
-    string minRanges    = getOptionToString("min_range");
+    string minRanges       = getOptionToString("min_range");
 
     int isDev = getOptionToInt("is_dev");
     int db;

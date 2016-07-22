@@ -25,6 +25,8 @@ int main(int argc, char const *argv[])
     string mURL     = getOptionToString("market_front");
 
     string instrumnetIDs = getOptionToString("instrumnet_id");
+    string minRanges     = getOptionToString("min_range");
+    std::vector<string> minRs = Lib::split(minRanges, "/");
 
     int kLineSrvID  = getOptionToInt("k_line_service_id");
     pidPath  = getOptionToString("pid_path");
@@ -39,10 +41,12 @@ int main(int argc, char const *argv[])
 
     std::vector<string> iIDs = Lib::split(instrumnetIDs, "/");
     std::map<string, std::vector<string> > stopTradeTimes;
+    std::map<string, double> minRmap;
     for (int i = 0; i < iIDs.size(); ++i)
     {
         string tmp = getOptionToString("stop_trade_time_" + iIDs[i]);
         stopTradeTimes[iIDs[i]] = Lib::split(tmp, "/");
+        minRmap[iIDs[i]] = Lib::stod(minRs[i]);
     }
 
     int tradeLogicSrvID = getOptionToInt("trade_logic_service_id");
@@ -55,7 +59,7 @@ int main(int argc, char const *argv[])
 
     // 初始化交易接口
     mApi = CThostFtdcMdApi::CreateFtdcMdApi(flowPath.c_str());
-    MarketSpi mSpi(mApi, logPath, kLineSrvID, bid, userID, password, instrumnetIDs, db, stopTradeTimes, tradeLogicSrvID); // 初始化回调实例
+    MarketSpi mSpi(mApi, logPath, kLineSrvID, bid, userID, password, instrumnetIDs, db, stopTradeTimes, tradeLogicSrvID, minRmap); // 初始化回调实例
     mApi->RegisterSpi(&mSpi);
     mApi->RegisterFront(Lib::stoc(mURL));
     mApi->Init();

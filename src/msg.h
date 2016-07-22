@@ -26,6 +26,8 @@ typedef struct msg_tick
 #define MSG_TRADE_TICK 24
 #define MSG_TRADE_FORECAST_SUCCESS 25
 #define MSG_TRADE_ONE_FORECAST_SUCCESS 26
+#define MSG_TICK_UPPER 27
+#define MSG_TICK_LOWER 28
 typedef struct msg_k_line
 {
     long int msgType;

@@ -128,6 +128,15 @@ bool action(long int msgType, const void * data)
         services[string(tick.instrumnetID)]->onOneForecastSuccess();
     }
 
+    if (msgType == MSG_TICK_UPPER) {
+        TickData tick = ((MSG_TO_TRADE_LOGIC*)data)->tick;
+        services[string(tick.instrumnetID)]->onTickUpper();
+    }
+
+    if (msgType == MSG_TICK_LOWER) {
+        TickData tick = ((MSG_TO_TRADE_LOGIC*)data)->tick;
+        services[string(tick.instrumnetID)]->onTickLower();
+    }
 
     return true;
 }
