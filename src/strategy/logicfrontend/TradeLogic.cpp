@@ -927,6 +927,12 @@ void TradeLogic::onKLineClose(KLineBlock block, TickData tick)
             if (status2 == TRADE_STATUS_SELLOPENING) {
                 _statusType = STATUS_TYPE_CLOSE_NO_SOING;
             }
+
+            if (status2 == TRADE_STATUS_SELLOPENED) {
+                _setStatus(1, TRADE_STATUS_SELLOPENED);
+                _statusType = STATUS_TYPE_CLOSE_SOED;
+            }
+
             break;
         case TRADE_STATUS_SELLOPENED:
 
