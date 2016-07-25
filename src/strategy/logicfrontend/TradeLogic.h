@@ -8,12 +8,17 @@
 #include <list>
 #include <map>
 #include <cmath>
+#include <stdio.h>
+#include <stdlib.h>
 
 #define TRANS_TYPE_UP2UP     0
 #define TRANS_TYPE_UP2DOWN   1
 #define TRANS_TYPE_DOWN2UP   2
 #define TRANS_TYPE_DOWN2DOWN 3
 
+#define REALTIME      0
+#define FORECAST_UP   1
+#define FORECAST_DOWN 2
 
 #define STATUS_TYPE_CLOSE_NO 0
 #define STATUS_TYPE_CLOSE_BOED 1
@@ -71,8 +76,10 @@ class TradeLogic
 private:
 
     Redis * _store;
+    Redis * _storePubSub;
     QClient * _tradeStrategySrvClient;
     string _logPath;
+
 
     string _instrumnetID; // 合约代码
     std::vector<TRADE_HM> _stopHM; // 停止交易时间
@@ -95,7 +102,7 @@ private:
     int _rollbackCloseUID;
     int _rollbackCloseDID;
     void _setRollbackID(int, int);
-    int _kRange; // 放弃
+    double _kRange; // 放弃
     bool _isTradeEnd;
 
     double _forecastOpenPrice1;
@@ -115,18 +122,16 @@ private:
     // int _countDown2Down;
     list<int> _transTypeList; // 保存transType
     list<TickData> _tickGroup; // 保存三个tick数据，满足三个tick则可以计算出一个transType，即可存入transTypeList
+    list<double> _tickList;
+    double _offset;
+    double _fit1;
+    double _fit2;
+    double _fsMax;
 
-    double _pUp2Up;
-    double _pUp2Down;
-    void _calculateUp(int = -1);
-
-    double _pDown2Up;
-    double _pDown2Down;
-    void _calculateDown(int = -1);
+    double _fsThreshold;
 
     void _tick(TickData); // 处理tick信息
-
-    bool _isCurrentUp();
+    void _fit(int);
 
     int _statusType;
     bool _rollback();
