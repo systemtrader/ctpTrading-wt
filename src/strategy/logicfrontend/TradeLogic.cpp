@@ -338,7 +338,9 @@ void TradeLogic::_fit(int type)
     //log
     ofstream info;
     Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
-    info << "TradeLogicSrv[fit]";
+    info << "TradeLogicSrv[fitBegin]";
+    info << endl;
+    info.close();
 
     string params = "";
     list<double>::reverse_iterator i = _tickList.rbegin();
@@ -360,11 +362,15 @@ void TradeLogic::_fit(int type)
 
     params += _instrumnetID + "|" + Lib::dtos(_kRange);
     string cmd = "python ../src/strategy/logicfrontend/fit.py '" + params + "'";
-    FILE *pf = popen(Lib::stoc(cmd), "r");
-    char res[1024];
-    fread(res, 1024, 1, pf);
-    pclose(pf);
-    string rsp = string(res);
+    system(Lib::stoc(cmd));
+    string rsp = _storePubSub->get("FIT_RSP");
+    // FILE *pf = popen(Lib::stoc(cmd), "r");
+    // char res[1024];
+    // fread(res, 1024, 1, pf);
+    // pclose(pf);
+    // string rsp = string(res);
+    Lib::initInfoLogHandle(_logPath, info, _instrumnetID);
+    info << "TradeLogicSrv[fitRsp]";
     info << "|rsp|" << rsp;
 
     std::vector<string> rspArr = Lib::split(rsp, "|");

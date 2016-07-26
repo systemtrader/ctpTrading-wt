@@ -44,7 +44,7 @@ class KSignal():
         dt = 0.5
         n = len(nList)
         fx = np.fft.fft(nList)
-        fx = fx[0:int(round(n/2))]
+        fx = fx[0:int(round(n/2)) - 1]
         s = abs(fx) ** 2
         f = np.arange(0, (round(n/2)-1)/(n * dt), 1/(n * dt))
         s = s / sum(s) * (n * dt)
@@ -59,8 +59,10 @@ data = sys.argv[1]
 dataArr = data.split('|')
 krange = dataArr.pop()
 iid = dataArr.pop()
-degree = config[iid]['degree']
-stdN = config[iid]['stdN']
+# degree = config[iid]['degree']
+# stdN = config[iid]['stdN']
+degree = 3
+stdN = 0.5
 ksignal = KSignal(degree)
 for s in dataArr:
     ksignal.push(float(s))
@@ -70,6 +72,9 @@ fit1 = fitList.pop()
 fit2 = fitList.pop()
 offset = std * stdN
 rsp = str(fit1) + '|' + str(fit2) + '|' + str(offset) + '|' + str(fsMax)
-print rsp
+# print rsp
+rds = Redis(host='127.0.0.1', port=6379, db=1)
+rds.set('FIT_RSP', rsp)
+
 
 

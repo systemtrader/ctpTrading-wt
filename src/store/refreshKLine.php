@@ -14,7 +14,7 @@ class Refresh
 
     public function run()
     {
-        $db = new PDO("mysql:dbname=ctp_1;host=127.0.0.1", "root", "Abc518131!");
+        $db = new PDO("mysql:dbname=ctp_fit_dev;host=127.0.0.1", "root", "Abc518131!");
         $tickDB = new PDO("mysql:dbname=tick;host=127.0.0.1", "root", "Abc518131!");
         $this->refresh($this->iID, $this->kRange, $db, $tickDB);
     }
