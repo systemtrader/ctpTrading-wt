@@ -1102,8 +1102,19 @@ void TradeLogic::onRollback()
             break;
 
         case STATUS_TYPE_CLOSE_BOING:
+            if (status1 == TRADE_STATUS_NOTHING) {
+                _realAction(_closeTick);
+            } else {
+                _forecast(_closeTick);
+            }
+            break;
         case STATUS_TYPE_CLOSE_SOING:
-            _realAction(_closeTick);
+            if (status2 == TRADE_STATUS_NOTHING) {
+                _realAction(_closeTick);
+            } else {
+                _setStatus(1, TRADE_STATUS_SELLOPENED);
+                _forecast(_closeTick);
+            }
             break;
 
         default:
