@@ -561,6 +561,8 @@ void TradeLogic::_realAction(TickData tick)
                 } else {
                     _sendMsg(MSG_TRADE_SELLCLOSE, nowTick.askPrice1, false, 0, 1, TRADE_TYPE_FOK);
                 }
+            } else {
+                _forecast(nowTick);
             }
             break;
     }
